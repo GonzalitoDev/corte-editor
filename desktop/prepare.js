@@ -4,7 +4,7 @@ const path = require('path');
 
 const SRC = path.join(__dirname, '..');
 const DEST = path.join(__dirname, 'app');
-const ITEMS = ['index.html', 'shared', 'corte', 'lienzo', 'trazo', 'folio', 'onda'];
+const ITEMS = ['index.html', 'shared', 'corte', 'lienzo', 'trazo', 'folio', 'onda', 'gonzacraft'];
 
 fs.rmSync(DEST, { recursive: true, force: true });
 fs.mkdirSync(DEST, { recursive: true });

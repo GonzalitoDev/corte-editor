@@ -9,6 +9,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **Trazo** | Editor vectorial | [`trazo/`](trazo/) |
 | **Folio** | Herramientas PDF | [`folio/`](folio/) |
 | **Onda** | Editor de audio multipista | [`onda/`](onda/) |
+| **GonzaCraft** | Juego de bloques (Windows, Linux Mint y navegador) | [`gonzacraft/`](gonzacraft/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 
@@ -48,6 +49,13 @@ Multipista ilimitada, transiciones, animaciones, fotogramas clave, filtros, efec
 - Generar tonos, ruido blanco/rosa/marrón, silencio y metrónomo
 - Importa cualquier audio y el sonido de videos; exporta MP3 (hasta 320 kbps) y WAV
 
+## GonzaCraft · juego
+Juego de bloques original con mundo infinito (llanuras, bosques, desiertos, tundra, montañas, océanos, cuevas y minerales), 38 bloques con texturas dibujadas por código, supervivencia con vida y fabricación, modo creativo con vuelo, día y noche, lámparas que iluminan, guardado automático y multijugador con código (PeerJS).
+
+- Página de descarga: [`gonzacraft/`](gonzacraft/) · jugar en el navegador: [`gonzacraft/jugar/`](gonzacraft/jugar/)
+- App de escritorio: [`desktop-gonzacraft/`](desktop-gonzacraft/) (`npm run dist:win` o `npm run dist:linux`)
+- Cada cambio en el juego dispara el workflow `gonzacraft.yml`, que arma `GonzaCraft-Setup.exe`, `GonzaCraft.deb` y `GonzaCraft.AppImage` y los publica en el release `gonzacraft`.
+
 ## App de escritorio para Windows
 
 La carpeta [`desktop/`](desktop/) empaqueta la suite con Electron. Para armar los instaladores:
@@ -64,4 +72,4 @@ Cada tag `v*` que subas a GitHub arma los dos instaladores en Windows y los publ
 
 Es un sitio estático. Publicalo en Vercel (ya incluye `vercel.json`), Netlify o GitHub Pages, o servilo localmente con `npx serve`. Las librerías y los modelos de IA se cargan desde CDN la primera vez y después quedan en caché.
 
-Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe, @imgly/background-removal y lamejs.
+Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe, @imgly/background-removal, lamejs, three.js y PeerJS.

@@ -1,0 +1,169 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GonzaCraft · Descargar gratis</title>
+<meta name="description" content="Descargá GonzaCraft gratis para Windows y Linux Mint, o jugalo en el navegador. Mundo infinito de bloques, supervivencia, creativo y multijugador.">
+<meta property="og:title" content="GonzaCraft">
+<meta property="og:description" content="Juego de bloques gratis: mundo infinito, construir, sobrevivir y jugar con amigos.">
+<meta property="og:image" content="img/paisaje.jpg">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@500;700&family=Figtree:wght@400;500;600&display=swap">
+<style>
+:root{--bg:#0f1410;--panel:#172019;--line:#2b3a2d;--fg:#eef3ea;--muted:#a3b19f;--grass:#7ec850;--grass-d:#4f8f2f;--dirt:#8b5e3c;--sky:#87bfff;--px:'Pixelify Sans',ui-monospace,monospace;--sans:Figtree,system-ui,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth}
+body{margin:0;background:var(--bg);color:var(--fg);font:16px/1.55 var(--sans)}
+a{color:var(--grass)}
+.wrap{width:min(1120px,100% - 32px);margin-inline:auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;font:700 22px var(--px);color:var(--fg);text-decoration:none}
+.brand img{width:34px;height:34px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}
+.back:hover{color:var(--fg)}
+.hero{position:relative;border-radius:18px;overflow:hidden;min-height:520px;display:flex;align-items:flex-end;background:#000}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover;image-rendering:pixelated}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,12,9,.55),rgba(8,12,9,0) 65%),linear-gradient(180deg,rgba(0,0,0,0) 25%,rgba(8,12,9,.92) 88%)}
+.hero .in{position:relative;z-index:1;padding:36px;max-width:720px}
+h1{font:700 clamp(48px,9vw,92px)/.9 var(--px);margin:0 0 14px;letter-spacing:.02em;text-shadow:0 4px 0 #2a2a2a,0 8px 22px rgba(0,0,0,.6)}
+h1 span{color:var(--grass);text-shadow:0 4px 0 var(--dirt),0 8px 22px rgba(0,0,0,.6)}
+.lead{text-shadow:0 2px 10px rgba(0,0,0,.85);font-size:clamp(17px,2.1vw,20px);color:#dfe8da;margin:0 0 24px;max-width:600px}
+.dl{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:600 16px var(--sans);padding:13px 18px;border-radius:10px;text-decoration:none;color:var(--fg);background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.18);backdrop-filter:blur(6px);min-height:48px}
+.btn:hover{background:rgba(255,255,255,.18)}
+.btn.main{background:var(--grass);color:#10230a;border-color:transparent;box-shadow:0 4px 0 var(--grass-d)}
+.btn.main:hover{background:#90d862}
+.btn svg{width:20px;height:20px;flex:none}
+.btn small{display:block;font-weight:500;font-size:12px;opacity:.75;line-height:1.2}
+.note{margin:14px 0 0;color:var(--muted);font-size:14px}
+section{padding:56px 0 8px}
+h2{font:700 32px var(--px);margin:0 0 20px}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card b{display:block;font:700 19px var(--px);margin-bottom:4px}
+.card p{margin:0;color:var(--muted)}
+.card li b{display:inline;font:600 16px var(--sans);margin:0}
+.card .ic{width:40px;height:40px;margin-bottom:12px;image-rendering:pixelated}
+.shots{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.shots figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.shots img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
+.shots figcaption{padding:10px 14px;color:var(--muted);font-size:14px}
+.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps ol{margin:10px 0 0;padding-left:22px;color:#d6dfd2}
+.steps li{margin:6px 0}
+.steps h3{margin:0;font:700 22px var(--px);display:flex;align-items:center;gap:10px}
+.steps h3 svg{width:24px;height:24px}
+code{font:14px ui-monospace,Consolas,monospace;background:#0b0f0c;border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:#cfe8c0;user-select:all}
+pre{background:#0b0f0c;border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;margin:8px 0}
+pre code{border:0;padding:0;background:none}
+table{width:100%;border-collapse:collapse;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+td{padding:10px 16px;border-top:1px solid var(--line)}
+tr:first-child td{border-top:0}
+td:first-child{width:38%;white-space:nowrap}
+kbd{font:600 13px ui-monospace,monospace;background:#0b0f0c;border:1px solid #3a4a3c;border-bottom-width:3px;border-radius:5px;padding:1px 6px}
+.req{color:var(--muted);font-size:14px;margin-top:12px}
+footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+@media (max-width:820px){.grid3,.shots,.steps{grid-template-columns:1fr}.hero{min-height:560px}.hero .in{padding:22px}td:first-child{white-space:normal}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./"><img src="icon.svg" alt="">GonzaCraft</a>
+    <a class="back" href="../">← Volver a Taller</a>
+  </header>
+
+  <div class="hero">
+    <img src="img/paisaje.jpg" alt="Paisaje de GonzaCraft con un lago, bosque y montañas">
+    <div class="in">
+      <h1>GONZA<span>CRAFT</span></h1>
+      <p class="lead">Un mundo infinito de bloques para explorar, construir y sobrevivir. Jugá solo o con amigos. Gratis, sin anuncios y sin crear cuentas.</p>
+      <div class="dl" id="dl">
+        <a class="btn" id="dWin" href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/GonzaCraft-Setup.exe">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg>
+          <span>Descargar para Windows<small>Instalador .exe · 64 bits</small></span></a>
+        <a class="btn" id="dLin" href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/GonzaCraft.deb">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8v6a2 2 0 0 0 2 2h5M12 8v5h3"/></svg>
+          <span>Descargar para Linux Mint<small>Paquete .deb · también Ubuntu</small></span></a>
+        <a class="btn" href="jugar/">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <span>Jugar en el navegador<small>Sin instalar nada</small></span></a>
+      </div>
+      <p class="note">Versión 1.0 · ¿Otra distro de Linux? Usá el <a href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/GonzaCraft.AppImage">AppImage</a>.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Qué podés hacer</h2>
+    <div class="grid3" id="feat"></div>
+  </section>
+
+  <section>
+    <h2>Capturas</h2>
+    <div class="shots">
+      <figure><img src="img/noche.jpg" alt="Una casa de tablas y ladrillos iluminada con lámparas de noche" loading="lazy"><figcaption>De noche, las lámparas iluminan lo que construiste.</figcaption></figure>
+      <figure><img src="img/titulo.jpg" alt="Pantalla de inicio de GonzaCraft" loading="lazy"><figcaption>La pantalla de inicio muestra un mundo de fondo.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="instalar">
+    <h2>Cómo instalarlo</h2>
+    <div class="steps">
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg>Windows 10 y 11</h3>
+        <ol>
+          <li>Descargá <b>GonzaCraft-Setup.exe</b>.</li>
+          <li>Abrilo. Si aparece “Windows protegió tu PC”, tocá <b>Más información</b> y después <b>Ejecutar de todas formas</b>. Pasa porque el juego no tiene firma digital paga.</li>
+          <li>Elegí la carpeta y tocá <b>Instalar</b>. Te queda un acceso directo en el escritorio.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8v6a2 2 0 0 0 2 2h5M12 8v5h3"/></svg>Linux Mint</h3>
+        <ol>
+          <li>Descargá <b>GonzaCraft.deb</b>.</li>
+          <li>Hacé doble clic en el archivo y tocá <b>Instalar paquete</b>. Te va a pedir tu contraseña.</li>
+          <li>Buscalo en el menú, en la categoría <b>Juegos</b>.</li>
+        </ol>
+        <p class="req" style="margin-bottom:0">O desde la terminal, en la carpeta Descargas:</p>
+        <pre><code>sudo apt install ./GonzaCraft.deb</code></pre>
+      </div>
+    </div>
+    <p class="req">Requisitos: computadora de 64 bits con una placa de video que soporte OpenGL 3 o WebGL 2 (casi cualquiera de los últimos 10 años). Para el multijugador hace falta internet.</p>
+  </section>
+
+  <section>
+    <h2>Controles</h2>
+    <table>
+      <tr><td><kbd>W</kbd> <kbd>A</kbd> <kbd>S</kbd> <kbd>D</kbd></td><td>Moverse</td></tr>
+      <tr><td><kbd>Espacio</kbd></td><td>Saltar. En creativo, dos veces seguidas para volar</td></tr>
+      <tr><td><kbd>W</kbd> dos veces o <kbd>Ctrl</kbd></td><td>Correr</td></tr>
+      <tr><td><kbd>Shift</kbd></td><td>Agacharse (no te caés de los bordes) o bajar volando</td></tr>
+      <tr><td>Clic izquierdo / derecho</td><td>Romper / poner bloques</td></tr>
+      <tr><td>Rueda del mouse o <kbd>1</kbd>–<kbd>9</kbd></td><td>Elegir bloque</td></tr>
+      <tr><td><kbd>E</kbd></td><td>Inventario y fabricar</td></tr>
+      <tr><td><kbd>T</kbd></td><td>Chat y comandos (<code>/ayuda</code>)</td></tr>
+      <tr><td><kbd>F2</kbd> · <kbd>F3</kbd> · <kbd>F11</kbd></td><td>Captura · información · pantalla completa</td></tr>
+    </table>
+  </section>
+
+  <footer><span>GonzaCraft es un juego original hecho por GonzalitoDev. Código abierto en <a href="https://github.com/GonzalitoDev/corte-editor/tree/main/gonzacraft">GitHub</a>.</span><span>Parte de <a href="../">Taller</a></span></footer>
+</div>
+<script>
+  const F = [
+    ['#7ec850', 'Mundo infinito', 'Llanuras, bosques, desiertos, tundra, montañas y océanos que se generan mientras caminás. Abajo hay cuevas y minerales.'],
+    ['#b8865b', '38 bloques', 'Tierra, piedra, maderas, vidrio, ladrillos, lana de colores, lámparas, flores y más, todos con texturas propias.'],
+    ['#e3262a', 'Supervivencia', 'Juntá bloques con las manos, fabricá cosas nuevas y cuidá tu vida: caídas, cactus y agua profunda lastiman.'],
+    ['#ffd75e', 'Creativo', 'Todos los bloques infinitos, volás y construís lo que quieras sin límites.'],
+    ['#5aa9ff', 'Multijugador', 'Abrí tu mundo con un código de 5 letras y tus amigos entran desde su compu. Con chat.'],
+    ['#c9a7ff', 'Día, noche y guardado', 'Amanece, anochece y aparecen las estrellas. Tus mundos se guardan solos.'],
+  ];
+  document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');
+  // destacar la descarga que corresponde a tu sistema
+  const ua = navigator.userAgent, os = /Windows/i.test(ua) ? 'dWin' : /Linux/i.test(ua) && !/Android/i.test(ua) ? 'dLin' : null;
+  const main = document.getElementById(os) || document.querySelector('#dl a[href="jugar/"]');
+  main.classList.add('main'); main.parentElement.prepend(main);
+</script>
+</body>
+</html>

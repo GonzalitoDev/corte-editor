@@ -1,0 +1,62 @@
+name: GonzaCraft (instaladores)
+
+# Cada vez que cambia el juego, arma los instaladores y los publica en el
+# release "gonzacraft". La página de descarga apunta siempre a esos archivos.
+on:
+  push:
+    branches: [main]
+    paths: ['gonzacraft/**', 'desktop-gonzacraft/**', '.github/workflows/gonzacraft.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+            files: desktop-gonzacraft/dist/GonzaCraft-Setup.exe
+          - os: ubuntu-latest
+            script: dist:linux
+            files: |
+              desktop-gonzacraft/dist/GonzaCraft.deb
+              desktop-gonzacraft/dist/GonzaCraft.AppImage
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop-gonzacraft
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run ${{ matrix.script }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gonzacraft-${{ matrix.os }}
+          path: ${{ matrix.files }}
+
+  publish:
+    needs: build
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publicar en el release "gonzacraft"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la out
+          if ! gh release view gonzacraft >/dev/null 2>&1; then
+            gh release create gonzacraft --target "${{ github.sha }}" --latest=false \
+              --title "GonzaCraft (última versión)" \
+              --notes "Instaladores de GonzaCraft. Windows: GonzaCraft-Setup.exe · Linux Mint / Ubuntu: GonzaCraft.deb · Otras distros: GonzaCraft.AppImage. Página de descarga: https://github.com/${{ github.repository }}/tree/main/gonzacraft"
+          fi
+          gh release upload gonzacraft out/* --clobber

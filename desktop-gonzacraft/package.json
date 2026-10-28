@@ -1,0 +1,51 @@
+{
+  "name": "gonzacraft",
+  "productName": "GonzaCraft",
+  "version": "1.0.0",
+  "description": "Juego de bloques gratis con mundo infinito, supervivencia, creativo y multijugador",
+  "author": { "name": "GonzalitoDev", "email": "gonzalitodev@users.noreply.github.com" },
+  "license": "MIT",
+  "homepage": "https://github.com/GonzalitoDev/corte-editor",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node prepare.js && electron .",
+    "dist:win": "node prepare.js && electron-builder --win nsis --x64 --publish never",
+    "dist:linux": "node prepare.js && electron-builder --linux deb AppImage --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "dev.gonzalito.gonzacraft",
+    "productName": "GonzaCraft",
+    "copyright": "GonzalitoDev",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "app/**/*", "build/icon.png"],
+    "win": { "target": ["nsis"], "icon": "build/icon.ico" },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GonzaCraft",
+      "installerLanguages": ["es_ES"],
+      "language": "3082",
+      "artifactName": "GonzaCraft-Setup.${ext}"
+    },
+    "linux": {
+      "target": ["deb", "AppImage"],
+      "icon": "build/icon.png",
+      "category": "Game",
+      "executableName": "gonzacraft",
+      "synopsis": "Juego de bloques con mundo infinito",
+      "description": "GonzaCraft: explorá un mundo infinito de bloques, construí, sobreviví y jugá con amigos.",
+      "desktop": { "Name": "GonzaCraft", "Comment": "Juego de bloques con mundo infinito", "Keywords": "juego;bloques;construir;game;" }
+    },
+    "deb": { "artifactName": "GonzaCraft.${ext}", "packageCategory": "games", "priority": "optional" },
+    "appImage": { "artifactName": "GonzaCraft.${ext}" }
+  },
+  "repository": { "type": "git", "url": "https://github.com/GonzalitoDev/corte-editor.git" }
+}

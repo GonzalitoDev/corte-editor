@@ -1,0 +1,132 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GonzaCraft</title>
+<meta name="description" content="GonzaCraft: juego de bloques gratis. Mundo infinito, construir, romper, día y noche, supervivencia, creativo y multijugador.">
+<link rel="icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Pixelify+Sans:wght@400;600;700&display=swap">
+<link rel="stylesheet" href="gc.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<div id="hud" hidden>
+  <div id="cross"></div>
+  <div id="water" hidden></div>
+  <div id="hurt"></div>
+  <pre id="debug" hidden></pre>
+  <div id="chatLog" aria-live="polite"></div>
+  <input id="chatIn" hidden autocomplete="off" maxlength="200" placeholder="Escribí un mensaje o un comando como /ayuda">
+  <div id="bottom">
+    <div id="stats"><div id="hearts"></div><div id="air"></div></div>
+    <div id="slotName"></div>
+    <div id="hotbar"></div>
+  </div>
+</div>
+
+<section class="screen" id="sTitle" hidden>
+  <div class="logo"><span>GONZA</span><span>CRAFT</span><i id="splash">¡Gratis para siempre!</i></div>
+  <div class="menu">
+    <button data-go="worlds">Un jugador</button>
+    <button data-go="multi">Multijugador</button>
+    <div class="row"><button data-go="options">Opciones</button><button data-act="quit" class="desk">Salir</button></div>
+  </div>
+  <footer>GonzaCraft · hecho por GonzalitoDev · <a href="../">Descargar</a></footer>
+</section>
+
+<section class="screen panel" id="sWorlds" hidden>
+  <h2>Elegí un mundo</h2>
+  <div id="worldList" class="list" role="listbox" aria-label="Mundos"></div>
+  <div class="row"><button data-act="playWorld" id="btnPlay" disabled>Jugar</button><button data-go="new">Crear mundo nuevo</button></div>
+  <div class="row"><button data-act="delWorld" id="btnDel" disabled>Borrar</button><button data-go="title">Volver</button></div>
+</section>
+
+<section class="screen panel" id="sNew" hidden>
+  <h2>Crear mundo nuevo</h2>
+  <label>Nombre del mundo<input id="nName" value="Mundo nuevo" maxlength="32"></label>
+  <label>Semilla (opcional)<input id="nSeed" placeholder="Dejala vacía para un mundo al azar" maxlength="32"></label>
+  <div class="field">Modo de juego
+    <div class="row seg" id="nMode"><button data-mode="survival" aria-pressed="true">Supervivencia</button><button data-mode="creative" aria-pressed="false">Creativo</button></div>
+    <small id="nModeHelp">Juntá bloques, fabricá cosas y cuidá tu vida.</small>
+  </div>
+  <div class="row"><button data-act="create" class="primary">Crear mundo</button><button data-go="worlds">Cancelar</button></div>
+</section>
+
+<section class="screen panel" id="sMulti" hidden>
+  <h2>Multijugador</h2>
+  <label>Tu nombre<input id="mName" maxlength="16"></label>
+  <label>Código de la partida<input id="mCode" maxlength="6" placeholder="Ej: K7P2Q" style="text-transform:uppercase"></label>
+  <div class="row"><button data-act="join" class="primary">Unirse</button><button data-go="title">Volver</button></div>
+  <p class="help">Para ser anfitrión, entrá a uno de tus mundos, apretá <kbd>Esc</kbd> y tocá <b>Invitar amigos</b>. Te va a dar un código para pasarle a tus amigos. Hace falta internet.</p>
+</section>
+
+<section class="screen panel" id="sOptions" hidden>
+  <h2>Opciones</h2>
+  <label>Distancia de visión <output id="oRdV"></output><input type="range" id="oRd" min="2" max="12" step="1"></label>
+  <label>Campo de visión <output id="oFovV"></output><input type="range" id="oFov" min="50" max="110" step="1"></label>
+  <label>Sensibilidad del mouse <output id="oSensV"></output><input type="range" id="oSens" min="0.2" max="3" step="0.05"></label>
+  <label>Volumen <output id="oVolV"></output><input type="range" id="oVol" min="0" max="1" step="0.05"></label>
+  <div class="row"><button data-toggle="clouds" id="oClouds"></button><button data-toggle="fps" id="oFps"></button></div>
+  <details><summary>Controles</summary>
+    <table class="keys">
+      <tr><td><kbd>W A S D</kbd></td><td>Moverse</td></tr><tr><td><kbd>Espacio</kbd></td><td>Saltar · dos veces en creativo para volar</td></tr>
+      <tr><td><kbd>W</kbd> dos veces o <kbd>Ctrl</kbd></td><td>Correr</td></tr><tr><td><kbd>Shift</kbd></td><td>Agacharse · bajar volando</td></tr>
+      <tr><td>Clic izquierdo</td><td>Romper</td></tr><tr><td>Clic derecho</td><td>Poner bloque</td></tr><tr><td>Rueda · <kbd>1</kbd>–<kbd>9</kbd></td><td>Elegir bloque</td></tr>
+      <tr><td>Clic de la rueda</td><td>Copiar el bloque que mirás</td></tr><tr><td><kbd>E</kbd></td><td>Inventario</td></tr><tr><td><kbd>T</kbd></td><td>Chat y comandos</td></tr>
+      <tr><td><kbd>F2</kbd></td><td>Captura de pantalla</td></tr><tr><td><kbd>F3</kbd></td><td>Información de depuración</td></tr><tr><td><kbd>Esc</kbd></td><td>Pausa</td></tr>
+    </table>
+  </details>
+  <div class="row"><button data-act="optBack">Listo</button></div>
+</section>
+
+<section class="screen dim" id="sPause" hidden>
+  <h2>Juego en pausa</h2>
+  <div class="menu">
+    <button data-act="resume">Volver al juego</button>
+    <button data-act="invite" id="btnInvite">Invitar amigos</button>
+    <div id="inviteBox" hidden><p>Pasales este código a tus amigos. Lo ponen en <b>Multijugador</b>:</p><div class="code" id="inviteCode">…</div><button data-act="copyCode">Copiar código</button></div>
+    <button data-go="options">Opciones</button>
+    <button data-act="quitWorld">Guardar y salir al menú</button>
+  </div>
+</section>
+
+<section class="screen dim" id="sInv" hidden>
+  <div class="inv">
+    <h3 id="invTitle">Inventario</h3>
+    <div id="invGrid" class="grid"></div>
+    <div id="craft" hidden><h3>Fabricar</h3><div id="recipes"></div></div>
+    <h3>Barra rápida</h3>
+    <div id="invBar" class="grid"></div>
+    <p class="help" id="invHelp"></p>
+  </div>
+  <img id="carry" alt="" hidden>
+</section>
+
+<section class="screen dim red" id="sDead" hidden>
+  <h2>¡Moriste!</h2>
+  <p id="deadWhy"></p>
+  <div class="menu"><button data-act="respawn">Reaparecer</button><button data-act="quitWorld">Salir al menú</button></div>
+</section>
+
+<section class="screen" id="sLoading" hidden>
+  <p id="loadMsg">Generando el mundo…</p>
+  <div class="bar"><i id="loadBar"></i></div>
+</section>
+
+<section class="screen dim" id="sClick" hidden>
+  <h2 id="clickTitle">¡Listo!</h2>
+  <p>Hacé clic para jugar</p>
+</section>
+
+<div id="toast" hidden></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/noise.js"></script>
+<script src="js/blocks.js"></script>
+<script src="js/world.js"></script>
+<script src="js/game.js"></script>
+</body>
+</html>
