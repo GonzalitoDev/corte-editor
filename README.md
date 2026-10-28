@@ -10,6 +10,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **Folio** | Herramientas PDF | [`folio/`](folio/) |
 | **Onda** | Editor de audio multipista | [`onda/`](onda/) |
 | **GonzaCraft** | Juego de bloques (Windows, Linux Mint, Android y navegador) | [`gonzacraft/`](gonzacraft/) |
+| **GonzaSky** | Simulador de vuelo (Windows, Linux Mint, Android y navegador) | [`gonzasky/`](gonzasky/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 
@@ -57,6 +58,13 @@ Juego de bloques original con mundo infinito (llanuras, bosques, desiertos, tund
 - Servidor dedicado 24/7: [`servidor-gonzacraft/`](servidor-gonzacraft/) (Node + WebSocket). Se instala en un VPS con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-gonzacraft/instalar.sh | sudo bash`.
 - App de Android: [`android-gonzacraft/`](android-gonzacraft/), un WebView a pantalla completa con controles táctiles. Se arma sin Gradle con `./android-gonzacraft/build.sh` (necesita `aapt dalvik-exchange zipalign apksigner libandroid-23-java`). El workflow lo firma con los secretos `ANDROID_KEYSTORE` (keystore en base64) y `ANDROID_KEYSTORE_PASSWORD`.
 - Cada cambio en el juego dispara el workflow `gonzacraft.yml`, que arma `GonzaCraft-Setup.exe`, `GonzaCraft.deb`, `GonzaCraft.AppImage` y `GonzaCraft.apk` y los publica en el release `gonzacraft`.
+
+## GonzaSky · simulador de vuelo
+Simulador original con terreno infinito con niveles de detalle, ocho aeropuertos (pistas con marcas y luces, torres, hangares, ciudades), física de vuelo (sustentación, resistencia, pérdida, flaps, tren, frenos, viento), tres aviones (Gaucho 172, Pampa 320 y Cóndor F-1), día y noche, nubes y niebla, HUD, radar, mapa con GPS, piloto automático, seis desafíos con récords y controles por teclado, mouse, joystick, pantalla táctil o inclinando el celular.
+
+- Página de descarga: [`gonzasky/`](gonzasky/) · volar en el navegador: [`gonzasky/volar/`](gonzasky/volar/)
+- Escritorio: [`desktop-gonzasky/`](desktop-gonzasky/) · Android: [`android-gonzasky/`](android-gonzasky/)
+- El workflow `gonzasky.yml` publica `GonzaSky-Setup.exe`, `GonzaSky.deb`, `GonzaSky.AppImage` y `GonzaSky.apk` en el release `gonzasky` (el APK usa los mismos secretos de firma que GonzaCraft).
 
 ## App de escritorio para Windows
 

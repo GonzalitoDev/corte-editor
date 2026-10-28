@@ -1,0 +1,157 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>GonzaSky</title>
+<meta name="description" content="GonzaSky: simulador de vuelo gratis. Tres aviones, ocho aeropuertos, día y noche, clima y desafíos.">
+<link rel="icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
+<link rel="stylesheet" href="gs.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="hud"></canvas>
+<canvas id="map" hidden></canvas>
+
+<div id="touch" hidden>
+  <div id="yoke"><i></i></div>
+  <div id="thr"><span>MOTOR</span><div id="thrTrack"><i id="thrKnob"></i></div></div>
+  <div id="tBtns">
+    <button data-k="brakes" class="hold">Frenos</button>
+    <button data-k="flaps">Flaps</button>
+    <button data-k="gear">Tren</button>
+    <button data-k="rudL" class="hold">◀ Timón</button>
+    <button data-k="rudR" class="hold">Timón ▶</button>
+  </div>
+  <div id="tTop">
+    <button data-k="pause" aria-label="Pausa">❚❚</button><button data-k="cam">Cámara</button><button data-k="map">Mapa</button><button data-k="ap">Auto</button>
+  </div>
+</div>
+
+<section class="screen" id="sTitle" hidden>
+  <div class="logo"><b>GONZA<span>SKY</span></b><small>Simulador de vuelo</small></div>
+  <div class="menu">
+    <button class="primary" data-go="free">Vuelo libre</button>
+    <button data-go="chal">Desafíos</button>
+    <button data-go="opt">Opciones</button>
+    <button data-go="help">Controles</button>
+    <button data-act="quit" class="desk">Salir</button>
+  </div>
+  <footer>Hecho por GonzalitoDev · <a href="../">Descargar</a></footer>
+</section>
+
+<section class="screen" id="sFree" hidden>
+  <div class="panel wide">
+    <h2>Vuelo libre</h2>
+    <div class="group"><h3>Avión</h3><div id="planes" class="cards"></div></div>
+    <div class="cols">
+      <label>Aeropuerto<select id="fAp"></select></label>
+      <label>Empezar<select id="fStart"><option value="pista">En la pista</option><option value="aire">En el aire</option><option value="final">En final para aterrizar</option></select></label>
+      <label>Hora<select id="fHour"><option value="7">Amanecer</option><option value="13" selected>Mediodía</option><option value="18.4">Atardecer</option><option value="22.5">Noche</option></select></label>
+      <label>Clima<select id="fWx"><option value="despejado">Despejado</option><option value="nublado">Nublado</option><option value="niebla">Niebla</option></select></label>
+      <label>Viento<select id="fWind"><option value="0">Calmo</option><option value="5">Suave</option><option value="11">Fuerte</option></select></label>
+    </div>
+    <div class="row"><button data-go="title">Volver</button><button class="primary" data-act="startFree">¡A volar!</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sChal" hidden>
+  <div class="panel wide">
+    <h2>Desafíos</h2>
+    <div id="missions" class="mlist"></div>
+    <div class="row"><button data-go="title">Volver</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sOpt" hidden>
+  <div class="panel">
+    <h2>Opciones</h2>
+    <label>Calidad gráfica<select id="oQ"><option value="bajo">Baja (celulares y compus viejas)</option><option value="medio">Media</option><option value="alto">Alta</option></select></label>
+    <label>Unidades<select id="oU"><option value="met">km/h y metros</option><option value="imp">Nudos y pies (como los pilotos)</option></select></label>
+    <label>Volumen <output id="oVolV"></output><input type="range" id="oVol" min="0" max="1" step=".05"></label>
+    <label>Sensibilidad <output id="oSensV"></output><input type="range" id="oSens" min=".4" max="2" step=".05"></label>
+    <div class="toggles">
+      <button data-t="invert">Invertir arriba/abajo</button>
+      <button data-t="mouseFly">Volar con el mouse</button>
+      <button data-t="hudAlways">HUD verde siempre</button>
+      <button data-t="tilt" class="touchonly">Inclinar el celular para volar</button>
+    </div>
+    <div class="row"><button data-act="optBack" class="primary">Listo</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sHelp" hidden>
+  <div class="panel wide">
+    <h2>Controles</h2>
+    <div class="help2">
+      <table class="keys">
+        <tr><th colspan="2">Volar</th></tr>
+        <tr><td><kbd>W</kbd> <kbd>S</kbd> o <kbd>↑</kbd> <kbd>↓</kbd></td><td>Bajar / subir la nariz</td></tr>
+        <tr><td><kbd>A</kbd> <kbd>D</kbd> o <kbd>←</kbd> <kbd>→</kbd></td><td>Inclinar (alerones)</td></tr>
+        <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td>Timón (y doblar en tierra)</td></tr>
+        <tr><td><kbd>Shift</kbd> <kbd>Z</kbd> o <kbd>+</kbd> <kbd>-</kbd></td><td>Más / menos motor</td></tr>
+        <tr><td><kbd>F</kbd> <kbd>R</kbd></td><td>Bajar / subir flaps</td></tr>
+        <tr><td><kbd>G</kbd></td><td>Tren de aterrizaje</td></tr>
+        <tr><td><kbd>B</kbd> o <kbd>Espacio</kbd></td><td>Frenos (mantener)</td></tr>
+        <tr><td><kbd>U</kbd></td><td>Piloto automático</td></tr>
+      </table>
+      <table class="keys">
+        <tr><th colspan="2">Vista y menús</th></tr>
+        <tr><td><kbd>C</kbd> o <kbd>1</kbd>–<kbd>4</kbd></td><td>Cámara: atrás, cabina, órbita, torre</td></tr>
+        <tr><td>Arrastrar el mouse</td><td>Girar la cámara (en órbita)</td></tr>
+        <tr><td><kbd>M</kbd></td><td>Mapa: tocá un aeropuerto para ir</td></tr>
+        <tr><td><kbd>I</kbd></td><td>Mostrar u ocultar instrumentos</td></tr>
+        <tr><td><kbd>P</kbd> o <kbd>Esc</kbd></td><td>Pausa</td></tr>
+        <tr><th colspan="2">Cómo despegar</th></tr>
+        <tr><td colspan="2" class="tip">Motor al 100%, esperá la velocidad de rotación y tirá suave para atrás (<kbd>S</kbd>). Ya en el aire, subí el tren (<kbd>G</kbd>). Para aterrizar: flaps, tren abajo, bajá despacio alineado con la pista y frená al tocar.</td></tr>
+      </table>
+    </div>
+    <p class="hint touchonly">En el celular: el círculo de la izquierda es el volante, la barra de la derecha el motor.</p>
+    <p class="hint">También funciona con joystick o control de consola.</p>
+    <div class="row"><button data-go="back" class="primary">Listo</button></div>
+  </div>
+</section>
+
+<section class="screen dim" id="sPause" hidden>
+  <div class="panel">
+    <h2>Pausa</h2>
+    <div class="menu">
+      <button class="primary" data-act="resume">Seguir volando</button>
+      <button data-act="restart">Reiniciar</button>
+      <button data-go="opt">Opciones</button>
+      <button data-go="help">Controles</button>
+      <button data-act="quitFlight">Salir al menú</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen dim" id="sOver" hidden>
+  <div class="panel">
+    <h2 id="overTitle"></h2>
+    <p id="overText"></p>
+    <div class="menu">
+      <button class="primary" data-act="restart">Intentar de nuevo</button>
+      <button data-act="continueFlight" id="btnCont">Seguir volando</button>
+      <button data-act="quitFlight">Salir al menú</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="sLoad" hidden>
+  <p id="loadMsg">Preparando el vuelo…</p><div class="bar"><i id="loadBar"></i></div>
+</section>
+
+<div id="toast" hidden></div>
+<div id="mapHint" hidden>Tocá un aeropuerto para que el GPS te lleve · <kbd>M</kbd> para cerrar</div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/noise.js"></script>
+<script src="js/world.js"></script>
+<script src="js/planes.js"></script>
+<script src="js/flight.js"></script>
+<script src="js/hud.js"></script>
+<script src="js/main.js"></script>
+</body>
+</html>

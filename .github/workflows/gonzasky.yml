@@ -1,0 +1,85 @@
+name: GonzaSky (instaladores)
+
+# Cada vez que cambia el simulador, arma los instaladores y los publica en el
+# release "gonzasky". La página de descarga apunta siempre a esos archivos.
+on:
+  push:
+    branches: [main]
+    paths: ['gonzasky/**', 'desktop-gonzasky/**', 'android-gonzasky/**', '.github/workflows/gonzasky.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+            files: desktop-gonzasky/dist/GonzaSky-Setup.exe
+          - os: ubuntu-latest
+            script: dist:linux
+            files: |
+              desktop-gonzasky/dist/GonzaSky.deb
+              desktop-gonzasky/dist/GonzaSky.AppImage
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop-gonzasky
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run ${{ matrix.script }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gonzasky-${{ matrix.os }}
+          path: ${{ matrix.files }}
+
+  android:
+    runs-on: ubuntu-latest
+    env:
+      KS_B64: ${{ secrets.ANDROID_KEYSTORE }}
+      KS_PASS: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+    steps:
+      - uses: actions/checkout@v4
+      - name: Herramientas de Android
+        run: sudo apt-get update -qq && sudo apt-get install -y -qq aapt dalvik-exchange zipalign apksigner libandroid-23-java
+      - name: Armar GonzaSky.apk
+        if: env.KS_B64 != ''
+        run: |
+          echo "$KS_B64" | base64 -d > "$RUNNER_TEMP/gonzasky.jks"
+          KEYSTORE="$RUNNER_TEMP/gonzasky.jks" VERSION="1.0.${{ github.run_number }}" ./android-gonzasky/build.sh
+      - name: Falta la clave de firma
+        if: env.KS_B64 == ''
+        run: echo "::warning::Agregá los secretos ANDROID_KEYSTORE y ANDROID_KEYSTORE_PASSWORD para publicar el APK."
+      - uses: actions/upload-artifact@v4
+        with:
+          name: gonzasky-android
+          path: android-gonzasky/build/GonzaSky.apk
+          if-no-files-found: ignore
+
+  publish:
+    needs: [build, android]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publicar en el release "gonzasky"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la out
+          if ! gh release view gonzasky >/dev/null 2>&1; then
+            gh release create gonzasky --target "${{ github.sha }}" --latest=false \
+              --title "GonzaSky (última versión)" \
+              --notes "Instaladores de GonzaSky. Windows: GonzaSky-Setup.exe · Linux Mint / Ubuntu: GonzaSky.deb · Otras distros: GonzaSky.AppImage · Android: GonzaSky.apk. Página de descarga: https://github.com/${{ github.repository }}/tree/main/gonzasky"
+          fi
+          gh release upload gonzasky out/* --clobber

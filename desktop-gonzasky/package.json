@@ -1,0 +1,84 @@
+{
+  "name": "gonzasky",
+  "productName": "GonzaSky",
+  "version": "1.0.0",
+  "description": "Simulador de vuelo gratis: tres aviones, ocho aeropuertos, día y noche y desafíos",
+  "author": {
+    "name": "GonzalitoDev",
+    "email": "gonzalitodev@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/GonzalitoDev/corte-editor",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node prepare.js && electron .",
+    "dist:win": "node prepare.js && electron-builder --win nsis --x64 --publish never",
+    "dist:linux": "node prepare.js && electron-builder --linux deb AppImage --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "dev.gonzalito.gonzasky",
+    "productName": "GonzaSky",
+    "copyright": "GonzalitoDev",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "app/**/*",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "GonzaSky",
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082",
+      "artifactName": "GonzaSky-Setup.${ext}"
+    },
+    "linux": {
+      "target": [
+        "deb",
+        "AppImage"
+      ],
+      "icon": "build/icon.png",
+      "category": "Game",
+      "executableName": "gonzasky",
+      "synopsis": "Simulador de vuelo",
+      "description": "GonzaSky: despegá, volá sobre montañas y ciudades y aterrizá en ocho aeropuertos. Tres aviones, día y noche, clima y desafíos.",
+      "desktop": {
+        "Name": "GonzaSky",
+        "Comment": "Simulador de vuelo",
+        "Keywords": "avion;vuelo;simulador;flight;"
+      }
+    },
+    "deb": {
+      "artifactName": "GonzaSky.${ext}",
+      "packageCategory": "games",
+      "priority": "optional"
+    },
+    "appImage": {
+      "artifactName": "GonzaSky.${ext}"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GonzalitoDev/corte-editor.git"
+  }
+}
