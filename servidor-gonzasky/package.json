@@ -1,0 +1,11 @@
+{
+  "name": "gonzasky-servidor",
+  "version": "1.0.0",
+  "description": "Servidor de dogfight online de GonzaSky (24/7)",
+  "main": "server.js",
+  "private": true,
+  "license": "MIT",
+  "scripts": { "start": "node server.js" },
+  "engines": { "node": ">=18" },
+  "dependencies": { "ws": "8.18.0" }
+}

@@ -7,7 +7,7 @@
   const SPECS = {
     gaucho: {
       id: 'gaucho', name: 'Gaucho 172', tipo: 'Avioneta', desc: 'Fácil de volar, despega en pistas cortas y aterriza lento. Ideal para aprender.',
-      mass: 1100, S: 16.2, CL0: .3, CLa: 5.2, stall: .27, CD0: .031, k: .06, thrust: 3700, prop: true, vProp: 100,
+      hp: 60, mass: 1100, S: 16.2, CL0: .3, CLa: 5.2, stall: .27, CD0: .031, k: .06, thrust: 3700, prop: true, vProp: 100,
       pitchRate: 1.25, rollRate: 1.7, yawRate: .55, resp: 3.2, stabP: 3.2, stabY: 2.2, vRef: 42,
       flapCL: [0, .25, .45, .7], flapCD: [0, .008, .025, .055], gearCD: 0, fixedGear: true,
       gearH: 1.28, restPitch: .03, maxPitchGround: .2, crashVS: -4.5, brake: 4.5, steer: .9,
@@ -15,15 +15,15 @@
     },
     pampa: {
       id: 'pampa', name: 'Pampa 320', tipo: 'Avión de línea', desc: 'Grande y pesado. Necesita pistas largas, pero vuela rápido y alto. Tren retráctil.',
-      mass: 62000, S: 122, CL0: .22, CLa: 5.4, stall: .25, CD0: .021, k: .045, thrust: 235000, jet: true,
+      hp: 170, mass: 62000, S: 122, CL0: .22, CLa: 5.4, stall: .25, CD0: .021, k: .045, thrust: 235000, jet: true,
       pitchRate: .5, rollRate: .75, yawRate: .22, resp: 1.6, stabP: 2.2, stabY: 1.6, vRef: 120,
       flapCL: [0, .35, .6, .95], flapCD: [0, .01, .03, .06], gearCD: .018,
       gearH: 3.55, restPitch: 0, maxPitchGround: .2, crashVS: -3.6, brake: 3.2, steer: .35,
       eye: [0, 1.1, -15.2], chase: 52, cruise: 220, vRot: 72, maxFlapSpeed: 120, stars: [4, 2, 2],
     },
     condor: {
-      id: 'condor', name: 'Cóndor F-1', tipo: 'Caza', desc: 'Rapidísimo y muy ágil. Con el motor al máximo se prende la poscombustión.',
-      mass: 10500, S: 38, CL0: .08, CLa: 4.6, stall: .42, CD0: .019, k: .11, thrust: 95000, ab: 150000, jet: true,
+      id: 'condor', name: 'Cóndor F-1', tipo: 'Caza', desc: 'Rapidísimo y muy ágil, con 4 misiles (V). Con el motor al máximo se prende la poscombustión.',
+      missiles: 4, hp: 100, mass: 10500, S: 38, CL0: .08, CLa: 4.6, stall: .42, CD0: .019, k: .11, thrust: 95000, ab: 150000, jet: true,
       pitchRate: 2.2, rollRate: 4.4, yawRate: .5, resp: 5.5, stabP: 3.6, stabY: 2.6, vRef: 95,
       flapCL: [0, .18, .3, .45], flapCD: [0, .008, .02, .04], gearCD: .02,
       gearH: 2.25, restPitch: 0, maxPitchGround: .26, crashVS: -5, brake: 4, steer: .5,
@@ -33,7 +33,7 @@
       id: 'stuka', name: 'Stuka Ju 87', tipo: 'Bombardero · 2ª Guerra', desc: 'El clásico de la Segunda Guerra Mundial, con sirena y frenos de picada (B en el aire). Lleva 5 bombas (X) y 6 misiles guiados (V).',
       mass: 4300, S: 31.9, CL0: .25, CLa: 5, stall: .26, CD0: .036, k: .065, thrust: 36000, prop: true, vProp: 145,
       pitchRate: 1.1, rollRate: 1.5, yawRate: .5, resp: 3, stabP: 3, stabY: 2.2, vRef: 75,
-      flapCL: [0, .2, .35, .5], flapCD: [0, .01, .03, .05], gearCD: .012, fixedGear: true, diveBrakeCD: .1, siren: true, bombs: true,
+      flapCL: [0, .2, .35, .5], flapCD: [0, .01, .03, .05], gearCD: .012, fixedGear: true, diveBrakeCD: .1, siren: true, bombs: true, missiles: 6, hp: 110,
       gearH: 1.9, restPitch: .1, maxPitchGround: .22, crashVS: -4.2, brake: 4, steer: .8,
       eye: [0, 1.05, -1.6], chase: 18, cruise: 80, vRot: 40, maxFlapSpeed: 70, stars: [2, 3, 3],
     },
@@ -139,6 +139,9 @@
     fin([[.6, 2.8], [3.6, 5.6], [3.6, 6.6], [.6, 6.2]], .15, gray, root);
     p.rud = pivot(root, 0, 2.2, 6.5); mesh(new THREE.BoxGeometry(.12, 2.6, .55), dgray, 0, 0, .2, p.rud);
     for (const sx of [-1, 1]) { const r = mesh(new THREE.CircleGeometry(.55, 20), new THREE.MeshBasicMaterial({ color: 0x5fb3ff }), sx * 3.2, .03, 1.2, root); r.rotation.x = -Math.PI / 2; const r2 = mesh(new THREE.CircleGeometry(.28, 20), new THREE.MeshBasicMaterial({ color: 0xffffff }), sx * 3.2, .04, 1.2, root); r2.rotation.x = -Math.PI / 2; }
+    // 4 misiles bajo las alas
+    p.missiles = [];
+    for (const [x, z] of [[2.6, 1.5], [3.9, 2.6]]) for (const sx of [-1, 1]) { const m = missileMesh(); m.position.set(sx * x, -.38, z); root.add(m); mesh(new THREE.BoxGeometry(.06, .16, .9), metal, sx * x, -.24, z, root); p.missiles.push(m); }
     const mats = { metal, tire };
     p.gear = [gearLeg(root, -1.6, 1, -.5, -2.25, .38, mats), gearLeg(root, 1.6, 1, -.5, -2.25, .38, mats), gearLeg(root, 0, -5.6, -.5, -2.25, .3, mats)];
     p.strobe = navLights(root, [-5.2, -.1, 3.7], [5.2, -.1, 3.7], [0, 3.6, 6.6]);
@@ -301,7 +304,7 @@
     const am = a.ammo;
     if (p.bomb) p.bomb.visible = !!am && am.maxB > 0 && am.bombs === am.maxB;
     if (p.wingBombs) { const w = !am ? 0 : am.bombs === am.maxB ? am.maxB - 1 : am.bombs; p.wingBombs.forEach((b, i) => b.visible = i >= 4 - w); }
-    if (p.missiles) p.missiles.forEach((m, j) => m.visible = !!am && j >= 6 - am.missiles);
+    if (p.missiles) { const L = p.missiles.length; p.missiles.forEach((m, j) => m.visible = !!am && j >= L - am.missiles); }
   }
 
   Object.assign(GS, { SPECS, buildPlane, animatePlane, bombMesh, missileMesh, buildTank });

@@ -28,8 +28,9 @@
     <button data-k="missile" class="misonly" hidden>Misil</button>
   </div>
   <div id="tTop">
-    <button data-k="pause" aria-label="Pausa">❚❚</button><button data-k="cam">Cámara</button><button data-k="map">Mapa</button><button data-k="ap">Auto</button>
+    <button data-k="pause" aria-label="Pausa">❚❚</button><button data-k="cam">Cámara</button><button data-k="map">Mapa</button><button data-k="ap">Auto</button><button data-k="board" class="onlineonly" hidden aria-label="Tabla de puntos">🏆</button><button data-k="chat" class="onlineonly" hidden aria-label="Chat">💬</button>
   </div>
+  <button id="tFire" data-k="fire" class="hold" aria-label="Disparar">FUEGO</button>
 </div>
 
 <section class="screen" id="sTitle" hidden>
@@ -37,6 +38,7 @@
   <div class="menu">
     <button class="primary" data-go="free">Vuelo libre</button>
     <button data-go="chal">Desafíos</button>
+    <button data-go="online" class="hot">Dogfight online</button>
     <button data-go="opt">Opciones</button>
     <button data-go="help">Controles</button>
     <button data-act="quit" class="desk">Salir</button>
@@ -96,10 +98,12 @@
         <tr><td><kbd>Shift</kbd> <kbd>Z</kbd> o <kbd>+</kbd> <kbd>-</kbd></td><td>Más / menos motor</td></tr>
         <tr><td><kbd>F</kbd> <kbd>R</kbd></td><td>Bajar / subir flaps</td></tr>
         <tr><td><kbd>G</kbd></td><td>Tren de aterrizaje</td></tr>
-        <tr><td><kbd>B</kbd> o <kbd>Espacio</kbd></td><td>Frenos (mantener)</td></tr>
+        <tr><td><kbd>B</kbd> (o <kbd>Espacio</kbd> en tierra)</td><td>Frenos (mantener)</td></tr>
         <tr><td><kbd>U</kbd></td><td>Piloto automático</td></tr>
+        <tr><td><kbd>Espacio</kbd> o <kbd>Ctrl</kbd> en el aire</td><td>Disparar las ametralladoras</td></tr>
         <tr><td><kbd>X</kbd></td><td>Soltar bomba (Stuka)</td></tr>
-        <tr><td><kbd>V</kbd></td><td>Disparar misil guiado (Stuka)</td></tr>
+        <tr><td><kbd>V</kbd></td><td>Misil guiado (Stuka y Cóndor)</td></tr>
+        <tr><td><kbd>Tab</kbd> · <kbd>Enter</kbd></td><td>En línea: tabla de puntos · chat</td></tr>
         <tr><td><kbd>B</kbd> en el aire</td><td>Frenos de picada (Stuka)</td></tr>
       </table>
       <table class="keys">
@@ -122,9 +126,10 @@
 <section class="screen dim" id="sPause" hidden>
   <div class="panel">
     <h2>Pausa</h2>
+    <p id="pauseNote" hidden>Estás en línea: el juego no se detiene y tu avión sigue volando solo.</p>
     <div class="menu">
       <button class="primary" data-act="resume">Seguir volando</button>
-      <button data-act="restart">Reiniciar</button>
+      <button data-act="restart" class="offlineonly">Reiniciar</button>
       <button data-go="opt">Opciones</button>
       <button data-go="help">Controles</button>
       <button data-act="quitFlight">Salir al menú</button>
@@ -144,11 +149,37 @@
   </div>
 </section>
 
+<section class="screen" id="sOnline" hidden>
+  <div class="panel wide">
+    <h2>Dogfight online</h2>
+    <p>Peleá en el aire contra tus amigos en tu servidor. Gana el que derriba más aviones.</p>
+    <div class="cols">
+      <label>Tu nombre<input id="olName" maxlength="16" autocomplete="nickname" placeholder="Piloto"></label>
+      <label>Dirección del servidor<input id="olAddr" list="olList" autocomplete="off" spellcheck="false" placeholder="sky.1-2-3-4.sslip.io"></label>
+      <label>Contraseña (si tiene)<input id="olPass" type="password" autocomplete="off"></label>
+    </div>
+    <datalist id="olList"></datalist>
+    <p id="olInfo" class="hint">Escribí la dirección que te dio el instalador del servidor.</p>
+    <div class="group"><h3>Avión</h3><div id="olPlanes" class="pick"></div></div>
+    <div class="row"><button data-go="title">Volver</button><button class="primary" data-act="olJoin" id="olJoin">Entrar</button></div>
+  </div>
+</section>
+
+<section class="screen dim" id="sDead" hidden>
+  <div class="panel">
+    <h2 id="deadTitle">¡Te derribaron!</h2>
+    <p id="deadText"></p>
+    <div class="group"><h3>Elegí avión</h3><div id="deadPlanes" class="pick"></div></div>
+    <div class="row"><button data-act="olLeave">Salir del servidor</button><button class="primary" data-act="olRespawn" id="btnRespawn">Volver a volar</button></div>
+  </div>
+</section>
+
 <section class="screen" id="sLoad" hidden>
   <p id="loadMsg">Preparando el vuelo…</p><div class="bar"><i id="loadBar"></i></div>
 </section>
 
 <div id="toast" hidden></div>
+<form id="chatBox" hidden><input id="chatIn" maxlength="160" autocomplete="off" placeholder="Escribí y apretá Enter · Esc para cerrar"></form>
 <div id="mapHint" hidden>Tocá un aeropuerto para que el GPS te lleve · <kbd>M</kbd> para cerrar</div>
 
 <script src="vendor/three.min.js"></script>
@@ -158,5 +189,6 @@
 <script src="js/flight.js"></script>
 <script src="js/hud.js"></script>
 <script src="js/main.js"></script>
+<script src="js/online.js"></script>
 </body>
 </html>

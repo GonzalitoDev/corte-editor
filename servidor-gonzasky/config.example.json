@@ -1,0 +1,11 @@
+{
+  "name": "Dogfight de Gonza",
+  "motd": "¡Bienvenidos al cielo! El que derriba más gana.",
+  "host": "0.0.0.0",
+  "port": 7778,
+  "password": "",
+  "maxPlayers": 16,
+  "airport": "GZA",
+  "hour": 15,
+  "weather": "despejado"
+}

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GonzaSky · Simulador de vuelo gratis</title>
-<meta name="description" content="Descargá GonzaSky gratis: simulador de vuelo con cuatro aviones (incluido el Stuka de la Segunda Guerra), ocho aeropuertos, día y noche, clima y desafíos. Para Windows, Linux Mint, Android y navegador.">
+<meta name="description" content="Descargá GonzaSky gratis: simulador de vuelo con dogfight online, cuatro aviones (incluido el Stuka de la Segunda Guerra), ocho aeropuertos, día y noche, clima y desafíos. Para Windows, Linux Mint, Android y navegador.">
 <meta property="og:title" content="GonzaSky">
 <meta property="og:description" content="Simulador de vuelo gratis: despegá, volá y aterrizá.">
 <meta property="og:image" content="img/aproximacion.jpg">
@@ -145,6 +145,15 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
     <p class="req">Requisitos: computadora de 64 bits con una placa de video que soporte OpenGL 3 o WebGL 2 (casi cualquiera de los últimos 10 años). En Android, la versión 6 o más nueva.</p>
   </section>
 
+  <section id="servidor">
+    <h2>Dogfight online con tus amigos</h2>
+    <div class="card">
+      <p style="margin:0 0 10px;color:#d6dfd2">Peleá en el aire contra tus amigos: ametralladoras para todos, misiles que se fijan en el enemigo, tabla de derribos y chat. Para eso necesitás un servidor prendido 24/7. Si tenés un VPS con Ubuntu o Debian, se arma con un solo comando (convive con el servidor de GonzaCraft):</p>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-gonzasky/instalar.sh | sudo NOMBRE="Dogfight de Gonza" bash</code></pre>
+      <p class="req" style="margin:6px 0 0">Al final te muestra la dirección (algo como <code>sky.1-2-3-4.sslip.io</code>). En el juego: <b>Dogfight online → pegá la dirección → Entrar</b>. También se puede jugar abriendo esa dirección en el navegador. Más detalles en la <a href="https://github.com/GonzalitoDev/corte-editor/tree/main/servidor-gonzasky">guía del servidor</a>.</p>
+    </div>
+  </section>
+
   <section>
     <h2>Controles</h2>
     <table>
@@ -154,6 +163,8 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
       <tr><td><kbd>Shift</kbd> / <kbd>Z</kbd></td><td>Más / menos motor</td></tr>
       <tr><td><kbd>F</kbd> <kbd>R</kbd> · <kbd>G</kbd> · <kbd>B</kbd></td><td>Flaps · tren · frenos</td></tr>
       <tr><td><kbd>C</kbd> · <kbd>M</kbd> · <kbd>U</kbd></td><td>Cámara · mapa con GPS · piloto automático</td></tr>
+      <tr><td><kbd>Espacio</kbd> · <kbd>V</kbd> · <kbd>X</kbd></td><td>Ametralladoras (en el aire) · misil guiado · bomba</td></tr>
+      <tr><td><kbd>Tab</kbd> · <kbd>Enter</kbd></td><td>En línea: tabla de derribos · chat</td></tr>
       <tr><td>Joystick o control</td><td>Funciona con cualquier control de PC o consola</td></tr>
     </table>
   </section>
@@ -167,6 +178,7 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
     ['#7ec850', 'Ocho aeropuertos', 'Pistas con luces y números, torres de control, hangares y ciudades. Uno de montaña y una pista de pasto.'],
     ['#ff8a3a', 'Día, noche y clima', 'Amaneceres, atardeceres, noches con luces de pista, nubes y niebla. Viento suave o fuerte.'],
     ['#d18bff', 'Mapa y GPS', 'Elegí un aeropuerto en el mapa y el GPS te marca rumbo, distancia y tiempo. Piloto automático incluido.'],
+    ['#ff6a3d', 'Dogfight online', 'Peleá contra tus amigos en tu propio servidor 24/7: ametralladoras, misiles guiados, tabla de derribos y chat. Desde la PC, el celular o el navegador.'],
     ['#ff5d6c', 'Ocho desafíos', 'Primer despegue, aterrizaje perfecto, aros con el caza, sin motor, cabotaje, aterrizaje nocturno, bombardeo en picada y cacería de tanques con el Stuka. Con récords.'],
   ];
   document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');

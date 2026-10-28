@@ -109,6 +109,7 @@
         g.save(); g.translate(dx, dz); g.rotate(att.hdg); g.font = '600 10px ui-monospace,monospace'; g.fillStyle = '#cfd8e3'; g.textAlign = 'center'; g.fillText(ap.code, 0, -8); g.restore();
       }
       if (st.rings) st.rings.forEach((r, i) => { if (i < st.ringIdx) return; const dx = (r.x - px) * k, dz = (r.z - pz) * k; g.fillStyle = i === st.ringIdx ? '#ffd400' : 'rgba(255,212,0,.4)'; g.beginPath(); g.arc(dx, dz, i === st.ringIdx ? 4 : 2.5, 0, TAU); g.fill(); });
+      if (st.blips) for (const b of st.blips) { const dx = (b.x - px) * k, dz = (b.z - pz) * k, d = Math.hypot(dx, dz), s = d > R - 5 ? (R - 5) / d : 1; g.fillStyle = b.c || '#ff4d4d'; g.beginPath(); g.arc(dx * s, dz * s, d > R - 5 ? 2.5 : 4, 0, TAU); g.fill(); }
       if (st.dest) { const dx = (st.dest.x - px) * k, dz = (st.dest.z - pz) * k, d = Math.hypot(dx, dz), s = d > R - 6 ? (R - 6) / d : 1; g.fillStyle = '#d18bff'; g.beginPath(); g.arc(dx * s, dz * s, 4, 0, TAU); g.fill(); }
       g.fillStyle = AMBER; g.font = '700 11px ui-monospace,monospace'; g.textAlign = 'center'; g.fillText('N', 0, -R + 10);
       g.restore();

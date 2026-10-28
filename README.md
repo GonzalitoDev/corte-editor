@@ -65,6 +65,7 @@ Simulador original con terreno infinito con niveles de detalle, ocho aeropuertos
 - Página de descarga: [`gonzasky/`](gonzasky/) · volar en el navegador: [`gonzasky/volar/`](gonzasky/volar/)
 - Escritorio: [`desktop-gonzasky/`](desktop-gonzasky/) · Android: [`android-gonzasky/`](android-gonzasky/)
 - El workflow `gonzasky.yml` publica `GonzaSky-Setup.exe`, `GonzaSky.deb`, `GonzaSky.AppImage` y `GonzaSky.apk` en el release `gonzasky` (el APK usa los mismos secretos de firma que GonzaCraft).
+- **Dogfight online:** `servidor-gonzasky/` es un servidor Node (ws) que reenvía aviones, disparos, misiles y derribos y lleva la tabla. Se instala en un VPS con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-gonzasky/instalar.sh | sudo bash` y queda en `sky.IP.sslip.io` (convive con el de GonzaCraft).
 
 ## App de escritorio para Windows
 
