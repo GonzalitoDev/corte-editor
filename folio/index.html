@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Folio: herramientas PDF gratis en el navegador. Unir, dividir, ordenar, firmar, comprimir y convertir sin subir tus archivos.">
+<meta name="theme-color" content="#0f1115">
+<title>Folio PDF</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23ef6b57'/%3E%3Cpath d='M10 6h9l5 5v15H10z' fill='%232a0904'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Pacifico&family=Permanent+Marker&family=Caveat:wght@600&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="folio.css">
+</head>
+<body class="app-body" data-app="folio">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4"/></svg></span>Folio</a>
+    <input class="docname" id="docName" value="Documento" aria-label="Nombre del documento">
+    <span class="saved" id="savedLbl" aria-live="polite"></span>
+    <div class="spacer"></div>
+    <button class="btn icon" data-cmd="undo" id="undoBtn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn icon" data-cmd="redo" id="redoBtn" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="btn" data-cmd="add"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar PDF o imágenes</button>
+    <button class="btn" data-cmd="clearAll" title="Empezar de cero">Nuevo</button>
+    <button class="btn primary" data-cmd="download"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar PDF</button>
+  </header>
+
+  <div class="work">
+    <section class="panel center">
+      <div class="cbar" id="cbar">
+        <div class="chips"><button class="chip" data-view="grid" aria-pressed="true">Todas las páginas</button><button class="chip" data-view="page" aria-pressed="false">Editar página</button></div>
+        <span class="hint" id="selInfo"></span>
+        <div class="spacer"></div>
+        <div id="gridCtl" class="row-btns"><button class="btn small" data-cmd="selAll">Seleccionar todo</button><label class="hint" style="display:flex;align-items:center;gap:6px">Tamaño <input type="range" id="thumbSize" min="110" max="320" value="170" style="width:100px"></label></div>
+        <div id="pageCtl" class="row-btns" hidden>
+          <div class="chips" id="annTools"></div>
+          <span class="sep"></span>
+          <button class="btn icon small" data-cmd="prevPage" aria-label="Página anterior"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+          <span class="tcode" id="pageNum">1 / 1</span>
+          <button class="btn icon small" data-cmd="nextPage" aria-label="Página siguiente"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+        </div>
+      </div>
+      <div class="stage" id="stage">
+        <div class="grid" id="grid"></div>
+        <div class="pageview" id="pageview" hidden><div class="pagewrap" id="pagewrap"><canvas id="pageCanvas"></canvas><div class="annlayer" id="annLayer"></div></div></div>
+        <div class="empty" id="empty" hidden>
+          <svg class="i" viewBox="0 0 24 24" style="width:42px;height:42px;color:var(--accent)"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M12 11v6M9 14h6"/></svg>
+          <h2>Soltá tus PDF o imágenes acá</h2>
+          <p>Uní varios documentos, reordená páginas, firmá, comprimí o convertí. Nada se sube a internet.</p>
+          <button class="btn primary" data-cmd="add">Elegir archivos</button>
+        </div>
+        <div class="dropmsg" id="dropMsg" hidden>Soltá para agregar las páginas</div>
+      </div>
+    </section>
+
+    <aside class="panel side">
+      <div class="tabs" role="tablist">
+        <button class="tab" data-tab="pages" aria-selected="true">Páginas</button>
+        <button class="tab" data-tab="edit" aria-selected="false">Editar</button>
+        <button class="tab" data-tab="doc" aria-selected="false">Documento</button>
+        <button class="tab" data-tab="convert" aria-selected="false">Convertir</button>
+      </div>
+      <div class="pbody" id="side" style="padding:0"></div>
+    </aside>
+  </div>
+</div>
+<div class="modal" id="dlg" hidden><div class="sheet" role="dialog" aria-modal="true"><div class="stack" id="dlgBody"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/pdfjs-dist@3.11.174/build/pdf.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/pdf-lib@1.17.1/dist/pdf-lib.min.js"></script>
+<script src="../shared/taller.js"></script>
+<script src="folio.js"></script>
+</body>
+</html>

@@ -1,0 +1,149 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Lienzo: editor de fotos gratis en el navegador. Capas, pinceles, selecciones, filtros y quitar fondo con IA.">
+<meta name="theme-color" content="#0f1115">
+<title>Lienzo Editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2336c2b4'/%3E%3Ccircle cx='12' cy='12' r='3' fill='%2304211e'/%3E%3Cpath d='M28 20 20 12 6 28' stroke='%2304211e' stroke-width='3' fill='none'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Pacifico&family=Permanent+Marker&family=Anton&family=Playfair+Display:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="lienzo.css">
+</head>
+<body class="app-body" data-app="lienzo">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.4"><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/></svg></span>Lienzo</a>
+    <nav class="menubar" aria-label="Menú">
+      <div class="menu-wrap"><button class="mb" data-menu="mFile">Archivo</button>
+        <div class="menu" id="mFile" hidden>
+          <button data-cmd="new">Nuevo…</button>
+          <button data-cmd="open">Abrir imagen o proyecto… <span>Ctrl O</span></button>
+          <button data-cmd="addImage">Agregar imagen como capa…</button>
+          <hr><button data-cmd="saveProject">Guardar proyecto (.lienzo) <span>Ctrl S</span></button>
+          <button data-cmd="export">Exportar imagen… <span>Ctrl ⇧ E</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mEdit">Editar</button>
+        <div class="menu" id="mEdit" hidden>
+          <button data-cmd="undo">Deshacer <span>Ctrl Z</span></button>
+          <button data-cmd="redo">Rehacer <span>Ctrl ⇧ Z</span></button>
+          <hr><button data-cmd="cut">Cortar <span>Ctrl X</span></button>
+          <button data-cmd="copy">Copiar <span>Ctrl C</span></button>
+          <button data-cmd="paste">Pegar <span>Ctrl V</span></button>
+          <hr><button data-cmd="fillSel">Rellenar con el color principal <span>⇧ F5</span></button>
+          <button data-cmd="clearSel">Borrar contenido <span>Supr</span></button>
+          <button data-cmd="transform">Transformar libremente <span>Ctrl T</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mImage">Imagen</button>
+        <div class="menu" id="mImage" hidden>
+          <button data-cmd="imageSize">Tamaño de imagen…</button>
+          <button data-cmd="canvasSize">Tamaño de lienzo…</button>
+          <hr><button data-cmd="rotR">Rotar 90° a la derecha</button>
+          <button data-cmd="rotL">Rotar 90° a la izquierda</button>
+          <button data-cmd="rot180">Rotar 180°</button>
+          <button data-cmd="flipH">Voltear horizontal</button>
+          <button data-cmd="flipV">Voltear vertical</button>
+          <hr><button data-cmd="cropSel">Recortar a la selección</button>
+          <button data-cmd="flatten">Acoplar imagen</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mLayer">Capa</button>
+        <div class="menu" id="mLayer" hidden>
+          <button data-cmd="newLayer">Nueva capa <span>Ctrl ⇧ N</span></button>
+          <button data-cmd="dupLayer">Duplicar capa <span>Ctrl J</span></button>
+          <button data-cmd="delLayer">Eliminar capa</button>
+          <button data-cmd="mergeDown">Combinar hacia abajo <span>Ctrl E</span></button>
+          <hr><button data-cmd="layerFlipH">Voltear capa horizontal</button>
+          <button data-cmd="layerFlipV">Voltear capa vertical</button>
+          <button data-cmd="centerLayer">Centrar en el lienzo</button>
+          <hr><button data-cmd="removeBg">Quitar fondo (IA)</button>
+          <button data-cmd="rasterize">Rasterizar texto</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mSel">Selección</button>
+        <div class="menu" id="mSel" hidden>
+          <button data-cmd="selAll">Seleccionar todo <span>Ctrl A</span></button>
+          <button data-cmd="deselect">Deseleccionar <span>Ctrl D</span></button>
+          <button data-cmd="invertSel">Invertir <span>Ctrl ⇧ I</span></button>
+          <hr><button data-cmd="selSubject">Seleccionar sujeto (IA)</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mAdj">Ajustes</button>
+        <div class="menu" id="mAdj" hidden>
+          <button data-cmd="adj:bc">Brillo y contraste…</button>
+          <button data-cmd="adj:hs">Tono y saturación…</button>
+          <button data-cmd="adj:temp">Temperatura y tinte…</button>
+          <button data-cmd="adj:levels">Niveles…</button>
+          <button data-cmd="adj:vibrance">Intensidad…</button>
+          <hr><button data-cmd="adj:posterize">Posterizar…</button>
+          <button data-cmd="adj:threshold">Umbral…</button>
+          <hr><button data-cmd="quick:gray">Blanco y negro</button>
+          <button data-cmd="quick:sepia">Sepia</button>
+          <button data-cmd="quick:invert">Invertir colores</button>
+          <button data-cmd="quick:auto">Mejora automática</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mFilter">Filtro</button>
+        <div class="menu" id="mFilter" hidden>
+          <button data-cmd="adj:blur">Desenfocar…</button>
+          <button data-cmd="adj:sharpen">Enfocar…</button>
+          <button data-cmd="adj:noise">Ruido…</button>
+          <button data-cmd="adj:pixelate">Pixelar…</button>
+          <button data-cmd="adj:vignette">Viñeta…</button>
+          <button data-cmd="adj:emboss">Relieve…</button>
+          <button data-cmd="adj:edges">Detectar bordes…</button>
+          <hr><button data-cmd="adj:look">Filtros rápidos…</button>
+        </div></div>
+    </nav>
+    <input class="docname" id="docName" value="Sin título" aria-label="Nombre del documento">
+    <span class="saved" id="savedLbl" aria-live="polite"></span>
+    <div class="spacer"></div>
+    <button class="btn icon" data-cmd="undo" id="undoBtn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn icon" data-cmd="redo" id="redoBtn" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="btn" data-cmd="open"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="hide-sm">Abrir</span></button>
+    <button class="btn primary" data-cmd="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+  </header>
+
+  <div class="optbar" id="optbar" aria-label="Opciones de la herramienta"></div>
+
+  <div class="work">
+    <aside class="panel tools-panel">
+      <div class="toolbar" id="toolbar" role="toolbar" aria-label="Herramientas"></div>
+      <div class="swatches">
+        <button class="sw fg" id="fgSw" title="Color principal" aria-label="Color principal"></button>
+        <button class="sw bg" id="bgSw" title="Color secundario" aria-label="Color secundario"></button>
+        <button class="swap" id="swapSw" title="Intercambiar colores (X)" aria-label="Intercambiar colores"><svg class="i" viewBox="0 0 24 24"><path d="M7 4 3 8l4 4M3 8h13a4 4 0 0 1 4 4M17 20l4-4-4-4M21 16H8a4 4 0 0 1-4-4"/></svg></button>
+        <input type="color" id="fgIn" hidden><input type="color" id="bgIn" hidden>
+      </div>
+    </aside>
+
+    <section class="panel vp-panel">
+      <div class="vp" id="vp"><canvas id="view"></canvas>
+        <div class="dropmsg" id="dropMsg" hidden>Soltá la imagen para agregarla</div>
+      </div>
+      <div class="status"><span class="tcode" id="stSize"></span><span class="tcode" id="stPos"></span><div class="spacer"></div>
+        <button class="btn icon small" data-cmd="zoomOut" aria-label="Alejar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button class="btn small" id="zoomLbl" data-cmd="zoomFit" title="Ajustar a la pantalla">100%</button>
+        <button class="btn icon small" data-cmd="zoomIn" aria-label="Acercar"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+        <button class="btn small" data-cmd="zoom100">1:1</button>
+      </div>
+    </section>
+
+    <aside class="panel side">
+      <div class="props" id="props"></div>
+      <div class="layers-head"><h3>Capas</h3>
+        <div class="row-btns">
+          <button class="btn icon small" data-cmd="newLayer" title="Nueva capa" aria-label="Nueva capa"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+          <button class="btn icon small" data-cmd="dupLayer" title="Duplicar capa" aria-label="Duplicar capa"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+          <button class="btn icon small" data-cmd="mergeDown" title="Combinar hacia abajo" aria-label="Combinar hacia abajo"><svg class="i" viewBox="0 0 24 24"><path d="M12 4v12M7 11l5 5 5-5M5 20h14"/></svg></button>
+          <button class="btn icon small danger" data-cmd="delLayer" title="Eliminar capa" aria-label="Eliminar capa"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+        </div>
+      </div>
+      <div class="layers" id="layers" role="list"></div>
+    </aside>
+  </div>
+</div>
+
+<div class="modal" id="dlg" hidden><div class="sheet" role="dialog" aria-modal="true"><div class="stack" id="dlgBody"></div></div></div>
+<script src="../shared/taller.js"></script>
+<script src="lienzo.js"></script>
+</body>
+</html>

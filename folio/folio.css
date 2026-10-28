@@ -1,0 +1,57 @@
+/* Folio — mesa de páginas a la izquierda, herramientas a la derecha */
+.app{height:100%;display:grid;grid-template-rows:auto minmax(0,1fr);gap:8px}
+.work{display:grid;grid-template-columns:minmax(0,1fr) 320px;gap:8px;min-height:0}
+.center{min-height:0}
+.cbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;padding:8px 10px;border-bottom:1px solid var(--line)}
+.stage{flex:1;min-height:0;overflow:auto;position:relative;background:#0b0d10}
+.grid{--ts:170px;display:grid;grid-template-columns:repeat(auto-fill,minmax(var(--ts),1fr));gap:18px;padding:18px;align-content:start}
+.card{position:relative;display:grid;gap:6px;justify-items:center;padding:8px;border-radius:10px;border:1.5px solid transparent;cursor:pointer;user-select:none}
+.card:hover{background:var(--panel)}
+.card.on{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}
+.card.drop-before::before{content:"";position:absolute;left:-10px;top:8px;bottom:8px;width:3px;border-radius:2px;background:var(--accent)}
+.card .th{width:100%;aspect-ratio:var(--ar,.707);display:grid;place-items:center}
+.card canvas{max-width:100%;max-height:100%;background:#fff;box-shadow:0 4px 14px rgba(0,0,0,.4);border-radius:2px}
+.card .num{font:12px var(--f-mono);color:var(--muted)}
+.card .badge{position:absolute;top:12px;left:12px;background:rgba(0,0,0,.65);color:#fff;font-size:10px;padding:2px 6px;border-radius:4px}
+.card .acts{position:absolute;top:12px;right:12px;display:flex;gap:4px;opacity:0;transition:opacity .15s}
+.card:hover .acts,.card:focus-within .acts{opacity:1}
+@media (hover:none){.card .acts{opacity:1}}
+.card .acts button{width:26px;height:26px;border-radius:6px;border:0;background:rgba(15,17,21,.85);color:#fff;display:grid;place-items:center;padding:0}
+.card .acts button:hover{background:var(--accent);color:var(--accent-ink)}
+.card .acts svg.i{width:14px;height:14px}
+.pageview{display:grid;place-items:center;padding:24px;min-height:100%}
+.pagewrap{position:relative;box-shadow:0 8px 30px rgba(0,0,0,.5)}
+.pagewrap canvas{display:block;background:#fff}
+.annlayer{position:absolute;inset:0}
+.annlayer.placing{cursor:crosshair}
+.ann{position:absolute;cursor:move;touch-action:none}
+.ann.sel{outline:1.5px solid var(--accent);outline-offset:2px}
+.ann .rz{position:absolute;right:-7px;bottom:-7px;width:12px;height:12px;border-radius:50%;background:var(--accent);border:2px solid #fff;cursor:nwse-resize;display:none}
+.ann.sel .rz{display:block}
+.ann.t{white-space:pre;line-height:1.15;padding:0}
+.ann.t[contenteditable="true"]{cursor:text;outline:1.5px dashed var(--accent)}
+.ann img{width:100%;height:100%;display:block;pointer-events:none;user-select:none}
+.ann.hl{mix-blend-mode:multiply}
+.empty{position:absolute;inset:0;display:grid;place-content:center;justify-items:center;gap:10px;text-align:center;padding:24px}
+.empty h2{font-family:var(--f-display);font-size:24px;margin:0}
+.empty p{color:var(--muted);max-width:44ch;margin:0;line-height:1.5}
+.dropmsg{position:absolute;inset:12px;border:2px dashed var(--accent);border-radius:12px;display:grid;place-items:center;font-size:18px;font-weight:600;background:rgba(40,12,8,.7);pointer-events:none;z-index:5}
+.toolcard{display:grid;gap:8px;padding:12px;border-bottom:1px solid var(--line-soft)}
+.toolcard h3{margin:0;font-size:14px;font-family:var(--f-display);font-weight:600;display:flex;align-items:center;gap:8px}
+.toolcard h3 svg.i{color:var(--accent)}
+.toolcard p{margin:0}
+.sigpad{width:100%;height:180px;background:#fff;border-radius:8px;touch-action:none;cursor:crosshair;display:block}
+.siglist{display:grid;grid-template-columns:repeat(3,1fr);gap:6px}
+.siglist button{background:#fff;border:2px solid transparent;border-radius:6px;padding:4px;height:56px;position:relative}
+.siglist button.on{border-color:var(--accent)}
+.siglist img{max-width:100%;max-height:100%}
+.result{background:var(--panel-2);border:1px solid var(--line);border-radius:8px;padding:10px;font-size:12px;color:var(--muted)}
+.result b{color:var(--fg)}
+@media (max-width:900px){
+  body.app-body{height:auto;overflow:auto}
+  .app{height:auto}
+  .work{grid-template-columns:1fr}
+  .center{height:70vh}
+  .side{max-height:none}
+  .top .btn span{display:none}
+}

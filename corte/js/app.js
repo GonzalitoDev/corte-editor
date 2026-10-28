@@ -1,6 +1,7 @@
 /* Corte — editor de video en el navegador. Todo gratis, todo local. */
 (() => {
 'use strict';
+const SCRIPT_BASE = document.currentScript ? new URL('.', document.currentScript.src).href : new URL('js/', location.href).href;
 
 /* =========================================================
    Utilidades
@@ -489,7 +490,7 @@ function loadSegmenter() {
   if (segmenter || segLoading) return;
   segLoading = true;
   const st = $('#segStatus'); st.hidden = false; st.textContent = 'Cargando el modelo para quitar fondo…';
-  import(new URL('js/ai.js', location.href).href).then(ai => ai.getSegmenter(s => { if (s) st.textContent = s; }))
+  import(new URL('ai.js', SCRIPT_BASE).href).then(ai => ai.getSegmenter(s => { if (s) st.textContent = s; }))
     .then(s => { segmenter = s; st.hidden = true; dirty = true; })
     .catch(() => { st.textContent = 'No se pudo cargar el modelo. Revisá tu conexión.'; setTimeout(() => st.hidden = true, 4000); })
     .finally(() => { segLoading = false; });
@@ -1399,7 +1400,7 @@ $('#addTrackMenu').onclick = e => { const b = e.target.closest('[data-kind]'); i
 document.addEventListener('click', e => { if (!e.target.closest('.menu-wrap')) $('#addTrackMenu').hidden = true; });
 
 document.addEventListener('keydown', e => {
-  if (e.target.closest('input,textarea,select,[contenteditable]')) return;
+  if (e.target.closest?.('input,textarea,select,[contenteditable]')) return;
   if (!$('#exportModal').hidden || !$('#projModal').hidden || !$('#capModal').hidden) return;
   const mod = e.ctrlKey || e.metaKey, k = e.key.toLowerCase();
   if (e.code === 'Space' || k === 'k') { e.preventDefault(); state.playing ? pause() : play(); }
@@ -1980,7 +1981,7 @@ $('#capGo').onclick = async () => {
   const m = mediaById(src.mediaId); if (!m?.blob) { toast('No encuentro el archivo original'); return; }
   const st = $('#capStatus'); $('#capGo').disabled = true;
   try {
-    const ai = await import(new URL('js/ai.js', location.href).href);
+    const ai = await import(new URL('ai.js', SCRIPT_BASE).href);
     const chunks = await ai.transcribe(m.blob, { language: $('#capLang').value, model: $('#capModel').value, onStatus: s => st.textContent = s });
     const sp = src.props.speed || 1, style = capStyle();
     const made = [];

@@ -1,41 +1,45 @@
-# Corte
+# Taller
 
-Editor de video completo que funciona en el navegador. Es gratis, sin marca de agua, sin cuenta y sin límites. Todo se procesa en tu computadora: los archivos que importás no se suben a ningún servidor.
+Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua, sin cuenta y sin subir tus archivos a ningún servidor: todo se procesa en tu computadora.
 
-## Funciones
+| App | Para qué sirve | Carpeta |
+|---|---|---|
+| **Corte** | Editor de video multipista | [`corte/`](corte/) |
+| **Lienzo** | Editor de fotos con capas | [`lienzo/`](lienzo/) |
+| **Trazo** | Editor vectorial | [`trazo/`](trazo/) |
+| **Folio** | Herramientas PDF | [`folio/`](folio/) |
 
-**Edición**
-- Línea de tiempo multipista: agregá todas las capas de video, texto, efectos y audio que quieras
-- Ocultar, silenciar y bloquear pistas
-- Dividir, duplicar, copiar y pegar, recortar desde los bordes, imán, deshacer y rehacer ilimitado
-- Congelar fotograma, separar audio, cerrar huecos
-- Proyectos que se guardan solos en el navegador, con tus videos incluidos
+La página de inicio (`index.html`) muestra todas las apps.
 
-**Video e imagen**
-- 16 transiciones entre clips (fundido, deslizar, zoom, barrido, círculo, glitch…)
-- Animaciones de entrada y salida, movimiento continuo y Ken Burns
-- Fotogramas clave para posición, escala, rotación, opacidad y volumen
-- Velocidad de 0,1× a 8×, voltear, rotar, recortar, máscaras y modos de mezcla
-- Fondo desenfocado para videos verticales u horizontales
-- Pantalla verde (croma) y **quitar fondo con IA** sin pantalla verde
-- 12 filtros y ajustes de brillo, contraste, saturación, tono, calidez y desenfoque
+## Corte · video
+Multipista ilimitada, transiciones, animaciones, fotogramas clave, filtros, efectos, stickers, pantalla verde, quitar fondo con IA, subtítulos automáticos con Whisper, grabar voz/pantalla/cámara, música y efectos de sonido libres, exportación MP4/WebM hasta 1440p a 60 fps.
 
-**Texto, stickers y efectos**
-- 12 estilos de texto con 11 tipografías, contorno, fondo, sombra y neón
-- Animaciones de texto: máquina de escribir, letras en ola, letras que caen y más
-- Stickers emoji y formas
-- 20 efectos: viñeta, grano, glitch, VHS, película vieja, barras de cine, confeti, nieve…
+## Lienzo · fotos
+- Capas con opacidad, 16 modos de fusión, bloqueo, reordenar arrastrando, combinar y acoplar
+- Pincel con dureza y presión, borrador, tampón de clonar, bote de pintura, degradado, formas, texto editable
+- Selección rectangular, elíptica, lazo y varita mágica (sumar, restar, invertir)
+- Transformar libremente (escalar y rotar), recortar con proporciones, rotar y voltear
+- Ajustes: brillo y contraste, tono y saturación, temperatura, niveles, intensidad, posterizar, umbral, mejora automática
+- Filtros: desenfocar, enfocar, ruido, pixelar, viñeta, relieve, bordes y 12 filtros rápidos
+- **Quitar fondo y seleccionar sujeto con IA**
+- Exporta PNG, JPG y WebP; guarda proyectos `.lienzo`
 
-**Audio y subtítulos**
-- Grabar voz en off sincronizada, grabar pantalla y cámara
-- Música y efectos de sonido generados en el navegador, libres de derechos
-- **Subtítulos automáticos con IA** (Whisper), importar y exportar `.srt`
+## Trazo · vectores
+- Pluma Bézier, lápiz, rectángulo, elipse, polígono, estrella, línea y texto
+- Edición de nodos, curvas y esquinas
+- Unir, restar, intersección, excluir y dividir formas
+- Alinear, distribuir, agrupar, ordenar, voltear e imán con guías
+- Rellenos sólidos y degradados, bordes con guiones, sombras y modos de fusión
+- Importa SVG e imágenes; exporta SVG, PNG, JPG y PDF vectorial
 
-**Exportar**
-- MP4 (Chrome/Edge) o WebM, de 480p a 1440p, a 24, 30 o 60 fps
-- Formatos 16:9, 9:16, 1:1, 4:5, 4:3 y 21:9
-- Exportar solo el audio en WAV y capturar fotogramas como PNG
+## Folio · PDF
+- Unir PDF e imágenes, reordenar arrastrando, rotar, duplicar, eliminar e insertar páginas en blanco
+- Firmar (dibujada, escrita o desde una imagen), agregar texto, imágenes, rectángulos, resaltar y tapar
+- Marca de agua, numeración de páginas y metadatos
+- Comprimir, PDF a imágenes, dividir y extraer páginas, imágenes a PDF
 
 ## Uso
 
-Es un sitio estático. Publicalo en Vercel, Netlify o GitHub Pages, o servilo con cualquier servidor local (`npx serve`). Las funciones de IA se descargan la primera vez que las usás y después quedan guardadas en el navegador.
+Es un sitio estático. Publicalo en Vercel (ya incluye `vercel.json`), Netlify o GitHub Pages, o servilo localmente con `npx serve`. Las librerías y los modelos de IA se cargan desde CDN la primera vez y después quedan en caché.
+
+Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe e @imgly/background-removal.

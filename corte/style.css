@@ -23,7 +23,7 @@ button{cursor:pointer}
 
 /* header */
 .top{display:flex;align-items:center;gap:10px;flex-wrap:wrap}
-.logo{font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
+.logo{color:inherit;text-decoration:none;font-family:var(--f-display);font-weight:800;font-size:20px;letter-spacing:-.02em;display:flex;align-items:center;gap:8px}
 .logo i{width:22px;height:22px;border-radius:6px;background:var(--accent);display:grid;place-items:center}
 .logo i::before{content:"";width:10px;height:2px;background:var(--accent-ink);box-shadow:0 -4px 0 var(--accent-ink),0 4px 0 var(--accent-ink);transform:rotate(-30deg)}
 .pname{background:transparent;border:1px solid transparent;border-radius:6px;padding:5px 8px;width:190px;color:var(--fg)}

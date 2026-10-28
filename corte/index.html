@@ -1,0 +1,159 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Corte: editor de video gratis en el navegador. Sin marca de agua, sin cuenta, sin límites.">
+<meta name="theme-color" content="#0f1115">
+<title>Corte Editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%23e8a33d'/%3E%3Cpath d='M9 12h14M9 16h14M9 20h14' stroke='%231b1306' stroke-width='2.4' transform='rotate(-30 16 16)'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Pacifico&family=Permanent+Marker&family=Anton&display=swap">
+<link rel="stylesheet" href="style.css">
+</head>
+<body>
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><i></i>Corte</a>
+    <input class="pname" id="pname" value="Proyecto sin título" aria-label="Nombre del proyecto">
+    <span class="saved" id="savedLbl" aria-live="polite"></span>
+    <button class="btn" id="projectsBtn"><svg class="i" viewBox="0 0 24 24"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/></svg><span class="hide-sm">Proyectos</span></button>
+    <div class="spacer"></div>
+    <button class="btn icon" id="undoBtn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn icon" id="redoBtn" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <select class="sel" id="aspectSel" aria-label="Formato">
+      <option value="16:9">16:9 · YouTube</option>
+      <option value="9:16">9:16 · TikTok / Reels</option>
+      <option value="1:1">1:1 · Cuadrado</option>
+      <option value="4:5">4:5 · Instagram</option>
+      <option value="4:3">4:3 · Clásico</option>
+      <option value="21:9">21:9 · Cine</option>
+    </select>
+    <button class="btn primary" id="exportBtn"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+  </header>
+
+  <div class="work">
+    <section class="panel lefty" aria-label="Recursos">
+      <nav class="rail" role="tablist" aria-label="Recursos">
+        <button class="rtab" data-tab="media" aria-selected="true"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="m10 9 5 3-5 3z"/></svg><span>Medios</span></button>
+        <button class="rtab" data-tab="audio"><svg class="i" viewBox="0 0 24 24"><path d="M9 18V6l10-2v12"/><circle cx="6.5" cy="18" r="2.5"/><circle cx="16.5" cy="16" r="2.5"/></svg><span>Audio</span></button>
+        <button class="rtab" data-tab="text"><svg class="i" viewBox="0 0 24 24"><path d="M5 6h14M12 6v13"/></svg><span>Texto</span></button>
+        <button class="rtab" data-tab="stickers"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8.5 14.5a4.5 4.5 0 0 0 7 0M9 9.5h.01M15 9.5h.01"/></svg><span>Stickers</span></button>
+        <button class="rtab" data-tab="fx"><svg class="i" viewBox="0 0 24 24"><path d="m12 3 1.8 4.6L18.5 9l-4.7 1.4L12 15l-1.8-4.6L5.5 9l4.7-1.4z"/><path d="m18 15 .8 2.2L21 18l-2.2.8L18 21l-.8-2.2L15 18l2.2-.8z"/></svg><span>Efectos</span></button>
+        <button class="rtab" data-tab="trans"><svg class="i" viewBox="0 0 24 24"><path d="M4 6h7v12H4zM13 6h7v12h-7z"/><path d="m9 12 6 0"/></svg><span>Transic.</span></button>
+        <button class="rtab" data-tab="filters"><svg class="i" viewBox="0 0 24 24"><circle cx="9" cy="10" r="5"/><circle cx="15" cy="10" r="5"/><circle cx="12" cy="15" r="5"/></svg><span>Filtros</span></button>
+        <button class="rtab" data-tab="bg"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="3"/><path d="m3 16 5-5 4 4 3-3 6 6"/></svg><span>Fondos</span></button>
+        <button class="rtab" data-tab="subs"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M7 13h4M13 13h4M7 16h10"/></svg><span>Subtít.</span></button>
+      </nav>
+      <div class="pbody" id="tabBody"></div>
+    </section>
+
+    <section class="panel pv" aria-label="Visor">
+      <div class="stage" id="stage">
+        <div class="cwrap" id="cwrap"><canvas id="cv" width="1280" height="720"></canvas><div id="guides" hidden></div><div id="selbox" hidden><i class="rs" data-h="rs" title="Arrastrá para cambiar el tamaño"></i></div></div>
+        <div class="seg-status" id="segStatus" hidden></div>
+      </div>
+      <div class="transport">
+        <span class="tcode"><b id="tNow">00:00:00</b> / <span id="tTotal">00:00:00</span></span>
+        <div class="spacer"></div>
+        <button class="btn icon" id="toStart" aria-label="Ir al inicio"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M18 6 9 12l9 6z"/></svg></button>
+        <button class="btn icon" id="stepBack" aria-label="Fotograma anterior"><svg class="i" viewBox="0 0 24 24"><path d="m15 6-6 6 6 6"/></svg></button>
+        <button class="play" id="playBtn" aria-label="Reproducir"><svg class="i" viewBox="0 0 24 24" id="playIco"><path d="M7 5v14l12-7z"/></svg></button>
+        <button class="btn icon" id="stepFwd" aria-label="Fotograma siguiente"><svg class="i" viewBox="0 0 24 24"><path d="m9 6 6 6-6 6"/></svg></button>
+        <button class="btn icon" id="toEnd" aria-label="Ir al final"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="m6 6 9 6-9 6z"/></svg></button>
+        <div class="spacer"></div>
+        <button class="btn icon tog" id="guidesBtn" aria-pressed="false" title="Guías y zonas seguras" aria-label="Guías"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18M15 3v18M3 9h18M3 15h18"/></svg></button>
+        <button class="btn icon" id="snapPngBtn" title="Guardar este fotograma como imagen" aria-label="Capturar fotograma"><svg class="i" viewBox="0 0 24 24"><path d="M4 8a2 2 0 0 1 2-2h2l1.5-2h5L16 6h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2z"/><circle cx="12" cy="12.5" r="3.5"/></svg></button>
+        <button class="btn icon" id="fsBtn" title="Pantalla completa" aria-label="Pantalla completa"><svg class="i" viewBox="0 0 24 24"><path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5"/></svg></button>
+      </div>
+    </section>
+
+    <section class="panel righty" aria-label="Inspector"><div class="pbody" id="inspector" style="padding:0"></div></section>
+  </div>
+
+  <section class="panel tlp" aria-label="Línea de tiempo">
+    <div class="tlbar">
+      <button class="btn" id="splitBtn" title="Dividir (S)"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h4v8H5zM15 8h4v8h-4z"/></svg><span class="hide-sm">Dividir</span></button>
+      <button class="btn icon" id="dupBtn" title="Duplicar (Ctrl+D)" aria-label="Duplicar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+      <button class="btn icon danger" id="delBtn" title="Eliminar (Supr)" aria-label="Eliminar"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16"/><path d="M10 11v6M14 11v6"/><path d="M6 7l1 13h10l1-13"/><path d="M9 7V4h6v3"/></svg></button>
+      <span class="sep"></span>
+      <button class="btn icon" id="freezeBtn" title="Congelar fotograma" aria-label="Congelar fotograma"><svg class="i" viewBox="0 0 24 24"><path d="M12 2v20M4.9 7l14.2 10M4.9 17 19.1 7"/></svg></button>
+      <button class="btn icon" id="detachBtn" title="Separar audio del video" aria-label="Separar audio"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="4" width="18" height="7" rx="1.5"/><path d="M5 17h2v3H5zM9 15h2v5H9zM13 16h2v4h-2zM17 14h2v6h-2z"/></svg></button>
+      <button class="btn icon" id="gapBtn" title="Cerrar huecos en la pista principal" aria-label="Cerrar huecos"><svg class="i" viewBox="0 0 24 24"><path d="M3 7h6v10H3zM15 7h6v10h-6z"/><path d="m10 12 4 0M12 10l2 2-2 2"/></svg></button>
+      <span class="sep"></span>
+      <div class="menu-wrap">
+        <button class="btn" id="addTrackBtn" aria-haspopup="true" aria-expanded="false"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg><span class="hide-sm">Pista</span></button>
+        <div class="menu" id="addTrackMenu" hidden>
+          <button data-kind="visual">Capa de video / imagen</button>
+          <button data-kind="text">Pista de texto</button>
+          <button data-kind="fx">Pista de efectos</button>
+          <button data-kind="audio">Pista de audio</button>
+        </div>
+      </div>
+      <button class="btn tog" id="snapBtn" aria-pressed="true" title="Imán: ajustar a bordes y cabezal"><svg class="i" viewBox="0 0 24 24"><path d="M6 3v8a6 6 0 0 0 12 0V3"/><path d="M6 7h4M14 7h4"/></svg><span class="hide-sm">Imán</span></button>
+      <div class="zoom"><button class="btn icon" id="fitBtn" title="Ajustar el zoom a todo el proyecto" aria-label="Ajustar zoom"><svg class="i" viewBox="0 0 24 24"><path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4"/></svg></button><input type="range" id="zoom" min="8" max="300" value="64" aria-label="Zoom de la línea de tiempo"></div>
+    </div>
+    <div class="tl-scroll" id="tlScroll"><div class="tl-inner" id="tlInner"></div></div>
+  </section>
+</div>
+
+<!-- Exportar -->
+<div class="modal" id="exportModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="expTitle">
+    <div id="expSetup" class="stack">
+      <h3 id="expTitle">Exportar</h3>
+      <div class="f wide"><label for="expRes">Resolución</label><select id="expRes"><option value="480">480p</option><option value="720" selected>720p HD</option><option value="1080">1080p Full HD</option><option value="1440">1440p 2K</option></select></div>
+      <div class="f wide"><label for="expFps">Fotogramas</label><select id="expFps"><option value="24">24 fps · cine</option><option value="30" selected>30 fps</option><option value="60">60 fps · fluido</option></select></div>
+      <div class="f wide"><label for="expQ">Calidad</label><select id="expQ"><option value="4">Liviana</option><option value="10" selected>Alta</option><option value="20">Máxima</option></select></div>
+      <p class="hint" id="expInfo"></p>
+      <div class="row-btns"><button class="btn primary" id="expGo">Exportar video</button><button class="btn" id="expAudio">Solo audio</button><button class="btn" id="expSrt">Subtítulos .srt</button><button class="btn" id="expCloseA">Cancelar</button></div>
+    </div>
+    <div id="expRun" class="stack" hidden>
+      <h3>Exportando video</h3>
+      <div class="bar"><i id="expBar"></i></div>
+      <p><span class="tcode" id="expTime">00:00 / 00:00</span> · Se graba en tiempo real. Dejá esta pestaña visible hasta que termine.</p>
+      <div class="row-btns"><button class="btn" id="expCancel">Cancelar</button></div>
+    </div>
+    <div id="expDone" class="stack" hidden>
+      <h3>Tu video está listo</h3>
+      <video id="expVideo" controls playsinline></video>
+      <p id="expMeta"></p>
+      <div class="row-btns"><button class="btn primary" id="expSave"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Descargar</button><button class="btn" id="expClose">Cerrar</button></div>
+      <p id="expStatus" class="hint"></p>
+    </div>
+  </div>
+</div>
+
+<!-- Proyectos -->
+<div class="modal" id="projModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="projTitle">
+    <div class="stack">
+      <h3 id="projTitle">Tus proyectos</h3>
+      <p class="hint">Se guardan solos en este navegador, con tus videos incluidos.</p>
+      <div class="row-btns"><button class="btn primary" id="newProjBtn">Nuevo proyecto</button><button class="btn" id="projClose">Cerrar</button></div>
+      <div id="projList" class="projlist"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Subtítulos automáticos -->
+<div class="modal" id="capModal" hidden>
+  <div class="sheet" role="dialog" aria-modal="true" aria-labelledby="capTitle">
+    <div class="stack">
+      <h3 id="capTitle">Subtítulos automáticos</h3>
+      <p class="hint" id="capSource"></p>
+      <div class="f wide"><label for="capLang">Idioma</label><select id="capLang"><option value="spanish">Español</option><option value="english">Inglés</option><option value="portuguese">Portugués</option><option value="italian">Italiano</option><option value="french">Francés</option><option value="german">Alemán</option></select></div>
+      <div class="f wide"><label for="capModel">Precisión</label><select id="capModel"><option value="onnx-community/whisper-tiny">Rápida (40 MB)</option><option value="onnx-community/whisper-base" selected>Buena (80 MB)</option><option value="onnx-community/whisper-small">Muy buena (250 MB)</option></select></div>
+      <div class="f wide"><label for="capStyle">Estilo</label><select id="capStyle"></select></div>
+      <p class="hint" id="capStatus">Todo se procesa en tu computadora. La primera vez descarga el modelo y después queda guardado.</p>
+      <div class="row-btns"><button class="btn primary" id="capGo">Generar subtítulos</button><button class="btn" id="capClose">Cerrar</button></div>
+    </div>
+  </div>
+</div>
+
+<input type="file" id="fileIn" multiple accept="video/*,image/*,audio/*" hidden>
+<input type="file" id="srtIn" accept=".srt,.vtt,text/plain" hidden>
+<div class="toast" id="toast" hidden></div>
+<script src="js/app.js"></script>
+</body>
+</html>

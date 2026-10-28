@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Trazo: editor vectorial gratis en el navegador. Pluma, formas, texto, booleanas y exportación a SVG, PNG y PDF.">
+<meta name="theme-color" content="#0f1115">
+<title>Trazo Editor</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%239d83ff'/%3E%3Cpath d='M7 25c5-1 8-7 10-11s6-7 9-8' stroke='%23160c33' stroke-width='3' fill='none' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700;900&family=Instrument+Serif:ital@0;1&family=JetBrains+Mono:wght@400;500&family=Bebas+Neue&family=Pacifico&family=Anton&family=Playfair+Display:wght@400;700&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="trazo.css">
+</head>
+<body class="app-body" data-app="trazo">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="M4 20c4-1 6-5 8-9s5-6 8-7"/></svg></span>Trazo</a>
+    <nav class="menubar" aria-label="Menú">
+      <div class="menu-wrap"><button class="mb" data-menu="mFile">Archivo</button>
+        <div class="menu" id="mFile" hidden>
+          <button data-cmd="new">Nuevo…</button>
+          <button data-cmd="open">Abrir proyecto o SVG… <span>Ctrl O</span></button>
+          <button data-cmd="place">Importar imagen o SVG…</button>
+          <hr><button data-cmd="saveProject">Guardar proyecto (.trazo) <span>Ctrl S</span></button>
+          <button data-cmd="export">Exportar… <span>Ctrl ⇧ E</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mEdit">Editar</button>
+        <div class="menu" id="mEdit" hidden>
+          <button data-cmd="undo">Deshacer <span>Ctrl Z</span></button>
+          <button data-cmd="redo">Rehacer <span>Ctrl ⇧ Z</span></button>
+          <hr><button data-cmd="cut">Cortar <span>Ctrl X</span></button>
+          <button data-cmd="copy">Copiar <span>Ctrl C</span></button>
+          <button data-cmd="paste">Pegar <span>Ctrl V</span></button>
+          <button data-cmd="duplicate">Duplicar <span>Ctrl D</span></button>
+          <button data-cmd="delete">Eliminar <span>Supr</span></button>
+          <hr><button data-cmd="selectAll">Seleccionar todo <span>Ctrl A</span></button>
+          <button data-cmd="deselect">Deseleccionar <span>Esc</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mObj">Objeto</button>
+        <div class="menu" id="mObj" hidden>
+          <button data-cmd="group">Agrupar <span>Ctrl G</span></button>
+          <button data-cmd="ungroup">Desagrupar <span>Ctrl ⇧ G</span></button>
+          <hr><button data-cmd="front">Traer al frente <span>Ctrl ⇧ ]</span></button>
+          <button data-cmd="forward">Traer adelante <span>Ctrl ]</span></button>
+          <button data-cmd="backward">Enviar atrás <span>Ctrl [</span></button>
+          <button data-cmd="back">Enviar al fondo <span>Ctrl ⇧ [</span></button>
+          <hr><button data-cmd="flipH">Voltear horizontal</button>
+          <button data-cmd="flipV">Voltear vertical</button>
+          <button data-cmd="simplify">Simplificar trazo</button>
+          <button data-cmd="smooth">Suavizar trazo</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mPath">Combinar</button>
+        <div class="menu" id="mPath" hidden>
+          <button data-cmd="bool:unite">Unir</button>
+          <button data-cmd="bool:subtract">Restar el de arriba</button>
+          <button data-cmd="bool:intersect">Intersección</button>
+          <button data-cmd="bool:exclude">Excluir superposición</button>
+          <button data-cmd="bool:divide">Dividir</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mView">Ver</button>
+        <div class="menu" id="mView" hidden>
+          <button data-cmd="zoomFit">Ajustar a la pantalla <span>Ctrl 0</span></button>
+          <button data-cmd="zoom100">Tamaño real <span>Ctrl 1</span></button>
+          <button data-cmd="zoomIn">Acercar <span>Ctrl +</span></button>
+          <button data-cmd="zoomOut">Alejar <span>Ctrl −</span></button>
+          <hr><button data-cmd="toggleGrid">Mostrar u ocultar cuadrícula</button>
+          <button data-cmd="toggleSnap">Activar o desactivar imán</button>
+        </div></div>
+    </nav>
+    <input class="docname" id="docName" value="Sin título" aria-label="Nombre del documento">
+    <span class="saved" id="savedLbl" aria-live="polite"></span>
+    <div class="spacer"></div>
+    <button class="btn icon" data-cmd="undo" id="undoBtn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn icon" data-cmd="redo" id="redoBtn" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="btn primary" data-cmd="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+  </header>
+
+  <div class="work">
+    <aside class="panel tools-panel"><div class="toolbar" id="toolbar" role="toolbar" aria-label="Herramientas"></div></aside>
+    <section class="panel vp-panel">
+      <div class="vp" id="vp"><canvas id="cv"></canvas><div class="dropmsg" id="dropMsg" hidden>Soltá el archivo para importarlo</div></div>
+      <div class="status"><span class="tcode" id="stHint"></span><div class="spacer"></div><span class="tcode" id="stPos"></span>
+        <button class="btn icon small" data-cmd="zoomOut" aria-label="Alejar"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14"/></svg></button>
+        <button class="btn small" id="zoomLbl" data-cmd="zoomFit" title="Ajustar">100%</button>
+        <button class="btn icon small" data-cmd="zoomIn" aria-label="Acercar"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg></button>
+      </div>
+    </section>
+    <aside class="panel side">
+      <div class="tabs" role="tablist"><button class="tab" data-ptab="props" aria-selected="true">Diseño</button><button class="tab" data-ptab="layers" aria-selected="false">Capas</button></div>
+      <div class="pbody" id="props" style="padding:0"></div>
+      <div class="pbody" id="layers" hidden></div>
+    </aside>
+  </div>
+</div>
+<div class="modal" id="dlg" hidden><div class="sheet" role="dialog" aria-modal="true"><div class="stack" id="dlgBody"></div></div></div>
+<script src="https://cdn.jsdelivr.net/npm/paper@0.12.17/dist/paper-full.min.js"></script>
+<script src="../shared/taller.js"></script>
+<script src="trazo.js"></script>
+</body>
+</html>
