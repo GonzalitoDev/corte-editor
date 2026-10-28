@@ -41,7 +41,7 @@
       // ── panel inferior izquierdo (en el celular, una línea debajo de la velocidad) ──
       const gearTxt = a.spec.fixedGear ? 'TREN FIJO' : a.gearPos >= .99 ? 'TREN ABAJO' : a.gearPos <= .01 ? 'TREN ARRIBA' : 'TREN ···';
       if (T) {
-        this.text(`${Math.round(a.throttle * 100)}%${a.ab ? ' POSC.' : ''} · FLAPS ${['0', '1', '2', 'T'][a.flaps]}${a.spec.fixedGear ? '' : ' · ' + gearTxt.replace('TREN ', 'TREN ')}${a.brakes ? ' · FRENOS' : ''}${st.ap ? ' · AUTO' : ''}${a.engineOn ? '' : ' · SIN MOTOR'}`, bx, by + 60, a.engineOn ? WHITE : RED, 12, 'left', true);
+        this.text(`${Math.round(a.throttle * 100)}%${a.ab ? ' POSC.' : ''} · FLAPS ${['0', '1', '2', 'T'][a.flaps]}${a.spec.fixedGear ? '' : ' · ' + gearTxt.replace('TREN ', 'TREN ')}${a.brakes ? (a.onGround || !a.spec.diveBrakeCD ? ' · FRENOS' : ' · FRENOS DE PICADA') : ''}${st.ap ? ' · AUTO' : ''}${a.engineOn ? '' : ' · SIN MOTOR'}`, bx, by + 60, a.engineOn ? WHITE : RED, 12, 'left', true);
       } else {
       const px = bx, py = H - (small ? 120 : 132);
       g.fillStyle = 'rgba(8,14,22,.55)'; g.fillRect(px, py, small ? 150 : 176, small ? 108 : 118);

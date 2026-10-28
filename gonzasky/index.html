@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>GonzaSky · Simulador de vuelo gratis</title>
-<meta name="description" content="Descargá GonzaSky gratis: simulador de vuelo con tres aviones, ocho aeropuertos, día y noche, clima y desafíos. Para Windows, Linux Mint, Android y navegador.">
+<meta name="description" content="Descargá GonzaSky gratis: simulador de vuelo con cuatro aviones (incluido el Stuka de la Segunda Guerra), ocho aeropuertos, día y noche, clima y desafíos. Para Windows, Linux Mint, Android y navegador.">
 <meta property="og:title" content="GonzaSky">
 <meta property="og:description" content="Simulador de vuelo gratis: despegá, volá y aterrizá.">
 <meta property="og:image" content="img/aproximacion.jpg">
@@ -79,7 +79,7 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
     <img src="img/aproximacion.jpg" alt="Un avión de línea aproximando al atardecer con montañas de fondo">
     <div class="in">
       <h1>GONZA<span>SKY</span></h1>
-      <p class="lead">Despegá, volá sobre montañas, lagos y ciudades y aterrizá en ocho aeropuertos. Tres aviones, día y noche, clima y desafíos. Gratis, sin anuncios y sin crear cuentas.</p>
+      <p class="lead">Despegá, volá sobre montañas, lagos y ciudades y aterrizá en ocho aeropuertos. Cuatro aviones (con el Stuka de la Segunda Guerra), día y noche, clima y desafíos. Gratis, sin anuncios y sin crear cuentas.</p>
       <div class="dl" id="dl">
         <a class="btn" id="dWin" href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzasky/GonzaSky-Setup.exe">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg>
@@ -162,12 +162,12 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
 </div>
 <script>
   const F = [
-    ['#4fb3ff', 'Tres aviones', 'Gaucho 172 para aprender, Pampa 320 de línea con tren retráctil y Cóndor F-1, un caza con poscombustión.'],
+    ['#4fb3ff', 'Cuatro aviones', 'Gaucho 172 para aprender, Pampa 320 de línea, Cóndor F-1 con poscombustión y el Stuka Ju 87 de la Segunda Guerra, con sirena, frenos de picada y bombas de práctica.'],
     ['#ffcf4a', 'Física de verdad', 'Sustentación, pérdida, flaps, tren y frenos. Despegar y aterrizar requiere práctica, como en un avión real.'],
     ['#7ec850', 'Ocho aeropuertos', 'Pistas con luces y números, torres de control, hangares y ciudades. Uno de montaña y una pista de pasto.'],
     ['#ff8a3a', 'Día, noche y clima', 'Amaneceres, atardeceres, noches con luces de pista, nubes y niebla. Viento suave o fuerte.'],
     ['#d18bff', 'Mapa y GPS', 'Elegí un aeropuerto en el mapa y el GPS te marca rumbo, distancia y tiempo. Piloto automático incluido.'],
-    ['#ff5d6c', 'Seis desafíos', 'Primer despegue, aterrizaje perfecto, aros con el caza, sin motor, cabotaje y aterrizaje nocturno. Con récords.'],
+    ['#ff5d6c', 'Siete desafíos', 'Primer despegue, aterrizaje perfecto, aros con el caza, sin motor, cabotaje, aterrizaje nocturno y bombardeo en picada con el Stuka. Con récords.'],
   ];
   document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');
   // destacar la descarga que corresponde a tu sistema

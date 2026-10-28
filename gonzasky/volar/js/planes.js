@@ -29,6 +29,14 @@
       gearH: 2.25, restPitch: 0, maxPitchGround: .26, crashVS: -5, brake: 4, steer: .5,
       eye: [0, 1.05, -4.6], chase: 22, cruise: 250, vRot: 75, maxFlapSpeed: 130, stars: [5, 1, 3],
     },
+    stuka: {
+      id: 'stuka', name: 'Stuka Ju 87', tipo: 'Bombardero · 2ª Guerra', desc: 'El clásico de la Segunda Guerra Mundial. Frenos de picada (B en el aire), la sirena famosa y bombas de práctica (X).',
+      mass: 4300, S: 31.9, CL0: .25, CLa: 5, stall: .26, CD0: .036, k: .065, thrust: 36000, prop: true, vProp: 145,
+      pitchRate: 1.1, rollRate: 1.5, yawRate: .5, resp: 3, stabP: 3, stabY: 2.2, vRef: 75,
+      flapCL: [0, .2, .35, .5], flapCD: [0, .01, .03, .05], gearCD: .012, fixedGear: true, diveBrakeCD: .1, siren: true, bombs: true,
+      gearH: 1.9, restPitch: .1, maxPitchGround: .22, crashVS: -4.2, brake: 4, steer: .8,
+      eye: [0, 1.05, -1.6], chase: 18, cruise: 80, vRot: 40, maxFlapSpeed: 70, stars: [2, 3, 3],
+    },
   };
 
   /* ── utilidades de modelado ── */
@@ -136,7 +144,74 @@
     p.strobe = navLights(root, [-5.2, -.1, 3.7], [5.2, -.1, 3.7], [0, 3.6, 6.6]);
     return { root, p };
   }
-  const BUILD = { gaucho: buildGaucho, pampa: buildPampa, condor: buildCondor };
+  /** panel de ala que arranca en (x0,y0) y sale hacia afuera con un ángulo diedro; devuelve el grupo y el punto final */
+  function wingPanel(parent, side, x0, y0, span, ang, zle0, c0, zle1, c1, mat, thick) {
+    const g = new THREE.Group(); g.position.set(side * x0, y0, 0); g.rotation.z = side * ang; parent.add(g);
+    planform([[0, zle0], [side * span, zle1], [side * span, zle1 + c1], [0, zle0 + c0]], thick, mat, g);
+    return { g, x: x0 + span * Math.cos(ang), y: y0 + span * Math.sin(ang) };
+  }
+  function buildStuka() {
+    const root = new THREE.Group(), p = {};
+    const green = M(0x5a6b4b, { roughness: .8, metalness: .05 }), dgreen = M(0x3b4a35, { roughness: .8, metalness: .05 }), under = M(0x8fb0c4, { roughness: .75, metalness: .05 }), yellow = M(0xd6ae3c, { roughness: .7 });
+    const glass = M(0xaac4d4, { roughness: .08, metalness: .4, transparent: true, opacity: .8 }), frame = M(0x3b4a35), dark = M(0x1b1d1f), metal = M(0x8a9096, { metalness: .6 }), tire = M(0x151515, { roughness: .9 });
+    // fuselaje: motor, cabina larga y cola
+    tube(.62, .78, 2.4, green, -4.4, .1, root); tube(.78, .8, 3.8, green, -1.3, .1, root); tube(.8, .26, 6.2, green, 3.7, .22, root);
+    mesh(new THREE.BoxGeometry(1.5, .1, 13.5), under, 0, -.55, 0, root).scale.set(.9, 1, 1); // panza clara
+    mesh(new THREE.BoxGeometry(.9, .55, 1.5), dgreen, 0, -.62, -4.1, root); // radiador bajo la nariz
+    for (let i = 0; i < 6; i++) mesh(new THREE.BoxGeometry(.16, .1, .5), dark, (i % 2 ? .35 : -.35), .05 + (i >> 1) * .22 - .2, -4.6 + (i >> 1) * .05, root); // escapes
+    const sp = new THREE.ConeGeometry(.4, .7, 14); sp.rotateX(-Math.PI / 2); mesh(sp, dgreen, 0, .1, -5.95, root);
+    p.prop = pivot(root, 0, .1, -5.7);
+    for (let i = 0; i < 3; i++) { const b = new THREE.Group(); b.rotation.z = i * Math.PI * 2 / 3; p.prop.add(b); mesh(new THREE.BoxGeometry(.24, 1.7, .06), dark, 0, .95, 0, b); mesh(new THREE.BoxGeometry(.25, .14, .07), yellow, 0, 1.75, 0, b); }
+    p.disc = mesh(new THREE.CircleGeometry(1.75, 28), new THREE.MeshBasicMaterial({ color: 0x222222, transparent: true, opacity: 0, depthWrite: false, side: THREE.DoubleSide }), 0, .1, -5.66, root);
+    // cabina tipo invernadero con dos tripulantes
+    const can = new THREE.BoxGeometry(.86, .62, 3.9); mesh(can, glass, 0, .98, -1.35, root);
+    for (let i = 0; i < 6; i++) { mesh(new THREE.BoxGeometry(.04, .64, .05), frame, -.44, .98, -3.2 + i * .74, root); mesh(new THREE.BoxGeometry(.04, .64, .05), frame, .44, .98, -3.2 + i * .74, root); mesh(new THREE.BoxGeometry(.9, .04, .05), frame, 0, 1.3, -3.2 + i * .74, root); }
+    mesh(new THREE.BoxGeometry(.06, .06, 3.9), frame, 0, 1.3, -1.35, root);
+    for (const z of [-2.1, -.3]) { mesh(new THREE.SphereGeometry(.2, 10, 8), dark, 0, .82, z, root); }
+    const gun = new THREE.CylinderGeometry(.03, .03, 1, 6); gun.rotateX(Math.PI / 2); mesh(gun, dark, 0, 1.05, .9, root).rotation.x = -.25;
+    mesh(new THREE.BoxGeometry(1.62, 1.62, .55), yellow, 0, .22, 4.1, root).scale.set(.32, .34, 1); // franja amarilla en la cola
+    // ala de gaviota invertida: tramo interno hacia abajo y externo hacia arriba
+    p.dive = [];
+    for (const side of [-1, 1]) {
+      const inner = wingPanel(root, side, .55, -.42, 2.45, -.27, -1.75, 2.75, -1.6, 2.45, green, .3);
+      const outer = wingPanel(root, side, inner.x, inner.y, 5.1, .17, -1.6, 2.45, -1.0, 1.35, green, .2);
+      planform([[0, -1.6], [side * 5.1, -1.0], [side * 5.1, .35], [0, .85]], .02, under, outer.g, -.11);
+      planform([[0, -1.75], [side * 2.45, -1.6], [side * 2.45, .85], [0, 1]], .02, under, inner.g, -.16);
+      planform([[side * 4.4, -1.1], [side * 5.1, -1.0], [side * 5.1, .35], [side * 4.4, .45]], .03, yellow, outer.g, -.13); // puntas amarillas abajo
+      const ail = pivot(outer.g, side * 3.8, 0, .55); mesh(new THREE.BoxGeometry(2.4, .08, .5), dgreen, 0, 0, .25, ail);
+      if (side < 0) p.ailL = ail; else p.ailR = ail;
+      const db = pivot(outer.g, side * 1.5, -.2, -1.0); mesh(new THREE.BoxGeometry(1.5, .05, .32), metal, 0, 0, .16, db); p.dive.push(db); // freno de picada
+      // tren fijo con polainas en el quiebre del ala
+      const gx = side * inner.x, gy = inner.y;
+      const leg = new THREE.CylinderGeometry(.13, .16, gy + 1.6, 8); leg.translate(0, -(gy + 1.6) / 2, 0); mesh(leg, green, gx, gy, -1.0, root);
+      const spat = new THREE.SphereGeometry(.5, 14, 10); spat.scale(.5, 1.05, 1.45); mesh(spat, green, gx, -1.48, -1.0, root);
+      wheel(root, gx, -1.61, -1.0, .4, .2, tire);
+      // bomba de ala (decorativa)
+      const sb = new THREE.CylinderGeometry(.12, .12, .9, 8); sb.rotateX(Math.PI / 2); mesh(sb, dgreen, side * (inner.x + 1.6), inner.y + .1 - .3, -.7, root);
+    }
+    // bomba grande bajo el fuselaje (se suelta con X)
+    p.bomb = new THREE.Group(); p.bomb.position.set(0, -1.05, -.8); root.add(p.bomb);
+    const bb = new THREE.CylinderGeometry(.24, .24, 1.6, 12); bb.rotateX(Math.PI / 2); mesh(bb, dgreen, 0, 0, 0, p.bomb);
+    const bn = new THREE.SphereGeometry(.24, 12, 8); bn.scale(1, 1, 1.6); mesh(bn, dgreen, 0, 0, -.8, p.bomb);
+    const bt = new THREE.ConeGeometry(.24, .5, 12); bt.rotateX(Math.PI / 2); mesh(bt, dgreen, 0, 0, 1.05, p.bomb);
+    mesh(new THREE.BoxGeometry(.6, .03, .3), dgreen, 0, 0, 1.2, p.bomb); mesh(new THREE.BoxGeometry(.03, .6, .3), dgreen, 0, 0, 1.2, p.bomb);
+    mesh(new THREE.BoxGeometry(.06, .5, .2), dark, 0, .3, 0, p.bomb);
+    // cola
+    planform([[-2.8, 6.2], [-.4, 5.6], [.4, 5.6], [2.8, 6.2], [2.8, 7.1], [-2.8, 7.1]], .12, green, root, .55);
+    p.elev = pivot(root, 0, .55, 7.1); mesh(new THREE.BoxGeometry(5.4, .08, .5), dgreen, 0, 0, .25, p.elev);
+    for (const sx of [-1, 1]) { const st = new THREE.CylinderGeometry(.035, .035, 1.25, 5); const m = mesh(st, metal, sx * .75, .02, 6.5, root); m.rotation.z = sx * .7; }
+    fin([[.4, 5.4], [2.25, 6.6], [2.25, 7.3], [.4, 7.3]], .12, green, root);
+    p.rud = pivot(root, 0, 1.35, 7.3); mesh(new THREE.BoxGeometry(.08, 1.9, .55), dgreen, 0, 0, .27, p.rud);
+    // rueda de cola
+    const tl = new THREE.CylinderGeometry(.05, .05, .85, 6); tl.translate(0, -.43, 0); mesh(tl, metal, 0, -.13, 7, root);
+    wheel(root, 0, -1.03, 7, .18, .12, tire);
+    // manchas de camuflaje arriba
+    for (const [z, w, d, r] of [[-3.9, .7, 1.1, .4], [2.4, .62, 1.8, -.3], [5.2, .4, 1.2, .2]]) { const m = mesh(new THREE.BoxGeometry(w, .03, d), dgreen, 0, z > 3 ? .52 : z > 0 ? .78 : .76, z, root); m.rotation.y = r; }
+    p.strobe = navLights(root, [-7.95, -.24, -.4], [7.95, -.24, -.4], [0, 2.3, 7.4]);
+    p.strobe.visible = false; p.noStrobe = true;
+    return { root, p };
+  }
+  const BUILD = { gaucho: buildGaucho, pampa: buildPampa, condor: buildCondor, stuka: buildStuka };
   function buildPlane(id) {
     const m = BUILD[id](); m.root.traverse(o => { if (o.isMesh) { o.castShadow = false; } });
     return m;
@@ -150,7 +225,9 @@
     if (p.prop) { p.prop.rotation.z += dt * (5 + a.rpm * 160) * (a.engineOn ? 1 : 0); p.disc.material.opacity = a.engineOn ? Math.min(.35, a.rpm * .5) : 0; p.prop.visible = !(a.engineOn && a.rpm > .45); }
     if (p.flame) { const on = a.spec.ab && a.ab; p.flame.visible = a.engineOn && a.rpm > .6; p.flame.scale.set(1, 1, on ? 1 + Math.random() * .25 : .35); p.flame.material.color.setHex(on ? 0xff9a3a : 0x6ab0ff); p.flame.material.opacity = on ? .85 : .35; }
     if (p.gear && !a.spec.fixedGear) p.gear.forEach(g => { g.scale.y = Math.max(.01, a.gearPos); g.visible = a.gearPos > .02; });
-    if (p.strobe) p.strobe.visible = (performance.now() % 1200) < 90;
+    if (p.strobe) p.strobe.visible = !p.noStrobe && (performance.now() % 1200) < 90;
+    if (p.dive) { const t = a.brakes && !a.onGround ? 1.45 : 0; p.diveA = (p.diveA || 0) + (t - (p.diveA || 0)) * Math.min(1, dt * 4); p.dive.forEach(d => d.rotation.x = p.diveA); }
+    if (p.bomb) p.bomb.visible = !a.bombGone;
   }
 
   Object.assign(GS, { SPECS, buildPlane, animatePlane });

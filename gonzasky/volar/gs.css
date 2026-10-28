@@ -36,7 +36,7 @@ output{float:right;color:var(--fg)}
 input[type=range]{accent-color:var(--acc)}
 .row{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap}
 .cols{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+.cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(190px,1fr));gap:12px}
 .card{text-align:left;display:flex;flex-direction:column;gap:6px;padding:14px;border-radius:14px;background:#111c2d;border:2px solid #24364f;min-height:0}
 .card[aria-pressed="true"]{border-color:var(--acc);background:#13284a}
 .card b{font:800 18px var(--f)}.card em{font:600 12px var(--m);color:var(--acc2);font-style:normal;letter-spacing:.08em;text-transform:uppercase}

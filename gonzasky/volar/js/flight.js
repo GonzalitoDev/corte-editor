@@ -45,7 +45,7 @@
       if (this.alpha <= s.stall) CL = s.CL0 + flapCL + s.CLa * Math.max(this.alpha, -s.stall * .9);
       else CL = CLmax * Math.max(.35, 1 - (this.alpha - s.stall) * 2.4);
       this.stall = !this.onGround && V > 8 && this.alpha > s.stall * .9;
-      const CD = s.CD0 + s.k * CL * CL + s.flapCD[this.flaps] + s.gearCD * this.gearPos + (this.brakes && !this.onGround && s.jet ? .03 : 0);
+      const CD = s.CD0 + s.k * CL * CL + s.flapCD[this.flaps] + s.gearCD * this.gearPos + (this.brakes && !this.onGround ? (s.diveBrakeCD || (s.jet ? .03 : 0)) : 0);
       const Q = .5 * rho * V * V;
       _F.set(0, 0, 0);
       if (V > .5) {

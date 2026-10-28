@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>GonzaSky</title>
-<meta name="description" content="GonzaSky: simulador de vuelo gratis. Tres aviones, ocho aeropuertos, día y noche, clima y desafíos.">
+<meta name="description" content="GonzaSky: simulador de vuelo gratis. Cuatro aviones (con el Stuka de la Segunda Guerra), ocho aeropuertos, día y noche, clima y desafíos.">
 <link rel="icon" href="../icon.svg">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@500;700&display=swap">
@@ -24,6 +24,7 @@
     <button data-k="gear">Tren</button>
     <button data-k="rudL" class="hold">◀ Timón</button>
     <button data-k="rudR" class="hold">Timón ▶</button>
+    <button data-k="bomb" class="bombonly" hidden>Bomba</button>
   </div>
   <div id="tTop">
     <button data-k="pause" aria-label="Pausa">❚❚</button><button data-k="cam">Cámara</button><button data-k="map">Mapa</button><button data-k="ap">Auto</button>
@@ -96,6 +97,8 @@
         <tr><td><kbd>G</kbd></td><td>Tren de aterrizaje</td></tr>
         <tr><td><kbd>B</kbd> o <kbd>Espacio</kbd></td><td>Frenos (mantener)</td></tr>
         <tr><td><kbd>U</kbd></td><td>Piloto automático</td></tr>
+        <tr><td><kbd>X</kbd></td><td>Soltar bomba (Stuka)</td></tr>
+        <tr><td><kbd>B</kbd> en el aire</td><td>Frenos de picada (Stuka)</td></tr>
       </table>
       <table class="keys">
         <tr><th colspan="2">Vista y menús</th></tr>
