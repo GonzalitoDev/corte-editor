@@ -9,7 +9,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **Trazo** | Editor vectorial | [`trazo/`](trazo/) |
 | **Folio** | Herramientas PDF | [`folio/`](folio/) |
 | **Onda** | Editor de audio multipista | [`onda/`](onda/) |
-| **GonzaCraft** | Juego de bloques (Windows, Linux Mint y navegador) | [`gonzacraft/`](gonzacraft/) |
+| **GonzaCraft** | Juego de bloques (Windows, Linux Mint, Android y navegador) | [`gonzacraft/`](gonzacraft/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 
@@ -54,7 +54,8 @@ Juego de bloques original con mundo infinito (llanuras, bosques, desiertos, tund
 
 - Página de descarga: [`gonzacraft/`](gonzacraft/) · jugar en el navegador: [`gonzacraft/jugar/`](gonzacraft/jugar/)
 - App de escritorio: [`desktop-gonzacraft/`](desktop-gonzacraft/) (`npm run dist:win` o `npm run dist:linux`)
-- Cada cambio en el juego dispara el workflow `gonzacraft.yml`, que arma `GonzaCraft-Setup.exe`, `GonzaCraft.deb` y `GonzaCraft.AppImage` y los publica en el release `gonzacraft`.
+- App de Android: [`android-gonzacraft/`](android-gonzacraft/), un WebView a pantalla completa con controles táctiles. Se arma sin Gradle con `./android-gonzacraft/build.sh` (necesita `aapt dalvik-exchange zipalign apksigner libandroid-23-java`). El workflow lo firma con los secretos `ANDROID_KEYSTORE` (keystore en base64) y `ANDROID_KEYSTORE_PASSWORD`.
+- Cada cambio en el juego dispara el workflow `gonzacraft.yml`, que arma `GonzaCraft-Setup.exe`, `GonzaCraft.deb`, `GonzaCraft.AppImage` y `GonzaCraft.apk` y los publica en el release `gonzacraft`.
 
 ## App de escritorio para Windows
 

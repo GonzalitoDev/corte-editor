@@ -7,9 +7,14 @@
   const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
   const DESKTOP = /Electron/i.test(navigator.userAgent);
   if (DESKTOP) document.body.classList.add('desktop');
+  const TOUCH = (window.matchMedia && matchMedia('(pointer: coarse)').matches) || /Android|iPhone|iPad/i.test(navigator.userAgent) || /[?&]tactil/.test(location.search);
+  if (TOUCH) document.body.classList.add('touch');
+  const APP = /GonzaCraftAndroid/i.test(navigator.userAgent);
+  if (APP) document.body.classList.add('android');
 
   /* ───────── opciones ───────── */
   const S = { rd: 6, fov: 75, sens: 1, vol: .7, fps: false, clouds: true, name: 'Jugador' + (100 + Math.random() * 900 | 0) };
+  if (TOUCH) S.rd = 4;
   try { Object.assign(S, JSON.parse(localStorage.getItem('gc_settings') || '{}')); } catch (e) { }
   const saveS = () => { try { localStorage.setItem('gc_settings', JSON.stringify(S)); } catch (e) { } };
 
@@ -18,7 +23,7 @@
   let renderer;
   try { renderer = new THREE.WebGLRenderer({ canvas, antialias: false, powerPreference: 'high-performance' }); }
   catch (e) { document.body.innerHTML = '<section class="screen"><h2>No se pudo iniciar el juego</h2><p>Tu navegador o tu placa de video no soportan WebGL. Probá con Chrome o Edge actualizados.</p></section>'; return; }
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, 1.5));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio || 1, TOUCH ? 1.25 : 1.5));
   const scene = new THREE.Scene();
   scene.fog = new THREE.Fog(0x8ec5ff, 60, 96);
   const camera = new THREE.PerspectiveCamera(S.fov, 1, .05, 1200); camera.rotation.order = 'YXZ';
@@ -221,7 +226,7 @@
   function setPlayMode(m) { P.mode = m; if (m === 'survival') P.flying = false; if (G.meta) G.meta.mode = m; chat('Modo: ' + (m === 'creative' ? 'creativo' : 'supervivencia'), '#aaa'); lastHud = ''; renderHud(); }
 
   /* ───────── mouse y teclado ───────── */
-  function lock() { if (!playing() || G.ui) return; G.lockWanted = true; try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (e) { } }
+  function lock() { if (!playing() || G.ui) return; if (TOUCH) { $('#hud').hidden = false; return; } G.lockWanted = true; try { const r = canvas.requestPointerLock(); if (r && r.catch) r.catch(() => { }); } catch (e) { } }
   function unlock() { G.lockWanted = false; if (document.pointerLockElement) document.exitPointerLock(); }
   document.addEventListener('pointerlockchange', () => {
     if (document.pointerLockElement === canvas) { if (G.ui === 'sPause' || G.ui === 'sClick') hideScreens(); return; }
@@ -229,7 +234,7 @@
   });
   function pause() { if (!playing()) return; unlock(); show('sPause'); $('#hud').hidden = false; $('#btnInvite').hidden = G.remote; $('#inviteBox').hidden = !NET.code; if (NET.code) $('#inviteCode').textContent = NET.code; saveGame(); }
   function resume() { hideScreens(); lock(); }
-  canvas.addEventListener('click', () => { if (playing() && !G.ui && !document.pointerLockElement) lock(); });
+  canvas.addEventListener('click', () => { if (!TOUCH && playing() && !G.ui && !document.pointerLockElement) lock(); });
   $('#sClick').addEventListener('click', () => { hideScreens(); lock(); });
   addEventListener('mousemove', e => {
     if (document.pointerLockElement !== canvas || !playing() || G.ui) return;
@@ -289,7 +294,8 @@
     const feet = w.get(Math.floor(p.x), Math.floor(p.y + .3), Math.floor(p.z)), head = w.get(Math.floor(p.x), Math.floor(p.y + EYE), Math.floor(p.z));
     const wasWater = P.inWater; P.inWater = feet === 11 || head === 11; P.headWater = head === 11;
     if (P.inWater && !wasWater && P.vel.y < -6) sfx('splash', 'water');
-    let fx = (K.KeyD ? 1 : 0) - (K.KeyA ? 1 : 0), fz = (K.KeyW ? 1 : 0) - (K.KeyS ? 1 : 0);
+    let fx = (K.KeyD ? 1 : 0) - (K.KeyA ? 1 : 0), fz = (K.KeyW ? 1 : 0) - (K.KeyS ? 1 : 0), mag = 1;
+    if (G.joy) { fx = G.joy.x; fz = -G.joy.y; mag = Math.min(1, Math.hypot(fx, fz)); if (mag < .15) { fx = fz = 0; mag = 0; } P.sprint = mag > .92 && fz > .7 * mag; }
     const len = Math.hypot(fx, fz) || 1; fx /= len; fz /= len;
     if ((K.ControlLeft || K.ControlRight) && fz > 0) P.sprint = true;
     if (fz <= 0) P.sprint = false;
@@ -298,7 +304,7 @@
     const sp = P.flying ? (P.sprint ? 22 : 11) : P.inWater ? 2.6 : P.crouch ? 1.4 : P.sprint ? 5.8 : 4.3;
     const acc = P.flying ? 10 : P.onGround ? 14 : P.inWater ? 6 : 3;
     const kk = Math.min(1, acc * dt);
-    P.vel.x += (wx * sp - P.vel.x) * kk; P.vel.z += (wz * sp - P.vel.z) * kk;
+    P.vel.x += (wx * sp * mag - P.vel.x) * kk; P.vel.z += (wz * sp * mag - P.vel.z) * kk;
     if (P.flying) { const t = ((K.Space ? 1 : 0) - (K.ShiftLeft || K.ShiftRight ? 1 : 0)) * 9; P.vel.y += (t - P.vel.y) * Math.min(1, 10 * dt); }
     else if (P.inWater) { P.vel.y -= 10 * dt; P.vel.y *= 1 - Math.min(1, 2.2 * dt); if (K.Space) P.vel.y = Math.min(P.vel.y + 26 * dt, 3.4); P.vel.y = Math.max(P.vel.y, -4.5); P.fallStart = null; }
     else { P.vel.y = Math.max(P.vel.y - 28 * dt, -55); if (K.Space && P.onGround) { P.vel.y = 8.7; P.onGround = false; } }
@@ -433,7 +439,7 @@
   function finishLoading() {
     if (G.needFit) { let n = 0; while (boxHit(P.pos.x, P.pos.y, P.pos.z, 1.8) && n++ < CH) P.pos.y += 1; }
     G.state = 'play'; $('#hud').hidden = false; renderHud(); selectSlot(P.sel);
-    show('sClick'); $('#hud').hidden = false; $('#clickTitle').textContent = G.meta.name;
+    show('sClick'); $('#hud').hidden = false; $('#clickTitle').textContent = G.meta.name; $('#clickMsg').textContent = TOUCH ? 'Tocá la pantalla para jugar' : 'Hacé clic para jugar';
     if (!G.remote) chat('Bienvenido a ' + G.meta.name + '. Escribí /ayuda para ver los comandos.', '#ffe46b');
   }
   async function saveGame() {
@@ -456,6 +462,57 @@
   }
   setInterval(() => { if (playing()) saveGame(); }, 20000);
   addEventListener('beforeunload', () => { saveGame(); });
+  document.addEventListener('visibilitychange', () => { if (document.hidden) { saveGame(); if (TOUCH && playing() && !G.ui) pause(); } });
+
+  /* ───────── controles táctiles ───────── */
+  if (TOUCH) {
+    const tl = $('#tLayer'), stick = $('#stick'), knob = stick.firstElementChild, tp = new Map(); stick.hidden = true;
+    const R = 56;
+    tl.addEventListener('pointerdown', e => {
+      if (!playing() || G.ui) return; e.preventDefault(); try { tl.setPointerCapture(e.pointerId); } catch (_) { }
+      const left = e.clientX < innerWidth * .42 && ![...tp.values()].some(t => t.kind === 'stick');
+      const t = { kind: left ? 'stick' : 'look', x0: e.clientX, y0: e.clientY, x: e.clientX, y: e.clientY, t0: performance.now(), moved: 0, brk: false };
+      tp.set(e.pointerId, t);
+      if (left) { stick.hidden = false; stick.style.left = e.clientX + 'px'; stick.style.top = e.clientY + 'px'; knob.style.transform = ''; G.joy = { x: 0, y: 0 }; }
+      else t.hold = setTimeout(() => { if (t.moved < 14 && tp.get(e.pointerId) === t) { t.brk = true; G.mouse[0] = true; G.breakT = 0; if (P.mode === 'creative') { breakTarget(); G.lastAct = performance.now(); } } }, 260);
+    });
+    tl.addEventListener('pointermove', e => {
+      const t = tp.get(e.pointerId); if (!t) return; e.preventDefault();
+      const dx = e.clientX - t.x, dy = e.clientY - t.y; t.x = e.clientX; t.y = e.clientY; t.moved += Math.abs(dx) + Math.abs(dy);
+      if (t.kind === 'stick') { let jx = e.clientX - t.x0, jy = e.clientY - t.y0; const d = Math.hypot(jx, jy); if (d > R) { jx *= R / d; jy *= R / d; } knob.style.transform = `translate(${jx}px,${jy}px)`; G.joy = { x: jx / R, y: jy / R }; }
+      else { const k = .0055 * S.sens; P.yaw -= dx * k; P.pitch = clamp(P.pitch - dy * k, -1.55, 1.55); }
+    });
+    const end = e => {
+      const t = tp.get(e.pointerId); if (!t) return; tp.delete(e.pointerId);
+      if (t.kind === 'stick') { G.joy = null; stick.hidden = true; return; }
+      clearTimeout(t.hold);
+      if (t.brk) { G.mouse[0] = false; G.breakT = 0; crack.visible = false; }
+      else if (t.moved < 14 && performance.now() - t.t0 < 260 && e.type === 'pointerup') place();
+    };
+    tl.addEventListener('pointerup', end); tl.addEventListener('pointercancel', end);
+    const hold = (id, code, extra) => { const b = $(id); b.addEventListener('pointerdown', e => { e.preventDefault(); e.stopPropagation(); if (extra) extra(); K[code] = true; b.classList.add('on'); }); const up = () => { K[code] = false; b.classList.remove('on'); }; b.addEventListener('pointerup', up); b.addEventListener('pointercancel', up); b.addEventListener('pointerleave', up); };
+    let lastJ = 0;
+    hold('#tJump', 'Space', () => { const n = performance.now(); if (P.mode === 'creative' && n - lastJ < 300) { P.flying = !P.flying; P.vel.y = 0; } lastJ = n; });
+    hold('#tSneak', 'ShiftLeft');
+    $('#tFly').addEventListener('click', () => { P.flying = !P.flying; P.vel.y = 0; });
+    $('#tInv').addEventListener('click', openInv); $('#tPause').addEventListener('click', pause); $('#tChat').addEventListener('click', () => openChat());
+    $('#hotbar').addEventListener('pointerdown', e => { const s = e.target.closest('.slot'); if (s) { e.preventDefault(); selectSlot([...s.parentElement.children].indexOf(s)); } });
+    setInterval(() => { const f = $('#tFly'); f.hidden = P.mode !== 'creative'; f.setAttribute('aria-pressed', P.flying); }, 300);
+    document.addEventListener('gesturestart', e => e.preventDefault());
+    document.addEventListener('contextmenu', e => e.preventDefault());
+  }
+  /* botón Atrás de Android */
+  window.__gcBack = () => {
+    if (G.ui === 'sInv') { closeInv(); return true; }
+    if (G.ui === 'chat') { closeChat(); return true; }
+    if (G.ui === 'sOptions') { act.optBack(); return true; }
+    if (G.ui === 'sPause') { resume(); return true; }
+    if (G.ui === 'sNew') { go.worlds(); return true; }
+    if (G.ui === 'sWorlds' || G.ui === 'sMulti') { go.title(); return true; }
+    if (playing()) { pause(); return true; }
+    if (G.state === 'dead' || G.state === 'loading') return true;
+    return false;
+  };
 
   /* ───────── multijugador (PeerJS) ───────── */
   const remotes = new Map();

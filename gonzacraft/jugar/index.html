@@ -2,7 +2,7 @@
 <html lang="es">
 <head>
 <meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <title>GonzaCraft</title>
 <meta name="description" content="GonzaCraft: juego de bloques gratis. Mundo infinito, construir, romper, día y noche, supervivencia, creativo y multijugador.">
 <link rel="icon" href="../icon.svg">
@@ -20,6 +20,18 @@
   <pre id="debug" hidden></pre>
   <div id="chatLog" aria-live="polite"></div>
   <input id="chatIn" hidden autocomplete="off" maxlength="200" placeholder="Escribí un mensaje o un comando como /ayuda">
+  <div id="touch">
+    <div id="tLayer"></div>
+    <div id="stick"><i></i></div>
+    <button class="tbtn" id="tJump" aria-label="Saltar"><svg viewBox="0 0 24 24"><path d="M12 4 5 12h4v7h6v-7h4z"/></svg></button>
+    <button class="tbtn" id="tSneak" aria-label="Agacharse o bajar"><svg viewBox="0 0 24 24"><path d="M12 20 19 12h-4V5H9v7H5z"/></svg></button>
+    <button class="tbtn" id="tFly" aria-label="Volar" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 14 10 11 12 4l2 7 8 3-8 2-2 5-2-5z"/></svg></button>
+    <div id="tTop">
+      <button class="tbtn sq" id="tChat" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
+      <button class="tbtn sq" id="tInv" aria-label="Inventario"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
+      <button class="tbtn sq" id="tPause" aria-label="Pausa"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
+    </div>
+  </div>
   <div id="bottom">
     <div id="stats"><div id="hearts"></div><div id="air"></div></div>
     <div id="slotName"></div>
@@ -70,7 +82,17 @@
   <label>Sensibilidad del mouse <output id="oSensV"></output><input type="range" id="oSens" min="0.2" max="3" step="0.05"></label>
   <label>Volumen <output id="oVolV"></output><input type="range" id="oVol" min="0" max="1" step="0.05"></label>
   <div class="row"><button data-toggle="clouds" id="oClouds"></button><button data-toggle="fps" id="oFps"></button></div>
-  <details><summary>Controles</summary>
+  <details class="touchhelp"><summary>Controles táctiles</summary>
+    <table class="keys">
+      <tr><td>Lado izquierdo</td><td>Arrastrá para caminar. Hasta el borde para correr</td></tr>
+      <tr><td>Lado derecho</td><td>Arrastrá para mirar</td></tr>
+      <tr><td>Tocar</td><td>Poner el bloque elegido donde apunta la mira</td></tr>
+      <tr><td>Mantener apretado</td><td>Romper el bloque</td></tr>
+      <tr><td>Flecha arriba / abajo</td><td>Saltar / agacharse. Volando: subir / bajar</td></tr>
+      <tr><td>Barra de abajo</td><td>Tocá un casillero para elegir el bloque</td></tr>
+    </table>
+  </details>
+  <details class="keyhelp"><summary>Controles</summary>
     <table class="keys">
       <tr><td><kbd>W A S D</kbd></td><td>Moverse</td></tr><tr><td><kbd>Espacio</kbd></td><td>Saltar · dos veces en creativo para volar</td></tr>
       <tr><td><kbd>W</kbd> dos veces o <kbd>Ctrl</kbd></td><td>Correr</td></tr><tr><td><kbd>Shift</kbd></td><td>Agacharse · bajar volando</td></tr>
@@ -118,7 +140,7 @@
 
 <section class="screen dim" id="sClick" hidden>
   <h2 id="clickTitle">¡Listo!</h2>
-  <p>Hacé clic para jugar</p>
+  <p id="clickMsg">Hacé clic para jugar</p>
 </section>
 
 <div id="toast" hidden></div>

@@ -50,7 +50,7 @@ h2{font:700 32px var(--px);margin:0 0 20px}
 .shots figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
 .shots img{display:block;width:100%;aspect-ratio:16/9;object-fit:cover}
 .shots figcaption{padding:10px 14px;color:var(--muted);font-size:14px}
-.steps{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+.steps{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
 .steps ol{margin:10px 0 0;padding-left:22px;color:#d6dfd2}
 .steps li{margin:6px 0}
 .steps h3{margin:0;font:700 22px var(--px);display:flex;align-items:center;gap:10px}
@@ -87,6 +87,9 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
         <a class="btn" id="dLin" href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/GonzaCraft.deb">
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M8 8v6a2 2 0 0 0 2 2h5M12 8v5h3"/></svg>
           <span>Descargar para Linux Mint<small>Paquete .deb · también Ubuntu</small></span></a>
+        <a class="btn" id="dAnd" href="https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/GonzaCraft.apk">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 9h12v8a1 1 0 0 1-1 1h-1v3h-2v-3h-4v3H8v-3H7a1 1 0 0 1-1-1zM3.5 9h1.5v6H3.5zM19 9h1.5v6H19zM6.2 8a5.8 5 0 0 1 11.6 0zM8.2 4.3 7.3 2.8l.6-.4.9 1.6zM15.8 4.3l.9-1.5.6.4-.9 1.5z"/></svg>
+          <span>Descargar para Android<small>APK · Android 6 o más nuevo</small></span></a>
         <a class="btn" href="jugar/">
           <svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span>Jugar en el navegador<small>Sin instalar nada</small></span></a>
@@ -126,11 +129,20 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
           <li>Hacé doble clic en el archivo y tocá <b>Instalar paquete</b>. Te va a pedir tu contraseña.</li>
           <li>Buscalo en el menú, en la categoría <b>Juegos</b>.</li>
         </ol>
-        <p class="req" style="margin-bottom:0">O desde la terminal, en la carpeta Descargas:</p>
+        <p class="req" style="margin-bottom:0">O desde la terminal, en Descargas:</p>
         <pre><code>sudo apt install ./GonzaCraft.deb</code></pre>
       </div>
-    </div>
-    <p class="req">Requisitos: computadora de 64 bits con una placa de video que soporte OpenGL 3 o WebGL 2 (casi cualquiera de los últimos 10 años). Para el multijugador hace falta internet.</p>
+        <div class="card">
+        <h3><svg viewBox="0 0 24 24" fill="currentColor"><path d="M6 9h12v8a1 1 0 0 1-1 1h-1v3h-2v-3h-4v3H8v-3H7a1 1 0 0 1-1-1zM3.5 9h1.5v6H3.5zM19 9h1.5v6H19zM6.2 8a5.8 5 0 0 1 11.6 0zM8.2 4.3 7.3 2.8l.6-.4.9 1.6zM15.8 4.3l.9-1.5.6.4-.9 1.5z"/></svg>Android</h3>
+        <ol>
+          <li>Desde el celular, descargá <b>GonzaCraft.apk</b>.</li>
+          <li>Abrilo desde las notificaciones o desde la app <b>Archivos</b>. Si te pregunta, permití <b>Instalar apps desconocidas</b> para el navegador.</li>
+          <li>Tocá <b>Instalar</b>. Si aparece Play Protect, tocá <b>Más detalles</b> y <b>Instalar de todas formas</b>.</li>
+        </ol>
+        <p class="req" style="margin-bottom:0">Se juega con el celular acostado: arrastrá a la izquierda para caminar y a la derecha para mirar. Tocá para poner un bloque y mantené apretado para romperlo.</p>
+      </div>
+  </div>
+    <p class="req">Requisitos: computadora de 64 bits con una placa de video que soporte OpenGL 3 o WebGL 2 (casi cualquiera de los últimos 10 años). En Android, la versión 6 o más nueva. Para el multijugador hace falta internet.</p>
   </section>
 
   <section>
@@ -161,7 +173,7 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
   ];
   document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');
   // destacar la descarga que corresponde a tu sistema
-  const ua = navigator.userAgent, os = /Windows/i.test(ua) ? 'dWin' : /Linux/i.test(ua) && !/Android/i.test(ua) ? 'dLin' : null;
+  const ua = navigator.userAgent, os = /Android/i.test(ua) ? 'dAnd' : /Windows/i.test(ua) ? 'dWin' : /Linux/i.test(ua) ? 'dLin' : null;
   const main = document.getElementById(os) || document.querySelector('#dl a[href="jugar/"]');
   main.classList.add('main'); main.parentElement.prepend(main);
 </script>

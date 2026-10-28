@@ -106,3 +106,46 @@ footer{position:fixed;bottom:10px;left:12px;right:12px;font-size:14px;color:#ddd
 #carry{position:fixed;width:40px;height:40px;pointer-events:none;image-rendering:pixelated;z-index:40;transform:translate(-50%,-50%)}
 @media (max-width:620px){.grid{grid-template-columns:repeat(9,36px)}.slot{width:36px;height:36px}.slot img{width:26px;height:26px}}
 body.desktop footer{display:none}
+
+/* controles táctiles */
+#touch,.touchhelp{display:none}
+body.touch #touch{display:block}
+body.touch .touchhelp{display:block}
+body.touch .keyhelp{display:none}
+#tLayer{position:absolute;inset:0;pointer-events:auto;touch-action:none}
+#hud.chat #tLayer,#hud.chat .tbtn{display:none}
+#stick{position:absolute;width:128px;height:128px;margin:-64px 0 0 -64px;border-radius:50%;border:2px solid rgba(255,255,255,.45);background:rgba(0,0,0,.22);pointer-events:none}
+#stick i{position:absolute;left:50%;top:50%;width:54px;height:54px;margin:-27px;border-radius:50%;background:rgba(255,255,255,.55);box-shadow:0 2px 6px rgba(0,0,0,.4)}
+#stick[hidden]{display:none}
+.tbtn{position:absolute;pointer-events:auto;touch-action:none;width:68px;height:68px;min-height:0;padding:0;border-radius:50%;background:rgba(0,0,0,.32);border:2px solid rgba(255,255,255,.5);box-shadow:none;display:grid;place-items:center;-webkit-tap-highlight-color:transparent}
+.tbtn svg{width:30px;height:30px;fill:rgba(255,255,255,.9)}
+.tbtn.on,.tbtn[aria-pressed="true"]{background:rgba(126,200,80,.55)}
+.tbtn:hover{background:rgba(0,0,0,.32)}
+#tJump{right:calc(24px + env(safe-area-inset-right));bottom:104px;width:80px;height:80px}
+#tSneak{right:calc(118px + env(safe-area-inset-right));bottom:34px}
+#tFly{right:calc(118px + env(safe-area-inset-right));bottom:124px}
+#tTop{position:absolute;top:10px;right:calc(10px + env(safe-area-inset-right));display:flex;gap:8px}
+#tTop .tbtn{position:static;width:48px;height:48px;border-radius:10px}
+#tTop .tbtn svg{width:22px;height:22px}
+body.touch #hotbar{pointer-events:auto}
+body.touch #bottom{bottom:4px}
+body.touch .slot{width:44px;height:44px}
+body.touch .slot img{width:32px;height:32px}
+body.touch #chatLog{bottom:auto;top:10px;left:calc(10px + env(safe-area-inset-left));width:min(420px,55vw)}
+body.touch #chatLog div{font-size:14px}
+body.touch #chatIn{bottom:auto;top:10px;width:min(560px,70vw)}
+body.touch #debug{top:auto;bottom:70px}
+body.touch #cross{width:26px;height:26px}
+@media (max-height:520px){
+  .screen{gap:8px;padding:10px;justify-content:flex-start;overflow:auto}
+  .screen h2{font-size:24px}
+  .logo{margin:4px 0 10px;transform:none;line-height:1}.logo span{font-size:clamp(34px,10vh,60px)}
+  #splash{font-size:13px;right:-80px;bottom:-16px}
+  .inv .help{display:none}
+  button{min-height:40px;padding:6px 12px;font-size:16px}
+  .list{height:40vh}
+  .grid{grid-template-columns:repeat(9,40px)}
+  .grid .slot{width:40px;height:40px}.grid .slot img{width:28px;height:28px}
+  .inv{padding:8px 12px}.inv h3{margin:2px 0;font-size:15px}
+  footer{display:none}
+}
