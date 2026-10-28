@@ -42,6 +42,7 @@
       const gearTxt = a.spec.fixedGear ? 'TREN FIJO' : a.gearPos >= .99 ? 'TREN ABAJO' : a.gearPos <= .01 ? 'TREN ARRIBA' : 'TREN ···';
       if (T) {
         this.text(`${Math.round(a.throttle * 100)}%${a.ab ? ' POSC.' : ''} · FLAPS ${['0', '1', '2', 'T'][a.flaps]}${a.spec.fixedGear ? '' : ' · ' + gearTxt.replace('TREN ', 'TREN ')}${a.brakes ? (a.onGround || !a.spec.diveBrakeCD ? ' · FRENOS' : ' · FRENOS DE PICADA') : ''}${st.ap ? ' · AUTO' : ''}${a.engineOn ? '' : ' · SIN MOTOR'}`, bx, by + 60, a.engineOn ? WHITE : RED, 12, 'left', true);
+        if (a.ammo && (a.ammo.maxB || a.ammo.maxM)) this.text(`BOMBAS ${a.ammo.bombs} · MISILES ${a.ammo.missiles}`, bx, by + 78, AMBER, 12, 'left', true);
       } else {
       const px = bx, py = H - (small ? 120 : 132);
       g.fillStyle = 'rgba(8,14,22,.55)'; g.fillRect(px, py, small ? 150 : 176, small ? 108 : 118);
@@ -50,6 +51,7 @@
       this.text('FLAPS ' + ['0', '1', '2', 'TOTAL'][a.flaps], px + 34, py + 58, a.flaps ? AMBER : '#b9c4cf', 12);
       this.text(gearTxt, px + 34, py + 76, a.gearPos >= .99 ? GREEN : a.gearPos <= .01 ? '#b9c4cf' : AMBER, 12);
       this.text((a.brakes ? 'FRENOS ' : '') + (st.ap ? 'PILOTO AUTO' : ''), px + 34, py + 94, st.ap ? '#d18bff' : AMBER, 12, 'left', true);
+      if (a.ammo && (a.ammo.maxB || a.ammo.maxM)) { g.fillStyle = 'rgba(8,14,22,.55)'; g.fillRect(px, py - 30, small ? 150 : 176, 24); this.text(`BOMBAS ${a.ammo.bombs}  ·  MISILES ${a.ammo.missiles}`, px + 10, py - 18, AMBER, 12, 'left', true); }
       // horizonte artificial chico (fuera de la cabina)
       if (st.view !== 'cabina' && !small) this.attBall(att, px + 230, H - 74, 54);
       }

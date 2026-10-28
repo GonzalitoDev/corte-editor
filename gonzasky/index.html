@@ -162,12 +162,12 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
 </div>
 <script>
   const F = [
-    ['#4fb3ff', 'Cuatro aviones', 'Gaucho 172 para aprender, Pampa 320 de línea, Cóndor F-1 con poscombustión y el Stuka Ju 87 de la Segunda Guerra, con sirena, frenos de picada y bombas de práctica.'],
+    ['#4fb3ff', 'Cuatro aviones', 'Gaucho 172 para aprender, Pampa 320 de línea, Cóndor F-1 con poscombustión y el Stuka Ju 87 de la Segunda Guerra, con camuflaje pintado, sirena, frenos de picada, 5 bombas y 6 misiles guiados.'],
     ['#ffcf4a', 'Física de verdad', 'Sustentación, pérdida, flaps, tren y frenos. Despegar y aterrizar requiere práctica, como en un avión real.'],
     ['#7ec850', 'Ocho aeropuertos', 'Pistas con luces y números, torres de control, hangares y ciudades. Uno de montaña y una pista de pasto.'],
     ['#ff8a3a', 'Día, noche y clima', 'Amaneceres, atardeceres, noches con luces de pista, nubes y niebla. Viento suave o fuerte.'],
     ['#d18bff', 'Mapa y GPS', 'Elegí un aeropuerto en el mapa y el GPS te marca rumbo, distancia y tiempo. Piloto automático incluido.'],
-    ['#ff5d6c', 'Siete desafíos', 'Primer despegue, aterrizaje perfecto, aros con el caza, sin motor, cabotaje, aterrizaje nocturno y bombardeo en picada con el Stuka. Con récords.'],
+    ['#ff5d6c', 'Ocho desafíos', 'Primer despegue, aterrizaje perfecto, aros con el caza, sin motor, cabotaje, aterrizaje nocturno, bombardeo en picada y cacería de tanques con el Stuka. Con récords.'],
   ];
   document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');
   // destacar la descarga que corresponde a tu sistema

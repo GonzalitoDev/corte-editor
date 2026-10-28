@@ -71,7 +71,9 @@ input[type=range]{accent-color:var(--acc)}
 #thrKnob{position:absolute;left:4px;right:4px;height:30px;border-radius:8px;background:#4fb3ff;bottom:0}
 #tBtns{position:absolute;left:50%;transform:translateX(-50%);bottom:12px;display:grid;grid-template-columns:repeat(3,auto);gap:8px;pointer-events:auto}
 #tBtns button,#tTop button{min-height:44px;padding:8px 12px;font-size:14px;background:rgba(10,18,32,.55);border-color:rgba(255,255,255,.3)}
+#tBtns.armed{grid-template-columns:repeat(4,auto)}
 #tBtns button.on{background:#1f7fe0}
+#tBtns .bombonly,#tBtns .misonly{border-color:rgba(255,170,60,.6)}
 #tTop{position:absolute;top:8px;left:calc(8px + env(safe-area-inset-left));display:flex;gap:5px;pointer-events:auto}
 #tTop button{padding:6px 9px!important;font-size:13px!important;min-height:38px!important}
 @media (max-width:720px){.cards{grid-template-columns:1fr}.help2{grid-template-columns:1fr}.card p{display:none}}

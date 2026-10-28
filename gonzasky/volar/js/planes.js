@@ -30,7 +30,7 @@
       eye: [0, 1.05, -4.6], chase: 22, cruise: 250, vRot: 75, maxFlapSpeed: 130, stars: [5, 1, 3],
     },
     stuka: {
-      id: 'stuka', name: 'Stuka Ju 87', tipo: 'Bombardero · 2ª Guerra', desc: 'El clásico de la Segunda Guerra Mundial. Frenos de picada (B en el aire), la sirena famosa y bombas de práctica (X).',
+      id: 'stuka', name: 'Stuka Ju 87', tipo: 'Bombardero · 2ª Guerra', desc: 'El clásico de la Segunda Guerra Mundial, con sirena y frenos de picada (B en el aire). Lleva 5 bombas (X) y 6 misiles guiados (V).',
       mass: 4300, S: 31.9, CL0: .25, CLa: 5, stall: .26, CD0: .036, k: .065, thrust: 36000, prop: true, vProp: 145,
       pitchRate: 1.1, rollRate: 1.5, yawRate: .5, resp: 3, stabP: 3, stabY: 2.2, vRef: 75,
       flapCL: [0, .2, .35, .5], flapCD: [0, .01, .03, .05], gearCD: .012, fixedGear: true, diveBrakeCD: .1, siren: true, bombs: true,
@@ -144,6 +144,38 @@
     p.strobe = navLights(root, [-5.2, -.1, 3.7], [5.2, -.1, 3.7], [0, 3.6, 6.6]);
     return { root, p };
   }
+  /* ── texturas pintadas a mano en un canvas: camuflaje de astillas, paneles, remaches y desgaste ── */
+  function rng(seed) { let x = seed >>> 0 || 1; return () => ((x = Math.imul(x ^ (x >>> 15), 2246822507) ^ Math.imul(x ^ (x >>> 13), 3266489909), (x ^= x >>> 16) >>> 0) / 4294967296); }
+  const texCache = {};
+  function paintTex(key, o) {
+    if (!texCache[key]) {
+      const N = 512, c = document.createElement('canvas'); c.width = c.height = N; const g = c.getContext('2d'), r = rng(o.seed || 7);
+      g.fillStyle = o.base; g.fillRect(0, 0, N, N);
+      // manchas angulosas (camuflaje de astillas), repetidas en los bordes para que la textura empalme
+      if (o.splinter) for (let i = 0; i < o.splinter.n; i++) {
+        const cx = r() * N, cy = r() * N, pts = []; let ang = r() * 6.28; const k = 4 + (r() * 3 | 0);
+        for (let j = 0; j < k; j++) { ang += 6.28 / k * (.6 + r() * .8); const rad = o.splinter.size * (.5 + r()); pts.push([Math.cos(ang) * rad, Math.sin(ang) * rad]); }
+        g.fillStyle = o.splinter.colors[i % o.splinter.colors.length];
+        for (const ox of [-N, 0, N]) for (const oy of [-N, 0, N]) { g.beginPath(); pts.forEach(([x, y], j) => j ? g.lineTo(cx + x + ox, cy + y + oy) : g.moveTo(cx + x + ox, cy + y + oy)); g.closePath(); g.fill(); }
+      }
+      // desgaste: puntitos y rayas claras/oscuras
+      for (let i = 0; i < 2600; i++) { g.fillStyle = r() < .5 ? 'rgba(255,255,255,.05)' : 'rgba(0,0,0,.06)'; const w = 1 + r() * 3; g.fillRect(r() * N, r() * N, w, r() < .2 ? w * 6 : w); }
+      // líneas de paneles y remaches
+      const step = o.panel || 64;
+      g.strokeStyle = 'rgba(0,0,0,.42)'; g.lineWidth = 1.6;
+      for (let x = 0; x <= N; x += step) { g.beginPath(); g.moveTo(x + .5, 0); g.lineTo(x + .5, N); g.stroke(); }
+      for (let y = 0; y <= N; y += step * 1.5) { const off = (y / (step * 1.5)) % 2 ? step / 2 : 0; for (let x = 0; x < N; x += step) { g.beginPath(); g.moveTo(x + off, y + .5); g.lineTo(x + off + step, y + .5); g.stroke(); } }
+      g.fillStyle = 'rgba(0,0,0,.28)'; for (let x = 0; x <= N; x += step) for (let y = 4; y < N; y += 9) g.fillRect(x + 3, y, 1.6, 1.6);
+      g.fillStyle = 'rgba(255,255,255,.12)'; for (let x = 0; x <= N; x += step) for (let y = 4; y < N; y += 9) g.fillRect(x + 3.6, y - .6, 1, 1);
+      texCache[key] = c;
+    }
+    const t = new THREE.CanvasTexture(texCache[key]); t.wrapS = t.wrapT = THREE.RepeatWrapping; t.colorSpace = THREE.SRGBColorSpace; t.anisotropy = 4;
+    if (o.repeat) t.repeat.set(o.repeat[0], o.repeat[1]); return t;
+  }
+  const CAMO = { base: '#56674a', splinter: { n: 26, size: 70, colors: ['#3a4934', '#4b5c41', '#33402d'] }, seed: 11, panel: 64 };
+  const BLUE = { base: '#8fb0c4', seed: 3, panel: 64 };
+  const TAN = { base: '#a08e62', splinter: { n: 22, size: 60, colors: ['#7d6d48', '#8f7b52', '#6b5a3c'] }, seed: 29, panel: 96 };
+
   /** panel de ala que arranca en (x0,y0) y sale hacia afuera con un ángulo diedro; devuelve el grupo y el punto final */
   function wingPanel(parent, side, x0, y0, span, ang, zle0, c0, zle1, c1, mat, thick) {
     const g = new THREE.Group(); g.position.set(side * x0, y0, 0); g.rotation.z = side * ang; parent.add(g);
@@ -152,7 +184,12 @@
   }
   function buildStuka() {
     const root = new THREE.Group(), p = {};
-    const green = M(0x5a6b4b, { roughness: .8, metalness: .05 }), dgreen = M(0x3b4a35, { roughness: .8, metalness: .05 }), under = M(0x8fb0c4, { roughness: .75, metalness: .05 }), yellow = M(0xd6ae3c, { roughness: .7 });
+    // texturas: en el fuselaje (cilindros) la imagen se envuelve; en las alas se mide en metros
+    const tx = (o, r) => paintTex(o === CAMO ? 'camo' : 'blue', Object.assign({ repeat: r }, o));
+    const green = M(0xffffff, { map: tx(CAMO, [2, 1.6]), bumpMap: tx(CAMO, [2, 1.6]), bumpScale: .015, roughness: .82, metalness: .05 });
+    const greenW = M(0xffffff, { map: tx(CAMO, [.22, .22]), bumpMap: tx(CAMO, [.22, .22]), bumpScale: .015, roughness: .82, metalness: .05 });
+    const dgreen = M(0x9aaa92, { map: tx(CAMO, [.6, .6]), roughness: .8, metalness: .05 });
+    const under = M(0xffffff, { map: tx(BLUE, [1, 4]), roughness: .75, metalness: .05 }), underW = M(0xffffff, { map: tx(BLUE, [.22, .22]), roughness: .75, metalness: .05 }), yellow = M(0xd6ae3c, { roughness: .7 });
     const glass = M(0xaac4d4, { roughness: .08, metalness: .4, transparent: true, opacity: .8 }), frame = M(0x3b4a35), dark = M(0x1b1d1f), metal = M(0x8a9096, { metalness: .6 }), tire = M(0x151515, { roughness: .9 });
     // fuselaje: motor, cabina larga y cola
     tube(.62, .78, 2.4, green, -4.4, .1, root); tube(.78, .8, 3.8, green, -1.3, .1, root); tube(.8, .26, 6.2, green, 3.7, .22, root);
@@ -171,12 +208,13 @@
     const gun = new THREE.CylinderGeometry(.03, .03, 1, 6); gun.rotateX(Math.PI / 2); mesh(gun, dark, 0, 1.05, .9, root).rotation.x = -.25;
     mesh(new THREE.BoxGeometry(1.62, 1.62, .55), yellow, 0, .22, 4.1, root).scale.set(.32, .34, 1); // franja amarilla en la cola
     // ala de gaviota invertida: tramo interno hacia abajo y externo hacia arriba
-    p.dive = [];
+    p.dive = []; const wb = [], ms = [];
+    const mount = (par, x, y, z, mat) => mesh(new THREE.BoxGeometry(.06, .2, .9), mat, x, y, z, par);
     for (const side of [-1, 1]) {
-      const inner = wingPanel(root, side, .55, -.42, 2.45, -.27, -1.75, 2.75, -1.6, 2.45, green, .3);
-      const outer = wingPanel(root, side, inner.x, inner.y, 5.1, .17, -1.6, 2.45, -1.0, 1.35, green, .2);
-      planform([[0, -1.6], [side * 5.1, -1.0], [side * 5.1, .35], [0, .85]], .02, under, outer.g, -.11);
-      planform([[0, -1.75], [side * 2.45, -1.6], [side * 2.45, .85], [0, 1]], .02, under, inner.g, -.16);
+      const inner = wingPanel(root, side, .55, -.42, 2.45, -.27, -1.75, 2.75, -1.6, 2.45, greenW, .3);
+      const outer = wingPanel(root, side, inner.x, inner.y, 5.1, .17, -1.6, 2.45, -1.0, 1.35, greenW, .2);
+      planform([[0, -1.6], [side * 5.1, -1.0], [side * 5.1, .35], [0, .85]], .02, underW, outer.g, -.11);
+      planform([[0, -1.75], [side * 2.45, -1.6], [side * 2.45, .85], [0, 1]], .02, underW, inner.g, -.16);
       planform([[side * 4.4, -1.1], [side * 5.1, -1.0], [side * 5.1, .35], [side * 4.4, .45]], .03, yellow, outer.g, -.13); // puntas amarillas abajo
       const ail = pivot(outer.g, side * 3.8, 0, .55); mesh(new THREE.BoxGeometry(2.4, .08, .5), dgreen, 0, 0, .25, ail);
       if (side < 0) p.ailL = ail; else p.ailR = ail;
@@ -186,15 +224,13 @@
       const leg = new THREE.CylinderGeometry(.13, .16, gy + 1.6, 8); leg.translate(0, -(gy + 1.6) / 2, 0); mesh(leg, green, gx, gy, -1.0, root);
       const spat = new THREE.SphereGeometry(.5, 14, 10); spat.scale(.5, 1.05, 1.45); mesh(spat, green, gx, -1.48, -1.0, root);
       wheel(root, gx, -1.61, -1.0, .4, .2, tire);
-      // bomba de ala (decorativa)
-      const sb = new THREE.CylinderGeometry(.12, .12, .9, 8); sb.rotateX(Math.PI / 2); mesh(sb, dgreen, side * (inner.x + 1.6), inner.y + .1 - .3, -.7, root);
+      // 2 bombas chicas y 3 misiles bajo cada ala (se ven mientras queden)
+      for (const k of [0, 1]) { const b = bombMesh(.55, dgreen, dark); b.position.set(side * (1.0 + k * .95), -.42, -.55); outer.g.add(b); wb[k * 2 + (side < 0 ? 0 : 1)] = b; }
+      for (const k of [0, 1, 2]) { const m = missileMesh(); m.position.set(side * (2.55 + k * .6), -.36, -.9); outer.g.add(m); mount(outer.g, side * (2.55 + k * .6), -.2, -.9, metal); ms[k * 2 + (side < 0 ? 0 : 1)] = m; }
     }
+    p.wingBombs = wb; p.missiles = ms;
     // bomba grande bajo el fuselaje (se suelta con X)
-    p.bomb = new THREE.Group(); p.bomb.position.set(0, -1.05, -.8); root.add(p.bomb);
-    const bb = new THREE.CylinderGeometry(.24, .24, 1.6, 12); bb.rotateX(Math.PI / 2); mesh(bb, dgreen, 0, 0, 0, p.bomb);
-    const bn = new THREE.SphereGeometry(.24, 12, 8); bn.scale(1, 1, 1.6); mesh(bn, dgreen, 0, 0, -.8, p.bomb);
-    const bt = new THREE.ConeGeometry(.24, .5, 12); bt.rotateX(Math.PI / 2); mesh(bt, dgreen, 0, 0, 1.05, p.bomb);
-    mesh(new THREE.BoxGeometry(.6, .03, .3), dgreen, 0, 0, 1.2, p.bomb); mesh(new THREE.BoxGeometry(.03, .6, .3), dgreen, 0, 0, 1.2, p.bomb);
+    p.bomb = bombMesh(1, dgreen, dark); p.bomb.position.set(0, -1.05, -.8); root.add(p.bomb);
     mesh(new THREE.BoxGeometry(.06, .5, .2), dark, 0, .3, 0, p.bomb);
     // cola
     planform([[-2.8, 6.2], [-.4, 5.6], [.4, 5.6], [2.8, 6.2], [2.8, 7.1], [-2.8, 7.1]], .12, green, root, .55);
@@ -210,6 +246,40 @@
     p.strobe = navLights(root, [-7.95, -.24, -.4], [7.95, -.24, -.4], [0, 2.3, 7.4]);
     p.strobe.visible = false; p.noStrobe = true;
     return { root, p };
+  }
+  /** bomba con aletas (escala 1 = la grande de 2 m) */
+  function bombMesh(sc, mat, finMat) {
+    const g = new THREE.Group();
+    const b = new THREE.CylinderGeometry(.24, .24, 1.6, 12); b.rotateX(Math.PI / 2); mesh(b, mat, 0, 0, 0, g);
+    const n = new THREE.SphereGeometry(.24, 12, 8); n.scale(1, 1, 1.6); mesh(n, mat, 0, 0, -.8, g);
+    const t = new THREE.ConeGeometry(.24, .5, 12); t.rotateX(Math.PI / 2); mesh(t, mat, 0, 0, 1.05, g);
+    mesh(new THREE.BoxGeometry(.6, .03, .3), finMat || mat, 0, 0, 1.2, g); mesh(new THREE.BoxGeometry(.03, .6, .3), finMat || mat, 0, 0, 1.2, g);
+    const ring = new THREE.CylinderGeometry(.247, .247, .08, 12); ring.rotateX(Math.PI / 2); mesh(ring, ringMat || (ringMat = M(0xd6ae3c)), 0, 0, -.35, g); // anillo amarillo
+    g.scale.setScalar(sc); return g;
+  }
+  let missileMats, ringMat;
+  function missileMesh() {
+    missileMats = missileMats || { body: M(0xd9dcd6, { roughness: .4, metalness: .3 }), red: M(0xc8242b), dark: M(0x2a2d30) };
+    const g = new THREE.Group();
+    const b = new THREE.CylinderGeometry(.09, .09, 1.5, 10); b.rotateX(Math.PI / 2); mesh(b, missileMats.body, 0, 0, 0, g);
+    const n = new THREE.ConeGeometry(.09, .32, 10); n.rotateX(-Math.PI / 2); mesh(n, missileMats.red, 0, 0, -.91, g);
+    for (let i = 0; i < 4; i++) { const f = mesh(new THREE.BoxGeometry(.32, .02, .26), missileMats.dark, 0, 0, .62, g); f.rotation.z = i * Math.PI / 4 * 2 + Math.PI / 4; }
+    const nz = new THREE.CylinderGeometry(.07, .08, .1, 10); nz.rotateX(Math.PI / 2); mesh(nz, missileMats.dark, 0, 0, .79, g);
+    return g;
+  }
+  /** tanque de práctica para los desafíos */
+  function buildTank() {
+    const root = new THREE.Group(), body = M(0xffffff, { map: paintTex('tan', Object.assign({ repeat: [1, 1] }, TAN)), roughness: .9 }), dark = M(0x2a2620, { roughness: .95 }), metal = M(0x55524a, { metalness: .4 });
+    mesh(new THREE.BoxGeometry(3.4, 1.1, 6.6), body, 0, 1.25, 0, root);
+    const glacis = mesh(new THREE.BoxGeometry(3.4, .9, 1.4), body, 0, 1.15, -3.5, root); glacis.rotation.x = .6;
+    for (const sx of [-1, 1]) { mesh(new THREE.BoxGeometry(.9, 1.15, 7), dark, sx * 1.75, .6, 0, root); for (let i = 0; i < 6; i++) wheel(root, sx * 1.75, .45, -2.6 + i * 1.04, .42, .95, metal); }
+    const tur = new THREE.Group(); tur.position.set(0, 2.15, .4); root.add(tur);
+    const tg = new THREE.CylinderGeometry(1.25, 1.5, .85, 8); mesh(tg, body, 0, 0, 0, tur);
+    const gun = new THREE.CylinderGeometry(.13, .16, 4.2, 10); gun.rotateX(Math.PI / 2); mesh(gun, metal, 0, .05, -3.3, tur);
+    mesh(new THREE.CylinderGeometry(.35, .35, .3, 10), body, -.5, .55, .3, tur);
+    // cruz blanca de "blanco de práctica" en el techo para verlo desde el aire
+    mesh(new THREE.BoxGeometry(2.2, .03, .35), M(0xf2efe6), 0, .44, 0, tur); mesh(new THREE.BoxGeometry(.35, .03, 2.2), M(0xf2efe6), 0, .44, 0, tur);
+    return { root, turret: tur };
   }
   const BUILD = { gaucho: buildGaucho, pampa: buildPampa, condor: buildCondor, stuka: buildStuka };
   function buildPlane(id) {
@@ -227,8 +297,12 @@
     if (p.gear && !a.spec.fixedGear) p.gear.forEach(g => { g.scale.y = Math.max(.01, a.gearPos); g.visible = a.gearPos > .02; });
     if (p.strobe) p.strobe.visible = !p.noStrobe && (performance.now() % 1200) < 90;
     if (p.dive) { const t = a.brakes && !a.onGround ? 1.45 : 0; p.diveA = (p.diveA || 0) + (t - (p.diveA || 0)) * Math.min(1, dt * 4); p.dive.forEach(d => d.rotation.x = p.diveA); }
-    if (p.bomb) p.bomb.visible = !a.bombGone;
+    // armas: se ven solo las que todavía no se usaron
+    const am = a.ammo;
+    if (p.bomb) p.bomb.visible = !!am && am.maxB > 0 && am.bombs === am.maxB;
+    if (p.wingBombs) { const w = !am ? 0 : am.bombs === am.maxB ? am.maxB - 1 : am.bombs; p.wingBombs.forEach((b, i) => b.visible = i >= 4 - w); }
+    if (p.missiles) p.missiles.forEach((m, j) => m.visible = !!am && j >= 6 - am.missiles);
   }
 
-  Object.assign(GS, { SPECS, buildPlane, animatePlane });
+  Object.assign(GS, { SPECS, buildPlane, animatePlane, bombMesh, missileMesh, buildTank });
 })();
