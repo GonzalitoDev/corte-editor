@@ -1,0 +1,66 @@
+{
+  "name": "taller",
+  "productName": "Taller",
+  "version": "1.0.0",
+  "description": "Apps creativas gratis: video, fotos, vectores y PDF",
+  "author": "GonzalitoDev",
+  "license": "MIT",
+  "homepage": "https://github.com/GonzalitoDev/corte-editor",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node prepare.js && electron .",
+    "dist": "node prepare.js && electron-builder --win nsis msi --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "dev.gonzalito.taller",
+    "productName": "Taller",
+    "copyright": "GonzalitoDev",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "app/**/*",
+      "build/icon.png"
+    ],
+    "win": {
+      "target": [
+        "nsis",
+        "msi"
+      ],
+      "icon": "build/icon.ico",
+      "artifactName": "Taller-${version}.${ext}"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Taller",
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082",
+      "artifactName": "Taller-Setup-${version}.${ext}"
+    },
+    "msi": {
+      "oneClick": false,
+      "perMachine": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Taller",
+      "artifactName": "Taller-${version}-x64.${ext}"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GonzalitoDev/corte-editor.git"
+  }
+}

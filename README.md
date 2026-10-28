@@ -38,6 +38,18 @@ Multipista ilimitada, transiciones, animaciones, fotogramas clave, filtros, efec
 - Marca de agua, numeración de páginas y metadatos
 - Comprimir, PDF a imágenes, dividir y extraer páginas, imágenes a PDF
 
+## App de escritorio para Windows
+
+La carpeta [`desktop/`](desktop/) empaqueta la suite con Electron. Para armar los instaladores:
+
+```bash
+cd desktop
+npm install
+npm run dist   # crea Taller-Setup-x.y.z.exe y Taller-x.y.z-x64.msi en desktop/dist
+```
+
+Cada tag `v*` que subas a GitHub arma los dos instaladores en Windows y los publica en Releases automáticamente.
+
 ## Uso
 
 Es un sitio estático. Publicalo en Vercel (ya incluye `vercel.json`), Netlify o GitHub Pages, o servilo localmente con `npx serve`. Las librerías y los modelos de IA se cargan desde CDN la primera vez y después quedan en caché.
