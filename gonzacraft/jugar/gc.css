@@ -149,3 +149,26 @@ body.touch #cross{width:26px;height:26px}
   .inv{padding:8px 12px}.inv h3{margin:2px 0;font-size:15px}
   footer{display:none}
 }
+
+/* mod menu */
+.screen.mod{background:linear-gradient(90deg,rgba(0,0,0,.55),rgba(0,0,0,.15));align-items:flex-start;justify-content:flex-start;padding:12px}
+.modp{width:min(380px,92vw);max-height:calc(100vh - 24px);overflow:auto;background:rgba(14,18,22,.94);border:2px solid #7ec850;box-shadow:0 0 0 2px #000,0 10px 40px rgba(0,0,0,.6);padding:0 14px 14px;text-shadow:none}
+.modp header{position:sticky;top:0;display:flex;align-items:center;gap:8px;background:rgba(14,18,22,.98);padding:12px 0 10px;border-bottom:2px solid #263028;z-index:1}
+.modp header b{font-size:22px;color:#7ec850;letter-spacing:.06em;text-shadow:2px 2px 0 #1d3a12}
+.modp header span{color:#8a948a;font-size:13px;flex:1}
+.modp header button{min-height:36px;width:36px;padding:0;font-size:16px}
+.modp h4{margin:14px 0 6px;font-size:13px;letter-spacing:.12em;text-transform:uppercase;color:#ffd75e}
+.mt,.ma{width:100%;display:flex;align-items:center;justify-content:space-between;gap:10px;margin:4px 0;font-size:16px;min-height:40px;text-align:left;background:#262b31;box-shadow:inset 2px 2px 0 rgba(255,255,255,.12),inset -2px -2px 0 rgba(0,0,0,.4)}
+.mt i{flex:none;width:40px;height:20px;border-radius:10px;background:#555;position:relative;border:2px solid #000}
+.mt i::after{content:"";position:absolute;top:1px;left:1px;width:14px;height:14px;border-radius:50%;background:#ddd;transition:transform .15s}
+.mt[aria-pressed="true"]{background:#2f4a2a}
+.mt[aria-pressed="true"] i{background:#7ec850}
+.mt[aria-pressed="true"] i::after{transform:translateX(20px)}
+.ma{justify-content:center;background:#3b4a6b}
+.mr{display:grid;gap:2px;margin:6px 0;width:100%;color:#ddd;font-size:15px}
+.mr span{display:flex;justify-content:space-between}
+.mr output{float:none;color:#7ec850}
+.modp .help{text-align:left;margin-top:12px;font-size:13px;color:#8a948a}
+#modTag{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);color:#7ec850;font-size:13px;padding:3px 10px;white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
+#tTop .tbtn.mod{width:auto;padding:0 10px;font-size:15px;font-weight:700;color:#7ec850;text-shadow:none}
+body.touch #modTag{top:auto;bottom:62px}

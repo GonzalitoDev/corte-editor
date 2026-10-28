@@ -18,6 +18,7 @@
   <div id="water" hidden></div>
   <div id="hurt"></div>
   <pre id="debug" hidden></pre>
+  <div id="modTag" hidden></div>
   <div id="chatLog" aria-live="polite"></div>
   <input id="chatIn" hidden autocomplete="off" maxlength="200" placeholder="Escribí un mensaje o un comando como /ayuda">
   <div id="touch">
@@ -27,6 +28,7 @@
     <button class="tbtn" id="tSneak" aria-label="Agacharse o bajar"><svg viewBox="0 0 24 24"><path d="M12 20 19 12h-4V5H9v7H5z"/></svg></button>
     <button class="tbtn" id="tFly" aria-label="Volar" aria-pressed="false"><svg viewBox="0 0 24 24"><path d="M2 14 10 11 12 4l2 7 8 3-8 2-2 5-2-5z"/></svg></button>
     <div id="tTop">
+      <button class="tbtn sq mod" id="tMod" aria-label="Mod menu">MOD</button>
       <button class="tbtn sq" id="tChat" aria-label="Chat"><svg viewBox="0 0 24 24"><path d="M4 5h16v11H9l-5 4z"/></svg></button>
       <button class="tbtn sq" id="tInv" aria-label="Inventario"><svg viewBox="0 0 24 24"><path d="M4 4h7v7H4zM13 4h7v7h-7zM4 13h7v7H4zM13 13h7v7h-7z"/></svg></button>
       <button class="tbtn sq" id="tPause" aria-label="Pausa"><svg viewBox="0 0 24 24"><path d="M7 5h3v14H7zM14 5h3v14h-3z"/></svg></button>
@@ -88,6 +90,8 @@
       <tr><td>Lado derecho</td><td>Arrastrá para mirar</td></tr>
       <tr><td>Tocar</td><td>Poner el bloque elegido donde apunta la mira</td></tr>
       <tr><td>Mantener apretado</td><td>Romper el bloque</td></tr>
+      <tr><td>Tocar una criatura</td><td>Pegarle</td></tr>
+      <tr><td>Botón MOD</td><td>Mod menu (trucos)</td></tr>
       <tr><td>Flecha arriba / abajo</td><td>Saltar / agacharse. Volando: subir / bajar</td></tr>
       <tr><td>Barra de abajo</td><td>Tocá un casillero para elegir el bloque</td></tr>
     </table>
@@ -98,6 +102,7 @@
       <tr><td><kbd>W</kbd> dos veces o <kbd>Ctrl</kbd></td><td>Correr</td></tr><tr><td><kbd>Shift</kbd></td><td>Agacharse · bajar volando</td></tr>
       <tr><td>Clic izquierdo</td><td>Romper</td></tr><tr><td>Clic derecho</td><td>Poner bloque</td></tr><tr><td>Rueda · <kbd>1</kbd>–<kbd>9</kbd></td><td>Elegir bloque</td></tr>
       <tr><td>Clic de la rueda</td><td>Copiar el bloque que mirás</td></tr><tr><td><kbd>E</kbd></td><td>Inventario</td></tr><tr><td><kbd>T</kbd></td><td>Chat y comandos</td></tr>
+      <tr><td><kbd>M</kbd></td><td>Mod menu (trucos)</td></tr><tr><td>Clic izquierdo a una criatura</td><td>Pegarle</td></tr>
       <tr><td><kbd>F2</kbd></td><td>Captura de pantalla</td></tr><tr><td><kbd>F3</kbd></td><td>Información de depuración</td></tr><tr><td><kbd>Esc</kbd></td><td>Pausa</td></tr>
     </table>
   </details>
@@ -112,6 +117,14 @@
     <div id="inviteBox" hidden><p>Pasales este código a tus amigos. Lo ponen en <b>Multijugador</b>:</p><div class="code" id="inviteCode">…</div><button data-act="copyCode">Copiar código</button></div>
     <button data-go="options">Opciones</button>
     <button data-act="quitWorld">Guardar y salir al menú</button>
+  </div>
+</section>
+
+<section class="screen mod" id="sMod" hidden>
+  <div class="modp" role="dialog" aria-label="Mod menu">
+    <header><b>MOD MENU</b><span>GonzaCraft</span><button data-act="closeMod" aria-label="Cerrar">✕</button></header>
+    <div id="modBody"></div>
+    <p class="help">Abrilo con <kbd>M</kbd>. Los trucos solo te afectan a vos.</p>
   </div>
 </section>
 
@@ -149,6 +162,7 @@
 <script src="js/noise.js"></script>
 <script src="js/blocks.js"></script>
 <script src="js/world.js"></script>
+<script src="js/mobs.js"></script>
 <script src="js/game.js"></script>
 </body>
 </html>

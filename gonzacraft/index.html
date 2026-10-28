@@ -40,7 +40,8 @@ h1 span{color:var(--grass);text-shadow:0 4px 0 var(--dirt),0 8px 22px rgba(0,0,0
 .note{margin:14px 0 0;color:var(--muted);font-size:14px}
 section{padding:56px 0 8px}
 h2{font:700 32px var(--px);margin:0 0 20px}
-.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.grid3{display:grid;grid-template-columns:repeat(4,1fr);gap:14px}
+@media (max-width:1000px){.grid3{grid-template-columns:repeat(2,1fr)}}
 .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
 .card b{display:block;font:700 19px var(--px);margin-bottom:4px}
 .card p{margin:0;color:var(--muted)}
@@ -170,6 +171,8 @@ footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);colo
     ['#ffd75e', 'Creativo', 'Todos los bloques infinitos, volás y construís lo que quieras sin límites.'],
     ['#5aa9ff', 'Multijugador', 'Abrí tu mundo con un código de 5 letras y tus amigos entran desde su compu. Con chat.'],
     ['#c9a7ff', 'Día, noche y guardado', 'Amanece, anochece y aparecen las estrellas. Tus mundos se guardan solos.'],
+    ['#7b5cff', 'Criaturas de noche', 'Cuando oscurece salen Sombras, Rocosos y Chispas. Defendete o escondete: con el sol, las Sombras se queman.'],
+    ['#ff6b3d', 'Mod menu', 'Apretá M y activá trucos: volar, inmortal, súper velocidad, rayos X, visión nocturna, explosiones y más.'],
   ];
   document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><svg class="ic" viewBox="0 0 8 8"><rect width="8" height="8" rx="1" fill="${c}"/><rect x="1" y="1" width="3" height="3" fill="rgba(255,255,255,.35)"/></svg><b>${t}</b><p>${d}</p></div>`).join('');
   // destacar la descarga que corresponde a tu sistema

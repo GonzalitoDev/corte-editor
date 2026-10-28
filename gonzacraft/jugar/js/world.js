@@ -25,6 +25,8 @@
     { n: [0, 0, -1], c: [[1, 0, 0], [0, 0, 0], [0, 1, 0], [1, 1, 0]], s: .65, t: 2 },
   ];
   const AOL = [.42, .62, .8, 1];
+  // rayos X: estos bloques no se dibujan para ver minerales y cuevas
+  const XRAY = new Uint8Array(256); [1, 2, 3, 4, 5, 6, 8, 11, 12, 13, 15, 19, 21, 23, 39].forEach(i => XRAY[i] = 1);
 
   class Buf {
     constructor(ox, oz) { this.ox = ox; this.oz = oz; this.p = []; this.u = []; this.l = []; this.i = []; this.n = 0; }
@@ -49,13 +51,13 @@
   function makeMaterials() {
     const atlas = new THREE.CanvasTexture(GC.atlasCanvas); atlas.magFilter = atlas.minFilter = THREE.NearestFilter; atlas.generateMipmaps = false;
     const wt = new THREE.CanvasTexture(GC.waterCanvas); wt.magFilter = wt.minFilter = THREE.NearestFilter; wt.wrapS = wt.wrapT = THREE.RepeatWrapping; wt.generateMipmaps = false;
-    const common = { day: { value: 1 }, fogColor: { value: new THREE.Color(0x8ec5ff) }, fogNear: { value: 60 }, fogFar: { value: 96 } };
+    const common = { day: { value: 1 }, nv: { value: 0 }, fogColor: { value: new THREE.Color(0x8ec5ff) }, fogNear: { value: 60 }, fogFar: { value: 96 } };
     const vs = `attribute vec3 light; varying vec2 vUv; varying vec3 vL; varying float vD;
       void main(){ vUv = uv; vL = light; vec4 mv = modelViewMatrix * vec4(position, 1.0); vD = length(mv.xyz); gl_Position = projectionMatrix * mv; }`;
-    const fs = (water) => `uniform sampler2D map; uniform float day; uniform vec3 fogColor; uniform float fogNear; uniform float fogFar; uniform float opacity; uniform vec2 off;
+    const fs = (water) => `uniform sampler2D map; uniform float day; uniform float nv; uniform vec3 fogColor; uniform float fogNear; uniform float fogFar; uniform float opacity; uniform vec2 off;
       varying vec2 vUv; varying vec3 vL; varying float vD;
       void main(){ vec4 c = texture2D(map, ${water ? 'vUv * 0.5 + off' : 'vUv'}); ${water ? '' : 'if (c.a < 0.5) discard;'}
-        float l = vL.x * max(vL.y * day, vL.z); l = max(l, 0.035);
+        float l = vL.x * max(vL.y * day, vL.z); l = max(max(l, 0.035), vL.x * nv);
         vec3 col = c.rgb * l; float f = smoothstep(fogNear, fogFar, vD);
         gl_FragColor = vec4(mix(col, fogColor, f), ${water ? 'opacity' : '1.0'}); }`;
     const solid = new THREE.ShaderMaterial({ uniforms: { ...common, map: { value: atlas }, opacity: { value: 1 }, off: { value: new THREE.Vector2() } }, vertexShader: vs, fragmentShader: fs(false) });
@@ -169,6 +171,7 @@
       if (this.opt.onEdit && !remote) this.opt.onEdit(x, y, z, id);
       return true;
     }
+    setXray(on) { this.xray = !!on; for (const c of this.chunks.values()) c.dirty = true; }
     dirty(cx, cz) { const c = this.chunks.get(key(cx, cz)); if (c) c.dirty = true; }
     addChunk(cx, cz, data, mod) {
       const c = { cx, cz, key: key(cx, cz), data, mod: !!mod, dirty: true, mesh: null, wmesh: null };
@@ -184,7 +187,8 @@
       for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
         const n = dx || dz ? this.chunks.get(key(c.cx + dx, c.cz + dz)) : c; if (!n) continue;
         const xs = dx < 0 ? 15 : 0, xe = dx > 0 ? 0 : 15, zs = dz < 0 ? 15 : 0, ze = dz > 0 ? 0 : 15;
-        for (let y = 0; y < CH; y++) for (let z = zs; z <= ze; z++) for (let x = xs; x <= xe; x++) pad[P(x + 1 + dx * 16, y, z + 1 + dz * 16)] = n.data[I(x, y, z)];
+        const XR = this.xray ? XRAY : null;
+        for (let y = 0; y < CH; y++) for (let z = zs; z <= ze; z++) for (let x = xs; x <= xe; x++) { const v = n.data[I(x, y, z)]; pad[P(x + 1 + dx * 16, y, z + 1 + dz * 16)] = XR && XR[v] ? 0 : v; }
       }
       const hm = new Int16Array(PW * PW);
       for (let z = 0; z < PW; z++) for (let x = 0; x < PW; x++) { let y = CH - 1; while (y > 0 && !SHADE[pad[P(x, y, z)]]) y--; hm[z * PW + x] = y; }
