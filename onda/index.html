@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Onda: editor de audio gratis en el navegador. Multipista, efectos, reducción de ruido, grabación y exportación a MP3 y WAV.">
+<meta name="theme-color" content="#0f1115">
+<title>Onda Audio</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%235aa9ff'/%3E%3Cpath d='M5 16h3l2-7 3 14 3-18 3 16 2-5h6' stroke='%2304182e' stroke-width='2.4' fill='none' stroke-linejoin='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="onda.css">
+</head>
+<body class="app-body" data-app="onda">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.4"><path d="M3 12h2l2-6 3 12 3-14 3 12 2-4h3"/></svg></span>Onda</a>
+    <nav class="menubar" aria-label="Menú">
+      <div class="menu-wrap"><button class="mb" data-menu="mFile">Archivo</button>
+        <div class="menu" id="mFile" hidden>
+          <button data-cmd="new">Proyecto nuevo</button>
+          <button data-cmd="import">Importar audio o video… <span>Ctrl O</span></button>
+          <hr><button data-cmd="export">Exportar… <span>Ctrl ⇧ E</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mEdit">Editar</button>
+        <div class="menu" id="mEdit" hidden>
+          <button data-cmd="undo">Deshacer <span>Ctrl Z</span></button>
+          <button data-cmd="redo">Rehacer <span>Ctrl ⇧ Z</span></button>
+          <hr><button data-cmd="cut">Cortar <span>Ctrl X</span></button>
+          <button data-cmd="copy">Copiar <span>Ctrl C</span></button>
+          <button data-cmd="paste">Pegar <span>Ctrl V</span></button>
+          <button data-cmd="delete">Borrar y juntar <span>Supr</span></button>
+          <button data-cmd="silence">Silenciar selección <span>Ctrl L</span></button>
+          <button data-cmd="trim">Recortar a la selección <span>Ctrl T</span></button>
+          <button data-cmd="split">Dividir en el cursor <span>S</span></button>
+          <button data-cmd="duplicate">Duplicar en pista nueva <span>Ctrl D</span></button>
+          <hr><button data-cmd="selAll">Seleccionar todo <span>Ctrl A</span></button>
+          <button data-cmd="deselect">Quitar selección <span>Esc</span></button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mFx">Efectos</button>
+        <div class="menu" id="mFx" hidden>
+          <button data-fx="amplify">Amplificar…</button>
+          <button data-fx="normalize">Normalizar…</button>
+          <button data-fx="fadein">Fundido de entrada</button>
+          <button data-fx="fadeout">Fundido de salida</button>
+          <hr><button data-fx="eq">Ecualizador…</button>
+          <button data-fx="compressor">Compresor…</button>
+          <button data-fx="denoise">Reducción de ruido…</button>
+          <button data-fx="gate">Puerta de ruido…</button>
+          <button data-fx="desilence">Quitar silencios…</button>
+          <hr><button data-fx="echo">Eco…</button>
+          <button data-fx="reverb">Reverberación…</button>
+          <button data-fx="distortion">Distorsión…</button>
+          <button data-fx="speed">Velocidad…</button>
+          <hr><button data-fx="reverse">Invertir (al revés)</button>
+          <button data-fx="invert">Invertir fase</button>
+          <button data-fx="mono">Convertir a mono</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mGen">Generar</button>
+        <div class="menu" id="mGen" hidden>
+          <button data-gen="tone">Tono…</button>
+          <button data-gen="noise">Ruido…</button>
+          <button data-gen="silence">Silencio…</button>
+          <button data-gen="click">Metrónomo…</button>
+        </div></div>
+      <div class="menu-wrap"><button class="mb" data-menu="mView">Ver</button>
+        <div class="menu" id="mView" hidden>
+          <button data-cmd="zoomIn">Acercar <span>+</span></button>
+          <button data-cmd="zoomOut">Alejar <span>−</span></button>
+          <button data-cmd="zoomSel">Ajustar a la selección</button>
+          <button data-cmd="zoomFit">Ver todo el proyecto</button>
+        </div></div>
+    </nav>
+    <input class="docname" id="docName" value="Sin título" aria-label="Nombre del proyecto">
+    <span class="saved" id="savedLbl" aria-live="polite"></span>
+    <div class="spacer"></div>
+    <button class="btn icon" data-cmd="undo" id="undoBtn" title="Deshacer (Ctrl+Z)" aria-label="Deshacer"><svg class="i" viewBox="0 0 24 24"><path d="M9 14 4 9l5-5"/><path d="M4 9h11a5 5 0 0 1 0 10h-3"/></svg></button>
+    <button class="btn icon" data-cmd="redo" id="redoBtn" title="Rehacer (Ctrl+Shift+Z)" aria-label="Rehacer"><svg class="i" viewBox="0 0 24 24"><path d="m15 14 5-5-5-5"/><path d="M20 9H9a5 5 0 0 0 0 10h3"/></svg></button>
+    <button class="btn" data-cmd="import"><svg class="i" viewBox="0 0 24 24"><path d="M12 16V4M7 9l5-5 5 5M4 16v3a1 1 0 0 0 1 1h14a1 1 0 0 0 1-1v-3"/></svg><span class="hide-sm">Importar</span></button>
+    <button class="btn primary" data-cmd="export"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Exportar</button>
+  </header>
+
+  <section class="panel transport" aria-label="Reproducción">
+    <div class="tgroup">
+      <button class="btn icon" data-cmd="toStart" title="Al inicio (Inicio)" aria-label="Ir al inicio"><svg class="i" viewBox="0 0 24 24"><path d="M6 5v14"/><path d="M18 6 9 12l9 6z"/></svg></button>
+      <button class="play" data-cmd="play" id="playBtn" title="Reproducir (Espacio)" aria-label="Reproducir"><svg class="i" viewBox="0 0 24 24" id="playIco"><path d="M7 5v14l12-7z"/></svg></button>
+      <button class="btn icon" data-cmd="stop" title="Detener" aria-label="Detener"><svg class="i" viewBox="0 0 24 24"><rect x="6" y="6" width="12" height="12" rx="1.5"/></svg></button>
+      <button class="btn icon" data-cmd="toEnd" title="Al final (Fin)" aria-label="Ir al final"><svg class="i" viewBox="0 0 24 24"><path d="M18 5v14"/><path d="m6 6 9 6-9 6z"/></svg></button>
+      <button class="rec" data-cmd="record" id="recBtn" title="Grabar (R)" aria-label="Grabar"><span></span></button>
+      <button class="btn icon" data-cmd="loop" id="loopBtn" aria-pressed="false" title="Repetir la selección (L)" aria-label="Repetir"><svg class="i" viewBox="0 0 24 24"><path d="M17 2l4 4-4 4"/><path d="M3 11v-1a4 4 0 0 1 4-4h14M7 22l-4-4 4-4"/><path d="M21 13v1a4 4 0 0 1-4 4H3"/></svg></button>
+    </div>
+    <div class="clock"><b id="tNow">00:00.000</b><span id="selLbl">Sin selección</span></div>
+    <div class="tgroup tools" role="radiogroup" aria-label="Herramienta">
+      <button class="btn" data-tool="select" aria-pressed="true" title="Seleccionar un tramo (1)"><svg class="i" viewBox="0 0 24 24"><path d="M8 4v16M16 4v16M8 12h8"/></svg><span class="hide-sm">Seleccionar</span></button>
+      <button class="btn" data-tool="move" aria-pressed="false" title="Mover clips (2)"><svg class="i" viewBox="0 0 24 24"><path d="M5 12h14M5 12l3-3M5 12l3 3M19 12l-3-3M19 12l-3 3"/></svg><span class="hide-sm">Mover</span></button>
+    </div>
+    <div class="tgroup">
+      <button class="btn icon" data-cmd="split" title="Dividir en el cursor (S)" aria-label="Dividir"><svg class="i" viewBox="0 0 24 24"><path d="M12 3v18"/><path d="M5 8h4v8H5zM15 8h4v8h-4z"/></svg></button>
+      <button class="btn icon" data-cmd="cut" title="Cortar (Ctrl+X)" aria-label="Cortar"><svg class="i" viewBox="0 0 24 24"><circle cx="6" cy="6" r="3"/><circle cx="6" cy="18" r="3"/><path d="M20 4 8.1 15.9M14.5 14.5 20 20M8.1 8.1 12 12"/></svg></button>
+      <button class="btn icon" data-cmd="copy" title="Copiar (Ctrl+C)" aria-label="Copiar"><svg class="i" viewBox="0 0 24 24"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V5a1 1 0 0 0-1-1H5a1 1 0 0 0-1 1v10a1 1 0 0 0 1 1h3"/></svg></button>
+      <button class="btn icon" data-cmd="paste" title="Pegar (Ctrl+V)" aria-label="Pegar"><svg class="i" viewBox="0 0 24 24"><rect x="5" y="4" width="14" height="17" rx="2"/><path d="M9 4V2h6v2"/></svg></button>
+      <button class="btn icon danger" data-cmd="delete" title="Borrar y juntar (Supr)" aria-label="Borrar"><svg class="i" viewBox="0 0 24 24"><path d="M4 7h16M10 11v6M14 11v6M6 7l1 13h10l1-13M9 7V4h6v3"/></svg></button>
+      <button class="btn icon" data-cmd="silence" title="Silenciar selección (Ctrl+L)" aria-label="Silenciar"><svg class="i" viewBox="0 0 24 24"><path d="M4 9h4l5-4v14l-5-4H4z"/><path d="m17 9 5 6M22 9l-5 6"/></svg></button>
+    </div>
+    <div class="tgroup">
+      <button class="btn icon" data-cmd="zoomOut" aria-label="Alejar"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-5-5M8 11h6"/></svg></button>
+      <button class="btn icon" data-cmd="zoomIn" aria-label="Acercar"><svg class="i" viewBox="0 0 24 24"><circle cx="11" cy="11" r="7"/><path d="m21 21-5-5M8 11h6M11 8v6"/></svg></button>
+      <button class="btn icon" data-cmd="zoomFit" title="Ver todo" aria-label="Ver todo"><svg class="i" viewBox="0 0 24 24"><path d="M4 12h16M4 12l4-4M4 12l4 4M20 12l-4-4M20 12l-4 4"/></svg></button>
+    </div>
+    <div class="spacer"></div>
+    <div class="master"><label for="masterVol" class="hint">Volumen</label><input type="range" id="masterVol" min="0" max="1.5" step=".01" value="1"><canvas id="meter" width="140" height="14" aria-label="Nivel de salida"></canvas></div>
+  </section>
+
+  <section class="panel tlp" aria-label="Pistas">
+    <div class="tl" id="tl">
+      <div class="heads" id="heads"></div>
+      <div class="lanes" id="lanes"><div class="spacer-w" id="spacerW"></div><canvas id="tlc"></canvas></div>
+    </div>
+    <div class="dropmsg" id="dropMsg" hidden>Soltá los archivos para agregarlos como pistas</div>
+  </section>
+</div>
+<div class="modal" id="dlg" hidden><div class="sheet" role="dialog" aria-modal="true"><div class="stack" id="dlgBody"></div></div></div>
+<script src="../shared/taller.js"></script>
+<script src="onda.js"></script>
+</body>
+</html>

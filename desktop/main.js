@@ -50,6 +50,7 @@ function buildMenu() {
       { label: 'Lienzo · fotos', accelerator: 'Alt+2', click: () => go('lienzo/') },
       { label: 'Trazo · vectores', accelerator: 'Alt+3', click: () => go('trazo/') },
       { label: 'Folio · PDF', accelerator: 'Alt+4', click: () => go('folio/') },
+      { label: 'Onda · audio', accelerator: 'Alt+5', click: () => go('onda/') },
       { type: 'separator' },
       { role: 'quit', label: 'Salir' },
     ] },

@@ -8,6 +8,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **Lienzo** | Editor de fotos con capas | [`lienzo/`](lienzo/) |
 | **Trazo** | Editor vectorial | [`trazo/`](trazo/) |
 | **Folio** | Herramientas PDF | [`folio/`](folio/) |
+| **Onda** | Editor de audio multipista | [`onda/`](onda/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 
@@ -38,6 +39,15 @@ Multipista ilimitada, transiciones, animaciones, fotogramas clave, filtros, efec
 - Marca de agua, numeración de páginas y metadatos
 - Comprimir, PDF a imágenes, dividir y extraer páginas, imágenes a PDF
 
+## Onda · audio
+- Multipista con volumen, paneo, silenciar y solo; clips que se mueven entre pistas, se recortan desde los bordes y tienen ganancia y fundidos
+- Cortar, copiar, pegar, borrar y juntar, silenciar, recortar a la selección, dividir y duplicar
+- Efectos: amplificar, normalizar, fundidos, ecualizador con preajustes, compresor, **reducción de ruido**, puerta de ruido, quitar silencios, eco, reverberación, distorsión, velocidad, al revés, invertir fase y mono
+- Vista previa de cada efecto antes de aplicarlo
+- Grabar con el micrófono mientras suenan las otras pistas
+- Generar tonos, ruido blanco/rosa/marrón, silencio y metrónomo
+- Importa cualquier audio y el sonido de videos; exporta MP3 (hasta 320 kbps) y WAV
+
 ## App de escritorio para Windows
 
 La carpeta [`desktop/`](desktop/) empaqueta la suite con Electron. Para armar los instaladores:
@@ -54,4 +64,4 @@ Cada tag `v*` que subas a GitHub arma los dos instaladores en Windows y los publ
 
 Es un sitio estático. Publicalo en Vercel (ya incluye `vercel.json`), Netlify o GitHub Pages, o servilo localmente con `npx serve`. Las librerías y los modelos de IA se cargan desde CDN la primera vez y después quedan en caché.
 
-Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe e @imgly/background-removal.
+Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe, @imgly/background-removal y lamejs.

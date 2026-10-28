@@ -1,8 +1,8 @@
 {
   "name": "taller",
   "productName": "Taller",
-  "version": "1.0.0",
-  "description": "Apps creativas gratis: video, fotos, vectores y PDF",
+  "version": "1.1.0",
+  "description": "Apps creativas gratis: video, fotos, vectores, audio y PDF",
   "author": "GonzalitoDev",
   "license": "MIT",
   "homepage": "https://github.com/GonzalitoDev/corte-editor",

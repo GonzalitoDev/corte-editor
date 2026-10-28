@@ -11,6 +11,7 @@ body[data-app="corte"]{--accent:#e8a33d;--accent-ink:#1b1306}
 body[data-app="lienzo"]{--accent:#36c2b4;--accent-ink:#04211e}
 body[data-app="trazo"]{--accent:#9d83ff;--accent-ink:#160c33}
 body[data-app="folio"]{--accent:#ef6b57;--accent-ink:#2a0904}
+body[data-app="onda"]{--accent:#5aa9ff;--accent-ink:#04182e}
 html{height:100%;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
 *,*::before,*::after{box-sizing:border-box}
 [hidden]{display:none!important}

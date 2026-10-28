@@ -46,7 +46,7 @@ jobs:
         with:
           name: Taller ${{ github.ref_name }}
           body: |
-            Instaladores de Taller para Windows (64 bits): Corte, Lienzo, Trazo y Folio en una sola app.
+            Instaladores de Taller para Windows (64 bits): Corte, Lienzo, Trazo, Folio y Onda en una sola app.
             - **Taller-Setup-*.exe**: instalador recomendado, elegís la carpeta y crea accesos directos.
             - **Taller-*-x64.msi**: para instalar en equipos administrados.
             Al ser una app sin firma digital, Windows puede mostrar "Windows protegió tu PC": tocá "Más información" y "Ejecutar de todas formas".

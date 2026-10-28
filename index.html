@@ -40,6 +40,7 @@ body{font-size:15px}
 .pillars b{font-family:var(--f-display);font-weight:600;font-size:16px}
 .pillars span{color:var(--muted);font-size:13px;line-height:1.5}
 footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.apps>.app:last-child:nth-child(odd){grid-column:1/-1}
 @media (max-width:760px){.apps{grid-template-columns:1fr}.pillars{grid-template-columns:1fr 1fr}.hero{padding-block:36px 28px}}
 </style>
 </head>
@@ -52,7 +53,7 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
 
   <section class="hero">
     <h1>Tus herramientas creativas, <em>gratis y sin marca de agua</em>.</h1>
-    <p>Editá video, fotos, ilustraciones y PDF desde el navegador. Sin cuentas, sin suscripciones y sin subir tus archivos a ningún servidor: todo se procesa en tu computadora.</p>
+    <p>Editá video, fotos, ilustraciones, audio y PDF desde el navegador. Sin cuentas, sin suscripciones y sin subir tus archivos a ningún servidor: todo se procesa en tu computadora.</p>
   </section>
 
   <main class="apps">
@@ -78,6 +79,12 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
       <span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M6 3h8l4 4v14H6z"/><path d="M14 3v4h4M9 13h6M9 17h4"/></svg></span>
       <div><h2>Folio <small>PDF</small></h2><p>Uní, dividí, ordená, firmá y comprimí PDF. Convertí imágenes a PDF y PDF a imágenes.</p>
       <ul><li>Unir</li><li>Firmar</li><li>Comprimir</li><li>Marca de agua</li></ul></div>
+      <svg class="i go" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+    </a>
+    <a class="app" href="onda/" style="--a:#5aa9ff">
+      <span class="ic"><svg class="i" viewBox="0 0 24 24"><path d="M3 12h2l2-6 3 12 3-14 3 12 2-4h3"/></svg></span>
+      <div><h2>Onda <small>audio</small></h2><p>Editor de audio multipista: cortá, mezclá, grabá tu voz, limpiá el ruido y exportá a MP3 o WAV.</p>
+      <ul><li>Multipista</li><li>Grabar</li><li>Quitar ruido</li><li>MP3 · WAV</li></ul></div>
       <svg class="i go" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
   </main>
