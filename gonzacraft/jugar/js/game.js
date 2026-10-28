@@ -130,7 +130,7 @@
     title: () => { show('sTitle'); },
     worlds: async () => { show('sWorlds'); await renderWorlds(); },
     new: () => { show('sNew'); $('#nName').value = 'Mundo nuevo'; $('#nSeed').value = ''; setMode('survival'); setTimeout(() => $('#nName').select(), 30); },
-    multi: () => { show('sMulti'); $('#mName').value = S.name; $('#mCode').focus(); },
+    multi: () => { show('sMulti'); $('#mName').value = S.name; renderServers(); },
     options: () => { backFrom = G.state === 'play' ? 'pause' : 'title'; show('sOptions'); renderOptions(); },
   };
   let selWorld = null, newMode = 'survival';
@@ -415,21 +415,21 @@
   const mobDeps = {
     world: () => G.world, burst, smoke, sfx,
     players: () => [{ id: NET.id, pos: P.pos, attackable: G.state === 'play' && (P.mode === 'survival' || MOD.creativeAtk), local: true }, ...[...remotes].map(([id, a]) => ({ id, pos: a.to, attackable: true }))],
-    attack: (pl, n, why, dir) => { if (pl.local) { if (P.mode === 'creative' && MOD.creativeAtk) { P.vel.x += dir[0] * 7; P.vel.z += dir[1] * 7; P.vel.y = 5; sfx('hurt'); } else hurt(n, why, dir); } else { const c = NET.conns.get(pl.id); if (c && c.open) c.send({ t: 'dmg', n, why, dir }); } },
+    attack: (pl, n, why, dir) => { if (pl.local) { if (P.mode === 'creative' && MOD.creativeAtk) { P.vel.x += dir[0] * 7; P.vel.z += dir[1] * 7; P.vel.y = 5; sfx('hurt'); } else hurt(n, why, dir); } else if (G.server) NET.send({ t: 'dmg', to: pl.id, n, why, dir }); else { const c = NET.conns.get(pl.id); if (c && c.open) c.send({ t: 'dmg', n, why, dir }); } },
     onKill: (m, by) => { if (!by && P.mode === 'survival') addItem(...m.T.drop); },
   };
   let atkT = 0;
   function attackMob() {
     const m = G.targetMob; if (!m || performance.now() - atkT < 350) return; atkT = performance.now();
     const d = lookDir(), l = Math.hypot(d.x, d.z) || 1, dir = [d.x / l, d.z / l], dmg = 4 * MOD.strength;
-    if (G.remote) { NET.send({ t: 'hm', id: m.id, d: dmg, dir }); m.flash = .2; sfx('hit'); }
+    if (G.remote && !NET.mobAuth) { NET.send({ t: 'hm', id: m.id, d: dmg, dir }); m.flash = .2; sfx('hit'); }
     else G.mobs.hit(m, dmg, dir);
   }
   function explode(x, y, z, r, remote) {
     const w = G.world; if (!w) return;
     for (let dy = -r; dy <= r; dy++) for (let dz = -r; dz <= r; dz++) for (let dx = -r; dx <= r; dx++) {
       if (dx * dx + dy * dy + dz * dz > r * r + .5) continue; const b = w.get(x + dx, y + dy, z + dz);
-      if (b && b !== 19) w.set(x + dx, y + dy, z + dz, 0, true);
+      if (b && b !== 19 && y + dy >= 3) w.set(x + dx, y + dy, z + dz, 0, true);
     }
     for (let i = 0; i < 4; i++) burst(x + (Math.random() - .5) * r, y + (Math.random() - .5) * r, z + (Math.random() - .5) * r, 0x5a5a5a);
     sfx('boom');
@@ -465,7 +465,7 @@
       return `<button class="ma" data-mact="${k}">${label}</button>`;
     }).join('')).join('');
   }
-  function openMod() { if (!playing() || G.ui) return; unlock(); show('sMod'); renderMod(); }
+  function openMod() { if (!playing() || G.ui) return; if (G.server && !G.cheats) return toast('Este servidor no permite trucos'); unlock(); show('sMod'); renderMod(); }
   function closeMod() { if (G.ui !== 'sMod') return; hideScreens(); lock(); }
   $('#sMod').addEventListener('click', e => {
     if (e.target === $('#sMod')) return closeMod();
@@ -529,12 +529,13 @@
   async function startWorld(meta, opt = {}) {
     stopMenuWorld(); if (G.world && G.world !== menuWorld) G.world.dispose();
     G.state = 'loading'; show('sLoading'); $('#loadMsg').textContent = opt.remote ? 'Entrando a la partida…' : 'Generando el mundo…'; $('#loadBar').style.width = '0';
-    G.remote = !!opt.remote; G.meta = meta; G.time = meta.time ?? .08;
+    G.remote = !!opt.remote; G.server = !!opt.server; G.meta = meta; G.time = meta.time ?? .08;
     const saved = new Set();
     if (!G.remote) (await DB.chunkKeys(meta.id)).forEach(k => saved.add(k.split('|')[1]));
     G.world = new World(meta.seed, scene, mats, {
-      savedKeys: saved, override: opt.override,
-      loadChunk: G.remote ? null : k => DB.getChunk(meta.id + '|' + k),
+      savedKeys: opt.keys ? new Set(opt.keys) : saved, override: opt.remote && !opt.server ? (opt.override || new Map()) : opt.override,
+      track: !!opt.server, get keep() { return opt.remote && !opt.server ? this.override : null; },
+      loadChunk: opt.loadChunk || (G.remote ? null : k => DB.getChunk(meta.id + '|' + k)),
       saveChunk: G.remote ? null : (k, d) => DB.putChunks([[meta.id + '|' + k, d]]),
       onEdit: (x, y, z, id) => NET.send({ t: 's', x, y, z, b: id }),
     });
@@ -554,11 +555,13 @@
     show('sClick'); $('#hud').hidden = false; $('#clickTitle').textContent = G.meta.name; $('#clickMsg').textContent = TOUCH ? 'Tocá la pantalla para jugar' : 'Hacé clic para jugar';
     if (!G.remote) chat('Bienvenido a ' + G.meta.name + '. Escribí /ayuda para ver los comandos.', '#ffe46b');
   }
+  const playerState = () => ({ x: P.pos.x, y: P.pos.y, z: P.pos.z, yaw: P.yaw, pitch: P.pitch, health: P.health, inv: P.inv, sel: P.sel, flying: P.flying });
   async function saveGame() {
+    if (G.server && G.world && (G.state === 'play' || G.state === 'dead')) { NET.send({ t: 'save', d: { mode: P.mode, player: playerState() } }); return; }
     if (!G.meta || G.remote || !G.world || G.world === menuWorld) return;
     const m = G.meta;
     m.time = G.time; m.played = Date.now(); m.mode = P.mode;
-    m.player = { x: P.pos.x, y: P.pos.y, z: P.pos.z, yaw: P.yaw, pitch: P.pitch, health: P.health, inv: P.inv, sel: P.sel, flying: P.flying };
+    m.player = playerState();
     const list = G.world.flush().map(([k, d]) => [m.id + '|' + k, d]);
     await Promise.all([DB.putWorld(m), DB.putChunks(list)]);
   }
@@ -566,9 +569,10 @@
     if (G.state === 'boot' || G.state === 'title') return;
     await saveGame();
     if (NET.peer && !NET.conn) { NET.send({ t: 'bye' }); await new Promise(r => setTimeout(r, 200)); }
+    if (G.server) await new Promise(r => setTimeout(r, 150));
     NET.close(); clearRemotes(); if (G.mobs) { G.mobs.clear(); G.mobs = null; }
     if (G.world && G.world !== menuWorld) { const w = G.world; w.flush(); w.dispose(); }
-    G.world = null; G.meta = null; G.state = 'title'; G.remote = false; unlock();
+    G.world = null; G.meta = null; G.state = 'title'; G.remote = false; G.server = false; NET.mobAuth = false; unlock();
     $('#hud').hidden = true; hl.visible = crack.visible = false;
     startMenuWorld(); go.title();
   }
@@ -722,12 +726,86 @@
     else if (m.t === 'time') { G.time = +m.v || 0; if (!NET.conn) NET.relay(m, from); }
     else if (m.t === 'pj') chat(m.n + ' entró a la partida', '#ffe46b');
     else if (m.t === 'pl') remoteGone(m.id);
-    else if (m.t === 'mobs' && G.remote && G.mobs) G.mobs.applyNet(m.l, .125);
-    else if (m.t === 'hm' && !NET.conn && G.mobs) { const mb = G.mobs.list.find(q => q.id === m.id); if (mb) G.mobs.hit(mb, +m.d || 1, m.dir, from); }
+    else if (m.t === 'mobs' && G.remote && !NET.mobAuth && G.mobs) G.mobs.applyNet(m.l, .125);
+    else if (m.t === 'hm' && (!NET.conn || NET.mobAuth) && G.mobs) { const mb = G.mobs.list.find(q => q.id === m.id); if (mb) G.mobs.hit(mb, +m.d || 1, m.dir, from); }
     else if (m.t === 'dmg' && G.remote) hurt(+m.n || 1, m.why, m.dir);
     else if (m.t === 'boom') { explode(m.x, m.y, m.z, m.r, true); if (!NET.conn) NET.relay(m, from); }
     else if (m.t === 'bye' && G.remote) { toast('El anfitrión cerró la partida', 4000); quitWorld(); }
   }
+
+  /* ───────── servidores dedicados ───────── */
+  const servers = () => { try { return JSON.parse(localStorage.getItem('gc_servers') || '[]'); } catch (e) { return []; } };
+  const saveServers = L => { try { localStorage.setItem('gc_servers', JSON.stringify(L)); } catch (e) { } };
+  function srvUrls(addr) {
+    let a = addr.trim().replace(/\/+$/, ''), sec;
+    if (/^(wss|https):\/\//i.test(a)) { sec = true; a = a.replace(/^\w+:\/\//, ''); } else if (/^(ws|http):\/\//i.test(a)) { sec = false; a = a.replace(/^\w+:\/\//, ''); }
+    else sec = !/:\d+$/.test(a) && !/^(localhost|\d+\.\d+\.\d+\.\d+)$/i.test(a);
+    a = a.replace(/\/ws$/, '');
+    return { ws: (sec ? 'wss://' : 'ws://') + a + '/ws', http: (sec ? 'https://' : 'http://') + a };
+  }
+  function renderServers() {
+    const L = servers(), el = $('#srvList');
+    el.innerHTML = L.length ? '' : '<div class="empty">Agregá la dirección de un servidor para verlo acá.</div>';
+    L.forEach((sv, i) => {
+      const row = document.createElement('div'); row.className = 'w';
+      row.innerHTML = `<i class="dot"></i><div><b></b><span>Buscando…</span></div><button data-i="${i}" class="go">Entrar</button><button data-i="${i}" class="x" aria-label="Quitar">✕</button>`;
+      row.querySelector('b').textContent = sv.n;
+      el.appendChild(row);
+      const ctl = new AbortController(); setTimeout(() => ctl.abort(), 5000);
+      fetch(srvUrls(sv.a).http + '/estado', { signal: ctl.signal, cache: 'no-store' }).then(r => r.json()).then(st => {
+        row.querySelector('b').textContent = st.name; row.querySelector('.dot').classList.add('on');
+        row.querySelector('span').textContent = `${st.players.length}/${st.max} jugando${st.players.length ? ': ' + st.players.join(', ') : ''}${st.password ? ' · con contraseña' : ''}`;
+        if (st.name !== sv.n) { const L2 = servers(); if (L2[i]) { L2[i].n = st.name; L2[i].pw = st.password; saveServers(L2); } }
+      }).catch(() => { row.querySelector('.dot').classList.add('off'); row.querySelector('span').textContent = 'Sin respuesta · ' + sv.a; });
+    });
+  }
+  $('#srvList').addEventListener('click', e => {
+    const b = e.target.closest('button'); if (!b) return; const L = servers(), sv = L[+b.dataset.i]; if (!sv) return;
+    if (b.classList.contains('x')) { L.splice(+b.dataset.i, 1); saveServers(L); renderServers(); return; }
+    let pass = ''; if (sv.pw) { pass = prompt('Contraseña del servidor ' + sv.n) || ''; if (!pass) return; }
+    joinServer(sv.a, $('#mName').value, pass);
+  });
+  function joinServer(addr, name, pass, wsUrl) {
+    S.name = (name || S.name).trim().slice(0, 16) || S.name; saveS();
+    const url = wsUrl || srvUrls(addr).ws;
+    show('sLoading'); $('#loadMsg').textContent = 'Conectando con el servidor…'; $('#loadBar').style.width = '5%';
+    NET.close();
+    let ws; try { ws = new WebSocket(url); } catch (e) { toast('Dirección inválida'); return go.multi(); }
+    const reqs = new Map(); let started = false;
+    NET.peer = { destroy: () => { try { ws.close(); } catch (e) { } } };
+    NET.conn = { get open() { return ws.readyState === 1; }, send: m => { if (ws.readyState === 1) ws.send(JSON.stringify(m)); } };
+    const timer = setTimeout(() => { if (!started) { toast('El servidor no responde. Revisá la dirección.', 4000); NET.close(); go.multi(); } }, 12000);
+    ws.onopen = () => ws.send(JSON.stringify({ t: 'hello', v: 1, name: S.name, pass }));
+    ws.onmessage = async ev => {
+      let m; try { m = JSON.parse(ev.data); } catch (e) { return; }
+      if (m.t === 'welcome') {
+        clearTimeout(timer); started = true; stopMenuWorld(); G.cheats = m.cheats; NET.mobAuth = false; NET.id = m.id;
+        const you = m.you || {};
+        await startWorld({ id: null, name: m.name, seed: m.seed, mode: you.mode || m.mode, time: m.time, player: you.player || null }, {
+          remote: true, server: true, keys: m.keys,
+          loadChunk: async k => {
+            const [cx, cz] = k.split(',').map(Number), d = G.world.generate(cx, cz);
+            const e = await new Promise(res => { reqs.set(k, res); NET.send({ t: 'chunk', k }); setTimeout(() => { if (reqs.has(k)) { reqs.delete(k); res([]); } }, 8000); });
+            for (let i = 0; i < e.length; i += 2) d[e[i]] = e[i + 1];
+            return d;
+          },
+        });
+        m.players.forEach(([id, n, p]) => remoteMove(id, n, p, [0, 0]));
+        if (m.nick && m.nick !== S.name) chat('Tu nombre en este servidor es ' + m.nick, '#aaa');
+        chat('Entraste a ' + m.name + (m.motd ? ': ' + m.motd : ''), '#7ec850');
+        return;
+      }
+      if (m.t === 'chunk') { const r = reqs.get(m.k); if (r) { reqs.delete(m.k); r(m.e || []); } return; }
+      if (m.t === 'err') { clearTimeout(timer); started = true; toast(m.msg, 4000); go.multi(); return; }
+      if (m.t === 'auth') { NET.mobAuth = !!m.mob; return; }
+      if (m.t === 'dmg') { if (G.remote) hurt(+m.n || 1, m.why, m.dir); return; }
+      if (m.t === 'bye') { toast('El servidor se está reiniciando', 4000); quitWorld(); return; }
+      onNet(m, 'host');
+    };
+    ws.onclose = () => { clearTimeout(timer); if (G.server && G.state !== 'title') { toast('Se cortó la conexión con el servidor', 4000); quitWorld(); } else if (!started) { toast('No se pudo conectar con el servidor', 4000); go.multi(); } };
+  }
+  // si el juego se abrió desde la página de un servidor, ofrecer entrar directo
+  fetch('gc-servidor.json', { cache: 'no-store' }).then(r => r.ok ? r.json() : null).then(j => { if (j && j.ws) { const b = $('#btnHere'); b.hidden = false; b.textContent = 'Entrar a ' + j.name; } }).catch(() => { });
 
   /* ───────── botones ───────── */
   const act = {
@@ -739,6 +817,8 @@
       startWorld({ id: 'w' + Date.now().toString(36), name, seed: seed >>> 0, mode: newMode, created: Date.now(), played: Date.now() });
     },
     join: () => join($('#mCode').value, $('#mName').value),
+    addServer: () => { const a = $('#srvAddr').value.trim(); if (!a) return toast('Escribí la dirección del servidor'); const L = servers(); if (!L.some(x => x.a === a)) L.push({ a, n: a }); saveServers(L); $('#srvAddr').value = ''; renderServers(); },
+    joinHere: () => joinServer(location.host + (location.protocol === 'https:' ? '' : ''), S.name, '', location.protocol === 'https:' ? 'wss://' + location.host + '/ws' : 'ws://' + location.host + '/ws'),
     optBack: () => { if (backFrom === 'pause' && playing()) { show('sPause'); $('#hud').hidden = false; } else go.title(); },
     resume, invite: host,
     copyCode: () => { navigator.clipboard?.writeText(NET.code || '').then(() => toast('Código copiado')).catch(() => { }); },
@@ -773,10 +853,10 @@
         if (!frozen && G.state === 'play') {
           acc += dt; let n = 0; while (acc >= 1 / 60 && n++ < 6) { step(1 / 60); acc -= 1 / 60; } if (n >= 6) acc = 0;
           if (!MOD.freeze) G.time = (G.time + dt / 720) % 1;
-          if (G.mobs && !G.remote) G.mobs.update(dt, { spawn: MOD.mobs, dark: (G.dl ?? 1) < .3, day: (G.dl ?? 1) > .55, peaceful: MOD.peaceful, max: 10 });
+          if (G.mobs && (!G.remote || NET.mobAuth)) G.mobs.update(dt, { spawn: MOD.mobs, dark: (G.dl ?? 1) < .3, day: (G.dl ?? 1) > .55, peaceful: MOD.peaceful, max: 10 });
         }
-        if (G.mobs && G.remote) G.mobs.follow(dt);
-        if (G.mobs && NET.peer && !NET.conn && now - (NET.mobT || 0) > 125) { NET.mobT = now; NET.send({ t: 'mobs', l: G.mobs.pack() });
+        if (G.mobs && G.remote && !NET.mobAuth) G.mobs.follow(dt);
+        if (G.mobs && NET.peer && (!NET.conn || NET.mobAuth) && now - (NET.mobT || 0) > 125) { NET.mobT = now; NET.send({ t: 'mobs', l: G.mobs.pack() });
         }
         w.update(P.pos.x, P.pos.z, S.rd, 6);
         if (G.state === 'play' && !G.ui) interact(dt); else hl.visible = crack.visible = false;

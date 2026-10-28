@@ -45,6 +45,8 @@ public class MainActivity extends Activity {
         s.setAllowFileAccess(false);
         s.setAllowContentAccess(false);
         s.setTextZoom(100);
+        // permite conectarse a servidores sin HTTPS (ws://IP:puerto)
+        s.setMixedContentMode(WebSettings.MIXED_CONTENT_ALWAYS_ALLOW);
         s.setUserAgentString(s.getUserAgentString() + " GonzaCraftAndroid/1.0");
 
         web.setWebViewClient(new WebViewClient() {

@@ -172,3 +172,15 @@ body.touch #cross{width:26px;height:26px}
 #modTag{position:absolute;top:8px;left:50%;transform:translateX(-50%);background:rgba(0,0,0,.45);color:#7ec850;font-size:13px;padding:3px 10px;white-space:nowrap;max-width:80vw;overflow:hidden;text-overflow:ellipsis}
 #tTop .tbtn.mod{width:auto;padding:0 10px;font-size:15px;font-weight:700;color:#7ec850;text-shadow:none}
 body.touch #modTag{top:auto;bottom:62px}
+
+/* servidores */
+.list.srv{height:auto;max-height:min(30vh,240px);min-height:64px;width:min(400px,92vw)}
+.srv .w{width:100%;cursor:default}
+.srv .w .dot{flex:none;width:12px;height:12px;border-radius:50%;background:#666;box-shadow:0 0 0 2px #000}
+.srv .w .dot.on{background:#7ec850}.srv .w .dot.off{background:#c33}
+.srv .w div{flex:1;min-width:0}
+.srv .w b{white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.srv .w span{display:block;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.srv .w button{flex:none;min-height:36px;padding:4px 10px;font-size:15px}
+.srv .w button.x{width:36px;padding:0;background:#5a2a2a}
+.field .row input{flex:1}

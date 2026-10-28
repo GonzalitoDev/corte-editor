@@ -44,6 +44,7 @@
 <section class="screen" id="sTitle" hidden>
   <div class="logo"><span>GONZA</span><span>CRAFT</span><i id="splash">¡Gratis para siempre!</i></div>
   <div class="menu">
+    <button data-act="joinHere" id="btnHere" class="primary" hidden>Entrar al servidor</button>
     <button data-go="worlds">Un jugador</button>
     <button data-go="multi">Multijugador</button>
     <div class="row"><button data-go="options">Opciones</button><button data-act="quit" class="desk">Salir</button></div>
@@ -72,9 +73,15 @@
 <section class="screen panel" id="sMulti" hidden>
   <h2>Multijugador</h2>
   <label>Tu nombre<input id="mName" maxlength="16"></label>
-  <label>Código de la partida<input id="mCode" maxlength="6" placeholder="Ej: K7P2Q" style="text-transform:uppercase"></label>
-  <div class="row"><button data-act="join" class="primary">Unirse</button><button data-go="title">Volver</button></div>
-  <p class="help">Para ser anfitrión, entrá a uno de tus mundos, apretá <kbd>Esc</kbd> y tocá <b>Invitar amigos</b>. Te va a dar un código para pasarle a tus amigos. Hace falta internet.</p>
+  <div class="field">Servidores
+    <div id="srvList" class="list srv" aria-label="Servidores"></div>
+    <div class="row"><input id="srvAddr" placeholder="Dirección, ej: 1-2-3-4.sslip.io" autocomplete="off" spellcheck="false"><button data-act="addServer" style="flex:0 0 auto">Agregar</button></div>
+  </div>
+  <div class="field">O unite a la partida de un amigo con su código
+    <div class="row"><input id="mCode" maxlength="6" placeholder="Ej: K7P2Q" style="text-transform:uppercase"><button data-act="join" class="primary" style="flex:0 0 auto">Unirse</button></div>
+  </div>
+  <div class="row"><button data-go="title">Volver</button></div>
+  <p class="help">Un <b>servidor</b> está prendido siempre y guarda el mundo aunque nadie juegue. Para jugar con <b>código</b>, tu amigo entra a su mundo, aprieta <kbd>Esc</kbd> y toca <b>Invitar amigos</b>.</p>
 </section>
 
 <section class="screen panel" id="sOptions" hidden>

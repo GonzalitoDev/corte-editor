@@ -160,9 +160,9 @@
     set(x, y, z, id, remote) {
       if (y < 0 || y >= CH) return false;
       const c = this.chunkAt(x, z);
-      if (!c) { const k = key(x >> 4, z >> 4); if (!this.pending.has(k)) this.pending.set(k, []); this.pending.get(k).push([x, y, z, id]); return false; }
+      if (!c) { const k = key(x >> 4, z >> 4); if (this.opt.track) this.savedKeys.add(k); if (!this.pending.has(k)) this.pending.set(k, []); this.pending.get(k).push([x, y, z, id]); return false; }
       const i = I(x & 15, y, z & 15), old = c.data[i]; if (old === id) return false;
-      c.data[i] = id; c.mod = true; this.toSave.add(c.key);
+      c.data[i] = id; c.mod = true; this.toSave.add(c.key); if (this.opt.track) this.savedKeys.add(c.key);
       const lk = x + ',' + y + ',' + z;
       if (id === 24) this.lamps.set(lk, [x, y, z]); else if (old === 24) this.lamps.delete(lk);
       const lx = x & 15, lz = z & 15;
@@ -282,6 +282,7 @@
     }
     unload(c) {
       if (c.mod && this.opt.saveChunk) { this.opt.saveChunk(c.key, c.data); this.savedKeys.add(c.key); }
+      if (c.mod && this.opt.keep) this.opt.keep.set(c.key, c.data);
       this.toSave.delete(c.key);
       for (const m of [c.mesh, c.wmesh]) if (m) { this.scene.remove(m); m.geometry.dispose(); }
       this.chunks.delete(c.key); if (this.lastC === c) this.lastC = null;

@@ -23,7 +23,7 @@ function createWindow() {
     backgroundColor: '#000000', title: 'GonzaCraft', show: false,
     icon: path.join(__dirname, 'build', 'icon.png'),
     autoHideMenuBar: true,
-    webPreferences: { contextIsolation: true, sandbox: true, spellcheck: false, backgroundThrottling: false },
+    webPreferences: { contextIsolation: true, sandbox: true, spellcheck: false, backgroundThrottling: false, allowRunningInsecureContent: true },
   });
   win.setMenu(null);
   win.once('ready-to-show', () => { win.maximize(); win.show(); });

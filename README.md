@@ -54,6 +54,7 @@ Juego de bloques original con mundo infinito (llanuras, bosques, desiertos, tund
 
 - Página de descarga: [`gonzacraft/`](gonzacraft/) · jugar en el navegador: [`gonzacraft/jugar/`](gonzacraft/jugar/)
 - App de escritorio: [`desktop-gonzacraft/`](desktop-gonzacraft/) (`npm run dist:win` o `npm run dist:linux`)
+- Servidor dedicado 24/7: [`servidor-gonzacraft/`](servidor-gonzacraft/) (Node + WebSocket). Se instala en un VPS con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-gonzacraft/instalar.sh | sudo bash`.
 - App de Android: [`android-gonzacraft/`](android-gonzacraft/), un WebView a pantalla completa con controles táctiles. Se arma sin Gradle con `./android-gonzacraft/build.sh` (necesita `aapt dalvik-exchange zipalign apksigner libandroid-23-java`). El workflow lo firma con los secretos `ANDROID_KEYSTORE` (keystore en base64) y `ANDROID_KEYSTORE_PASSWORD`.
 - Cada cambio en el juego dispara el workflow `gonzacraft.yml`, que arma `GonzaCraft-Setup.exe`, `GonzaCraft.deb`, `GonzaCraft.AppImage` y `GonzaCraft.apk` y los publica en el release `gonzacraft`.
 
