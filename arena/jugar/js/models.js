@@ -81,6 +81,14 @@
       p.flame = add(G.ico(.22, 0), glow(0xff7aa8, 2), [0, .85, -.2], null, p.armR);
       p.weapon = p.armR;
     }
+    // juntar las piezas fijas (sin brillo) de cada grupo en una sola geometría: menos llamadas de dibujo
+    const groups = [body]; body.children.forEach(c => { if (c.isGroup) groups.push(c); });
+    for (const grp of groups) {
+      const solid = grp.children.filter(c => c.isMesh && c.material && !(c.material.emissiveIntensity > 0 && c.material.emissive && c.material.emissive.getHex()) && !c.material.transparent);
+      if (solid.length < 2) continue;
+      const merged = new THREE.Mesh(merge(solid.map(m => ({ g: m.geometry, c: m.material.color.getHex(), at: m.position.toArray(), rot: [m.rotation.x, m.rotation.y, m.rotation.z], s: m.scale.toArray() }))), vmat);
+      solid.forEach(m => grp.remove(m)); grp.add(merged);
+    }
     root.add(ring(team, 1.05)); p.ring = root.children[1];
     root.traverse(o => { if (o.isMesh) o.castShadow = true; });
     return { root, p, key };
@@ -134,16 +142,21 @@
   }
 
   /* ───────── estructuras ───────── */
+  /* las partes fijas de cada estructura van en una sola geometría (1 llamada de dibujo); solo el cristal brilla aparte */
+  const structGeo = {};
   function tower(team) {
-    const root = new THREE.Group(), stone = mat(0x8c8a90), dark = mat(0x5a5862);
-    const whole = new THREE.Group(); root.add(whole);
-    const add = (g, m, at, par = whole) => { const o = new THREE.Mesh(g, m); o.position.set(...at); par.add(o); o.castShadow = true; return o; };
-    add(G.cyl(1.7, 1.9, .8, 8), dark, [0, .4, 0]); add(G.cyl(1.05, 1.35, 4.2, 8), stone, [0, 2.9, 0]); add(G.cyl(1.5, 1.2, .7, 8), dark, [0, 5.2, 0]);
-    for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; add(G.box(.4, .6, .4), stone, [Math.cos(a) * 1.3, 5.8, Math.sin(a) * 1.3]); }
-    const crystal = add(G.oct(.75), glow(TEAM[team], 1.8), [0, 6.6, 0]); crystal.scale.y = 1.5;
-    const band = add(G.cyl(1.1, 1.1, .25, 8), glow(TEAM[team], .8), [0, 3.6, 0]);
-    const rubble = new THREE.Group(); rubble.visible = false; root.add(rubble);
-    add(G.cyl(1.2, 1.9, 1.3, 7), dark, [0, .65, 0], rubble); for (let i = 0; i < 6; i++) { const a = i; add(G.dod(.5 + (i % 3) * .2), stone, [Math.cos(a) * 2, .3, Math.sin(a) * 2], rubble); }
+    if (!structGeo.tower) {
+      const parts = [{ g: G.cyl(1.7, 1.9, .8, 8), c: 0x5a5862, at: [0, .4, 0] }, { g: G.cyl(1.05, 1.35, 4.2, 8), c: 0x8c8a90, at: [0, 2.9, 0] }, { g: G.cyl(1.5, 1.2, .7, 8), c: 0x5a5862, at: [0, 5.2, 0] }];
+      for (let i = 0; i < 4; i++) { const a = i / 4 * Math.PI * 2 + .4; parts.push({ g: G.box(.4, .6, .4), c: 0x8c8a90, at: [Math.cos(a) * 1.3, 5.8, Math.sin(a) * 1.3] }); }
+      structGeo.tower = merge(parts);
+      const rub = [{ g: G.cyl(1.2, 1.9, 1.3, 7), c: 0x5a5862, at: [0, .65, 0] }]; for (let i = 0; i < 6; i++) rub.push({ g: G.dod(.5 + (i % 3) * .2), c: 0x8c8a90, at: [Math.cos(i) * 2, .3, Math.sin(i) * 2] });
+      structGeo.towerRubble = merge(rub);
+    }
+    const root = new THREE.Group(), whole = new THREE.Group(); root.add(whole);
+    const body = new THREE.Mesh(structGeo.tower, vmat); body.castShadow = true; whole.add(body);
+    const crystal = new THREE.Mesh(G.oct(.75), glow(TEAM[team], 1.8)); crystal.position.y = 6.6; crystal.scale.y = 1.5; whole.add(crystal);
+    const band = new THREE.Mesh(G.cyl(1.1, 1.1, .25, 8), glow(TEAM[team], .8)); band.position.y = 3.6; whole.add(band);
+    const rubble = new THREE.Mesh(structGeo.towerRubble, vmat); rubble.visible = false; root.add(rubble);
     return { root, p: { whole, crystal, rubble, band }, key: 'tower' };
   }
   function inhib(team) {
@@ -155,11 +168,10 @@
     return { root, p: { whole, crystal: cr, ring: r1, rubble }, key: 'inhib' };
   }
   function nexus(team) {
+    if (!structGeo.nexus) { const parts = [{ g: G.cyl(3.6, 4.2, 1, 10), c: 0x5a5862, at: [0, .5, 0] }, { g: G.cyl(2.6, 3.2, 1.2, 10), c: 0x7a7882, at: [0, 1.6, 0] }]; for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; parts.push({ g: G.box(.5, 2.2, .5), c: 0x8c8a90, at: [Math.cos(a) * 3, 2.2, Math.sin(a) * 3] }); } structGeo.nexus = merge(parts); }
     const root = new THREE.Group(), whole = new THREE.Group(); root.add(whole);
-    const add = (g, m, at) => { const o = new THREE.Mesh(g, m); o.position.set(...at); whole.add(o); return o; };
-    add(G.cyl(3.6, 4.2, 1, 10), mat(0x5a5862), [0, .5, 0]); add(G.cyl(2.6, 3.2, 1.2, 10), mat(0x7a7882), [0, 1.6, 0]);
-    for (let i = 0; i < 6; i++) { const a = i / 6 * Math.PI * 2; add(G.box(.5, 2.2, .5), mat(0x8c8a90), [Math.cos(a) * 3, 2.2, Math.sin(a) * 3]); }
-    const cr = add(G.oct(1.8), glow(TEAM[team], 1.8), [0, 5, 0]); cr.scale.y = 1.6;
+    const body = new THREE.Mesh(structGeo.nexus, vmat); body.castShadow = true; whole.add(body);
+    const cr = new THREE.Mesh(G.oct(1.8), glow(TEAM[team], 1.8)); cr.position.y = 5; cr.scale.y = 1.6; whole.add(cr);
     const rubble = new THREE.Mesh(G.dod(2.5), mat(0x2a2830)); rubble.position.y = 1; rubble.visible = false; root.add(rubble);
     return { root, p: { whole, crystal: cr, rubble }, key: 'nexus' };
   }

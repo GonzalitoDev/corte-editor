@@ -61,7 +61,7 @@
       this.feed = []; this.visible = [new Set(), new Set()];
       this.setupStructures(); this.setupCamps();
       for (const p of opts.players) this.addChamp(p);
-      this.computeVision();
+      this.buildGrid(); this.computeVision();
     }
     /* ───── creación ───── */
     add(u) { u.id = NEXT_ID++; u.dead = false; u.st = { stun: 0, root: 0, silence: 0, stealth: 0, slow: [], haste: [], shield: [], dot: [], asb: [] }; u.atkT = 0; u.lastHit = null; this.units.push(u); this.byId.set(u.id, u); return u; }
@@ -75,6 +75,7 @@
         const [x, z] = M.NEXUS[team]; this.add({ kind: 'nexus', team, x, z, r: 3.2, maxHp: 5500, armor: 0, mr: 0, regen: 6 });
       }
       for (const u of this.units) u.hp = u.maxHp;
+      this.structs = this.units.slice(); // torres, inhibidores y núcleos (no cambian)
     }
     setupCamps() {
       this.camps = M.CAMPS.map(c => ({ ...c, respawn: 70, alive: [], at: c.at, spawnAt: 70 }));
@@ -138,6 +139,17 @@
         if (!done) break;
       }
     }
+    /* ───── grilla espacial: cada consulta mira solo las celdas cercanas, no las 150 unidades ───── */
+    buildGrid() {
+      const GN = 25; if (!this.cells) this.cells = Array.from({ length: GN * GN }, () => []);
+      for (const c of this.cells) c.length = 0;
+      for (const u of this.units) { if (u.dead) continue; const cx = Math.max(0, Math.min(GN - 1, (u.x / 8) | 0)), cz = Math.max(0, Math.min(GN - 1, (u.z / 8) | 0)); this.cells[cz * GN + cx].push(u); }
+    }
+    /** llama a fn(u) con las unidades vivas cerca de (x, z) (puede incluir algunas un poco más lejos) */
+    near(x, z, r, fn) {
+      const GN = 25, x0 = Math.max(0, ((x - r - 3) / 8) | 0), x1 = Math.min(GN - 1, ((x + r + 3) / 8) | 0), z0 = Math.max(0, ((z - r - 3) / 8) | 0), z1 = Math.min(GN - 1, ((z + r + 3) / 8) | 0);
+      for (let cz = z0; cz <= z1; cz++) for (let cx = x0; cx <= x1; cx++) { const cell = this.cells[cz * GN + cx]; for (let i = 0; i < cell.length; i++) if (!cell[i].dead) fn(cell[i]); }
+    }
     /* ───── consultas ───── */
     alive(u) { return u && !u.dead; }
     isEnemy(a, b) { return a.team !== b.team; }
@@ -153,7 +165,7 @@
       u._openT = this.t; return (u._open = this._structureOpen(u));
     }
     _structureOpen(u) {
-      const same = k => this.units.filter(v => v.team === u.team && k(v));
+      const same = k => this.structs.filter(v => v.team === u.team && k(v));
       if (u.kind === 'tower') {
         if (u.tier === 1) return true;
         if (u.tier <= 3) return same(v => v.kind === 'tower' && v.lane === u.lane && v.tier === u.tier - 1 && !v.dead).length === 0;
@@ -163,7 +175,7 @@
       if (u.kind === 'nexus') return same(v => v.kind === 'tower' && v.tier === 4 && !v.dead).length === 0;
       return true;
     }
-    inRange(x, z, r, filter) { const out = []; for (const u of this.units) if (!u.dead && (u.x - x) ** 2 + (u.z - z) ** 2 <= (r + (u.r || 0)) ** 2 && (!filter || filter(u))) out.push(u); return out; }
+    inRange(x, z, r, filter) { const out = []; this.near(x, z, r, u => { if ((u.x - x) ** 2 + (u.z - z) ** 2 <= (r + (u.r || 0)) ** 2 && (!filter || filter(u))) out.push(u); }); return out; }
     enemiesIn(x, z, r, team, opts = {}) { return this.inRange(x, z, r, u => u.team !== team && (u.kind === 'champ' || u.kind === 'minion' || u.kind === 'monster' || (opts.structures && (u.kind === 'tower' || u.kind === 'inhib' || u.kind === 'nexus') && this.structureOpen(u))) && (opts.champsOnly ? u.kind === 'champ' : true) && (u.kind !== 'champ' || u.st.stealth <= this.t || opts.reveal)); }
     alliesIn(x, z, r, team, champsOnly) { return this.inRange(x, z, r, u => u.team === team && (champsOnly ? u.kind === 'champ' : (u.kind === 'champ' || u.kind === 'minion'))); }
     ev(e) { this.events.push(e); }
@@ -362,8 +374,9 @@
       if (t >= this.nextWave) { this.spawnWave(); this.nextWave += 30; }
       for (const c of this.camps) if (!c.alive.length && t >= c.spawnAt) this.spawnCamp(c);
       // inhibidores que reviven
-      for (const u of this.units) if (u.kind === 'inhib' && u.dead && t >= u.respawnAt) { u.dead = false; u.hp = u.maxHp; this.log(`Volvió el inhibidor ${u.lane} del equipo ${u.team ? 'rojo' : 'azul'}`); }
-      this.computeVision();
+      for (const u of this.structs) if (u.kind === 'inhib' && u.dead && t >= u.respawnAt) { u.dead = false; u.hp = u.maxHp; this.log(`Volvió el inhibidor ${u.lane} del equipo ${u.team ? 'rojo' : 'azul'}`); }
+      this.buildGrid();
+      if ((this.t * 30 | 0) % 3 === 0) this.computeVision(); // la visión se recalcula 10 veces por segundo
       if (A.bots) for (const c of this.champs) if (c.bot) A.bots.think(this, c);
       for (let i = this.delayed.length - 1; i >= 0; i--) if (this.delayed[i].at <= t) { const d = this.delayed[i]; this.delayed.splice(i, 1); d.fn(); }
       for (const u of this.units) {
@@ -386,7 +399,7 @@
       this.ev({ t: 'respawn', id: c.id });
     }
     spawnWave() {
-      this.wave++; const supers = [0, 1].map(team => ['top', 'mid', 'bot'].filter(l => this.units.some(u => u.kind === 'inhib' && u.team === 1 - team && u.lane === l && u.dead)));
+      this.wave++; const supers = [0, 1].map(team => ['top', 'mid', 'bot'].filter(l => this.structs.some(u => u.kind === 'inhib' && u.team === 1 - team && u.lane === l && u.dead)));
       const scale = 1 + this.t / 600 * .35;
       for (let team = 0; team < 2; team++) for (const lane of ['top', 'mid', 'bot']) {
         const list = ['melee', 'melee', 'melee', 'caster', 'caster', 'caster']; if (this.wave % 3 === 0) list.splice(3, 0, 'siege'); if (supers[team].includes(lane)) list.unshift('super');
@@ -507,13 +520,12 @@
         if (help) tgt = help;
         else if (!tgt) {
           let best = null, bd = 1e9;
-          for (const u of this.units) {
-            if (u.dead || u.team === m.team || u.team === 2 || u.kind === 'monster') continue;
-            const d = D2(u, m); if (d > 9 * 9 && !((u.kind === 'tower' || u.kind === 'inhib' || u.kind === 'nexus') && d < (9 + u.r) ** 2)) continue;
-            if (!this.targetable(u, m)) continue;
+          this.near(m.x, m.z, 13, u => {
+            if (u.team === m.team || u.team === 2 || u.kind === 'monster') return;
+            const d = D2(u, m); if (d > 9 * 9 && !((u.kind === 'tower' || u.kind === 'inhib' || u.kind === 'nexus') && d < (9 + u.r) ** 2)) return;
             const pri = u.kind === 'minion' ? 0 : u.kind === 'champ' ? 40 : 10; // prefieren minions
-            if (d + pri < bd) { bd = d + pri; best = u; }
-          }
+            if (d + pri < bd && this.targetable(u, m)) { bd = d + pri; best = u; }
+          });
           tgt = best;
         }
         m.target = tgt ? tgt.id : null;
@@ -547,7 +559,7 @@
       if (agg && (!tgt || tgt.kind !== 'champ')) { tgt = agg; w.shots = 0; }
       if (!tgt) {
         let best = null, bd = 1e9;
-        for (const u of this.units) { if (!valid(u)) continue; const d = D2(u, w) + (u.kind === 'champ' ? 400 : 0); if (d < bd) { bd = d; best = u; } }
+        this.near(w.x, w.z, w.range + 2, u => { const d = D2(u, w) + (u.kind === 'champ' ? 400 : 0); if (d < bd && valid(u)) { bd = d; best = u; } });
         tgt = best; if (tgt) w.shots = 0;
       }
       w.target = tgt ? tgt.id : null;
@@ -558,12 +570,11 @@
         const p = this.projs[i]; let done = false;
         if (p.line) {
           const step = p.speed * TICK; p.x += p.dx * step; p.z += p.dz * step; p.travel += step;
-          for (const u of this.units) {
-            if (u.dead || u.team === p.team || p.hits.has(u.id)) continue;
-            if (!(u.kind === 'champ' || (!p.champsOnly && (u.kind === 'minion' || u.kind === 'monster')))) continue;
-            if (u.kind === 'champ' && u.st.stealth > this.t && false) continue;
-            if ((u.x - p.x) ** 2 + (u.z - p.z) ** 2 <= (u.r + p.width * .5) ** 2) { p.hits.add(u.id); if (p.hit) p.hit(u, p); if (!p.pierce) { done = true; break; } }
-          }
+          this.near(p.x, p.z, 4, u => {
+            if (done || u.team === p.team || p.hits.has(u.id)) return;
+            if (!(u.kind === 'champ' || (!p.champsOnly && (u.kind === 'minion' || u.kind === 'monster')))) return;
+            if ((u.x - p.x) ** 2 + (u.z - p.z) ** 2 <= (u.r + p.width * .5) ** 2) { p.hits.add(u.id); if (p.hit) p.hit(u, p); if (!p.pierce) done = true; }
+          });
           if (p.travel >= p.range) { done = true; if (p.onEnd) p.onEnd(p); }
         } else {
           const tgt = this.byId.get(p.target);
@@ -576,9 +587,9 @@
     /** las unidades no se apilan: se empujan un poco entre ellas */
     separate() {
       const mov = this.units.filter(u => !u.dead && (u.kind === 'minion' || u.kind === 'champ' || u.kind === 'monster'));
-      for (let i = 0; i < mov.length; i++) { const a = mov[i]; for (let j = i + 1; j < mov.length; j++) { const b = mov[j]; const dx = b.x - a.x, dz = b.z - a.z, rr = (a.r + b.r) * .85; if (Math.abs(dx) > rr || Math.abs(dz) > rr) continue; const d = Math.hypot(dx, dz) || .01; if (d >= rr) continue; const push = (rr - d) * .25, ux = dx / d, uz = dz / d; const wa = a.kind === 'champ' ? .3 : 1, wb = b.kind === 'champ' ? .3 : 1; if (!a.dash && !M.blocked(a.x - ux * push * wa, a.z - uz * push * wa)) { a.x -= ux * push * wa; a.z -= uz * push * wa; } if (!b.dash && !M.blocked(b.x + ux * push * wb, b.z + uz * push * wb)) { b.x += ux * push * wb; b.z += uz * push * wb; } } }
+      for (let i = 0; i < mov.length; i++) { const a = mov[i]; this.near(a.x, a.z, 1, b => { if (b.id <= a.id || !(b.kind === 'minion' || b.kind === 'champ' || b.kind === 'monster')) return; const dx = b.x - a.x, dz = b.z - a.z, rr = (a.r + b.r) * .85; if (Math.abs(dx) > rr || Math.abs(dz) > rr) return; const d = Math.hypot(dx, dz) || .01; if (d >= rr) return; const push = (rr - d) * .25, ux = dx / d, uz = dz / d; const wa = a.kind === 'champ' ? .3 : 1, wb = b.kind === 'champ' ? .3 : 1; if (!a.dash && !M.blocked(a.x - ux * push * wa, a.z - uz * push * wa)) { a.x -= ux * push * wa; a.z -= uz * push * wa; } if (!b.dash && !M.blocked(b.x + ux * push * wb, b.z + uz * push * wb)) { b.x += ux * push * wb; b.z += uz * push * wb; } }); }
       // las estructuras no se atraviesan
-      for (const u of mov) for (const s of this.units) { if (s.dead || !(s.kind === 'tower' || s.kind === 'inhib' || s.kind === 'nexus')) continue; const dx = u.x - s.x, dz = u.z - s.z, d = Math.hypot(dx, dz), rr = s.r + u.r * .6; if (d < rr && d > .01) { u.x = s.x + dx / d * rr; u.z = s.z + dz / d * rr; } }
+      for (const u of mov) for (const s of this.structs) { if (s.dead || Math.abs(u.x - s.x) > 5 || Math.abs(u.z - s.z) > 5) continue; const dx = u.x - s.x, dz = u.z - s.z, d = Math.hypot(dx, dz), rr = s.r + u.r * .6; if (d < rr && d > .01) { u.x = s.x + dx / d * rr; u.z = s.z + dz / d * rr; } }
     }
     /** la fuente de cada base cura a los suyos y castiga a los enemigos */
     fountain() {
@@ -587,16 +598,17 @@
     /* ───── visión (niebla de guerra) ───── */
     computeVision() {
       for (let team = 0; team < 2; team++) {
-        const src = this.units.filter(u => !u.dead && u.team === team && (u.kind !== 'inhib'));
         const vis = new Set();
-        for (const u of this.units) {
-          if (u.dead) continue;
-          if (u.team === team) { vis.add(u.id); continue; }
-          if (u.kind === 'tower' || u.kind === 'inhib' || u.kind === 'nexus') { vis.add(u.id); continue; } // las estructuras siempre se ven
-          if (u.kind === 'champ' && u.st.stealth > this.t) { if (src.some(s => s.kind === 'champ' && D2(s, u) < 2.5 * 2.5)) vis.add(u.id); continue; }
-          for (const s of src) { const r = s.kind === 'champ' ? 13 : s.kind === 'minion' ? 9 : s.kind === 'nexus' ? 14 : 12; if (D2(s, u) <= r * r) { vis.add(u.id); break; } }
+        for (const u of this.units) if (!u.dead && (u.team === team || u.kind === 'tower' || u.kind === 'inhib' || u.kind === 'nexus')) vis.add(u.id); // lo propio y las estructuras siempre se ven
+        for (const s of this.units) {
+          if (s.dead || s.team !== team || s.kind === 'inhib') continue;
+          const r = s.kind === 'champ' ? 13 : s.kind === 'minion' ? 9 : s.kind === 'nexus' ? 14 : 12, r2 = r * r;
+          this.near(s.x, s.z, r, u => {
+            if (u.team === team || vis.has(u.id)) return; const d2 = D2(s, u); if (d2 > r2) return;
+            if (u.kind === 'champ' && u.st.stealth > this.t && !(s.kind === 'champ' && d2 < 2.5 * 2.5)) return; // invisible: solo se ve muy de cerca
+            vis.add(u.id);
+          });
         }
-        // ver un poco alrededor de la fuente siempre
         this.visible[team] = vis;
       }
     }

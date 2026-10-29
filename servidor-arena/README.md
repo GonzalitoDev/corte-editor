@@ -32,7 +32,7 @@ En el panel de tu proveedor abrí los puertos **80 y 443 TCP**.
 | Cambiar nombre, contraseña o límite de salas | editá `/etc/gonzaarena/config.json` y reiniciá |
 | Actualizar | volvé a correr el comando de instalación |
 
-Consumo aproximado: una partida usa poco procesador (unos 3 ms por paso) y cerca de 50 KB/s por jugador.
+Consumo aproximado: una partida usa muy poco procesador (medio milisegundo por paso, unas 30 partidas simultáneas por núcleo) y unos 30 KB/s por jugador (los envíos van comprimidos).
 
 ## Probarlo en tu compu
 

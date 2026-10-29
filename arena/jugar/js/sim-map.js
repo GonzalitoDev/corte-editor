@@ -97,12 +97,43 @@
     for (let r = 1; r < 12; r++) for (let a = 0; a < 16; a++) { const px = x + Math.cos(a / 16 * 6.283) * r * CELL * .7, pz = z + Math.sin(a / 16 * 6.283) * r * CELL * .7; if (!blocked(px, pz)) return [px, pz]; }
     return [x, z];
   }
+  /** mapa de distancias hacia cada fuente (se calcula una vez): volver a la base no necesita A* */
+  const HOME = [0, 1].map(team => {
+    const dist = new Float32Array(N * N).fill(1e9), [fx, fz] = FOUNTAIN[team], s = cellOf(fz) * N + cellOf(fx), q = [s]; dist[s] = 0;
+    // Dijkstra simple con cola ordenada por anillos (los costos son 1 y √2)
+    const heap = [s], push = n => { heap.push(n); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (dist[heap[p]] <= dist[heap[i]]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
+    const pop = () => { const top = heap[0], last = heap.pop(); if (heap.length) { heap[0] = last; let i = 0; for (; ;) { const l = 2 * i + 1, r = l + 1; let m = i; if (l < heap.length && dist[heap[l]] < dist[heap[m]]) m = l; if (r < heap.length && dist[heap[r]] < dist[heap[m]]) m = r; if (m === i) break; [heap[m], heap[i]] = [heap[i], heap[m]]; i = m; } } return top; };
+    const done = new Uint8Array(N * N);
+    while (heap.length) {
+      const c = pop(); if (done[c]) continue; done[c] = 1; const cx = c % N, cz = (c / N) | 0;
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) {
+        if (!dx && !dz) continue; const nx = cx + dx, nz = cz + dz; if (nx < 0 || nz < 0 || nx >= N || nz >= N) continue;
+        const n = nz * N + nx; if (BLOCK[n] || (dx && dz && (BLOCK[cz * N + nx] || BLOCK[nz * N + cx]))) continue;
+        const d = dist[c] + (dx && dz ? Math.SQRT2 : 1); if (d < dist[n]) { dist[n] = d; push(n); }
+      }
+    }
+    return dist;
+  });
+  function pathHome(team, sx, sz) {
+    const D = HOME[team], [fx, fz] = FOUNTAIN[team]; let c = cellOf(sz) * N + cellOf(sx); if (D[c] >= 1e9) return null;
+    const raw = []; let guard = N * 4;
+    while (D[c] > 0 && guard--) {
+      const cx = c % N, cz = (c / N) | 0; let best = c;
+      for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) { const nx = cx + dx, nz = cz + dz; if (nx < 0 || nz < 0 || nx >= N || nz >= N) continue; const n = nz * N + nx; if (D[n] < D[best]) best = n; }
+      if (best === c) break; c = best; raw.push([((c % N) + .5) * CELL, (((c / N) | 0) + .5) * CELL]);
+    }
+    raw.push([fx, fz]);
+    const out = []; let px = sx, pz = sz, i = 0;
+    while (i < raw.length) { let j = Math.min(raw.length - 1, i + 40); while (j > i && !lineFree(px, pz, raw[j][0], raw[j][1])) j--; out.push(raw[j]); [px, pz] = raw[j]; i = j + 1; }
+    return out;
+  }
   /** A* en la grilla, con atajos en línea recta. Devuelve una lista de puntos [x, z] */
   const G = new Float32Array(N * N), F = new Float32Array(N * N), FROM = new Int32Array(N * N), STAMP = new Uint32Array(N * N), CLOSED = new Uint32Array(N * N);
   let stamp = 0;
   function findPath(sx, sz, tx, tz) {
     [tx, tz] = nearestFree(tx, tz);
     if (lineFree(sx, sz, tx, tz)) return [[tx, tz]];
+    for (let team = 0; team < 2; team++) if (Math.hypot(tx - FOUNTAIN[team][0], tz - FOUNTAIN[team][1]) < 3) { const p = pathHome(team, sx, sz); if (p) return p; }
     stamp++;
     const s = cellOf(sz) * N + cellOf(sx), t = cellOf(tz) * N + cellOf(tx);
     const heap = [], push = n => { heap.push(n); let i = heap.length - 1; while (i > 0) { const p = (i - 1) >> 1; if (F[heap[p]] <= F[heap[i]]) break; [heap[p], heap[i]] = [heap[i], heap[p]]; i = p; } };
