@@ -1,0 +1,8 @@
+{
+  "name": "gonza-asistente",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Asistente con IA (OpenRouter) para los sitios de GonzalitoDev",
+  "engines": { "node": ">=20" }
+}

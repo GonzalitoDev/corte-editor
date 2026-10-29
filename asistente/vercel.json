@@ -1,0 +1,9 @@
+{
+  "functions": { "api/chat.js": { "maxDuration": 30 } },
+  "headers": [
+    { "source": "/widget.js", "headers": [
+      { "key": "Access-Control-Allow-Origin", "value": "*" },
+      { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
+    ] }
+  ]
+}

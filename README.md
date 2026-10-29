@@ -12,6 +12,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **GonzaCraft** | Juego de bloques (Windows, Linux Mint, Android y navegador) | [`gonzacraft/`](gonzacraft/) |
 | **GonzaSky** | Simulador de vuelo (Windows, Linux Mint, Android y navegador) | [`gonzasky/`](gonzasky/) |
 | **GonzaArena** | MOBA 5 contra 5 en el navegador (bots y online) | [`arena/`](arena/) |
+| **Asistente** | Chat con IA (OpenRouter) para tus sitios, alojado en Vercel | [`asistente/`](asistente/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 

@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Asistente de Gonzadev</title>
+<meta name="description" content="Asistente con IA para los sitios de Gonzadev: ZonaHack, el Taller y el portfolio.">
+<link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'><circle cx='12' cy='12' r='11' fill='%237c5cff'/><circle cx='8' cy='12' r='1.6' fill='white'/><circle cx='12' cy='12' r='1.6' fill='white'/><circle cx='16' cy='12' r='1.6' fill='white'/></svg>">
+<style>
+:root{--bg:#0e0f13;--card:#16171d;--line:#262832;--tx:#eceef3;--mut:#9aa0ad;--ac:#7c5cff;--ok:#5ad17a;--bad:#ff6b7a}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--tx);font:16px/1.55 system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+main{max-width:860px;margin:0 auto;padding:48px 16px 120px}
+h1{font-size:clamp(28px,5vw,40px);margin:0 0 6px;letter-spacing:-.02em}h1 span{color:var(--ac)}
+.lead{color:var(--mut);margin:0 0 28px;max-width:62ch}
+.estado{display:flex;gap:10px;align-items:center;background:var(--card);border:1px solid var(--line);border-radius:14px;padding:14px 16px;margin-bottom:28px;flex-wrap:wrap}
+.estado i{width:10px;height:10px;border-radius:50%;background:var(--mut)}.estado.ok i{background:var(--ok);box-shadow:0 0 10px var(--ok)}.estado.mal i{background:var(--bad)}
+.estado b{flex:1;min-width:200px}
+h2{font-size:20px;margin:36px 0 12px}
+.card{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.card h3{margin:0 0 4px;font-size:16px;display:flex;align-items:center;gap:8px}.card h3 i{width:10px;height:10px;border-radius:50%}
+.card p{margin:0 0 10px;color:var(--mut);font-size:14px}
+pre{margin:0;background:#0b0c10;border:1px solid var(--line);border-radius:10px;padding:12px;overflow-x:auto;font:13px/1.5 ui-monospace,Menlo,Consolas,monospace;color:#d8dbe3;white-space:pre-wrap;word-break:break-all}
+.row{display:flex;gap:8px;margin-top:10px;flex-wrap:wrap}
+button{background:#22242d;color:var(--tx);border:1px solid #30333e;border-radius:10px;padding:8px 14px;font:inherit;font-size:14px;cursor:pointer}button:hover{border-color:var(--ac)}button.pri{background:var(--ac);border-color:var(--ac);color:#fff}
+ol{padding-left:20px;color:#cfd3db}ol li{margin-bottom:8px}code{background:#22242d;padding:1px 6px;border-radius:6px;font-size:14px}
+table{width:100%;border-collapse:collapse;font-size:14px}td{border-top:1px solid var(--line);padding:8px 6px;vertical-align:top}td:first-child{white-space:nowrap;color:#cfd3db}td code{word-break:break-all}
+footer{color:var(--mut);font-size:13px;margin-top:40px}a{color:var(--ac)}
+</style>
+</head>
+<body>
+<main>
+  <h1>Asistente de <span>Gonzadev</span></h1>
+  <p class="lead">Un chat con IA (OpenRouter) que responde sobre tus sitios y proyectos. Se pega con una línea en cualquier página; la clave de la IA queda guardada en el servidor y nunca llega al navegador. Probalo con la burbuja de abajo a la derecha.</p>
+
+  <div class="estado" id="estado"><i></i><b id="estadoT">Revisando el estado…</b><button id="probar" class="pri" hidden>Probar el chat</button></div>
+
+  <h2>Pegalo en tus sitios</h2>
+  <p class="lead" style="margin-bottom:14px">Copiá la línea del sitio y pegala antes de <code>&lt;/body&gt;</code>. Cada sitio tiene su propio saludo, sus preguntas sugeridas y lo que sabe.</p>
+  <div id="codigos"></div>
+
+  <h2>Opciones</h2>
+  <div class="card"><table>
+    <tr><td><code>data-sitio</code></td><td><code>zonahack</code>, <code>taller</code>, <code>portfolio</code> o <code>general</code>: qué sabe y cómo saluda.</td></tr>
+    <tr><td><code>data-color</code></td><td>Color de la burbuja, por ejemplo <code>#ff5a36</code>.</td></tr>
+    <tr><td><code>data-posicion</code></td><td><code>izquierda</code> para ponerla abajo a la izquierda.</td></tr>
+    <tr><td><code>data-titulo</code> · <code>data-saludo</code></td><td>Cambian el nombre y el primer mensaje.</td></tr>
+    <tr><td>Desde tu código</td><td><code>GonzaAsistente.abrir()</code> · <code>GonzaAsistente.preguntar("…")</code></td></tr>
+  </table></div>
+
+  <h2>Configuración en Vercel</h2>
+  <ol>
+    <li>Creá una clave en <a href="https://openrouter.ai/keys" target="_blank" rel="noopener">openrouter.ai/keys</a> (los modelos gratis no gastan crédito).</li>
+    <li>En Vercel → este proyecto → <b>Settings → Environment Variables</b>, agregá <code>OPENROUTER_API_KEY</code> con tu clave.</li>
+    <li>Opcional: <code>ASISTENTE_ORIGENES</code> con tus dominios separados por coma (ej. <code>https://offlinevideoplayer.vercel.app</code>) para que solo tus sitios lo puedan usar.</li>
+    <li>Opcional: <code>ASISTENTE_MODELOS</code> para elegir otros modelos de OpenRouter, y <code>ASISTENTE_LIMITE</code> para los mensajes por visitante cada 10 minutos (20 por defecto).</li>
+    <li>Volvé a desplegar (Deployments → ⋯ → Redeploy) para que tome los cambios.</li>
+  </ol>
+  <p class="lead">Para enseñarle cosas nuevas, editá <code>asistente/lib/conocimiento.js</code> en el repo y volvé a publicar.</p>
+
+  <footer>Hecho por GonzalitoDev · <a href="https://github.com/GonzalitoDev/corte-editor/tree/main/asistente" target="_blank" rel="noopener">Código</a> · <a href="/api/salud">Estado (JSON)</a></footer>
+</main>
+
+<script>
+(function () {
+  var base = location.origin;
+  var sitios = [
+    ['zonahack', 'ZonaHack', '#7cff4f', 'Cuenta, invitados, contraseña, cómo se ven los videos, DMCA y privacidad.'],
+    ['taller', 'Taller', '#d8b45a', 'Las apps (Corte, Lienzo, Trazo, Folio, Onda) y los juegos GonzaCraft, GonzaSky y GonzaArena.'],
+    ['portfolio', 'Portfolio', '#4aa3ff', 'Quién sos, tus tecnologías y tus proyectos.'],
+  ];
+  var box = document.getElementById('codigos');
+  sitios.forEach(function (s) {
+    var code = '<script src="' + base + '/widget.js" data-sitio="' + s[0] + '" defer><\/script>';
+    var c = document.createElement('div'); c.className = 'card';
+    c.innerHTML = '<h3><i style="background:' + s[2] + '"></i>' + s[1] + '</h3><p>' + s[3] + '</p><pre></pre><div class="row"><button class="cp">Copiar</button><button class="try">Probar acá</button></div>';
+    c.querySelector('pre').textContent = code;
+    c.querySelector('.cp').onclick = function (e) {
+      var b = e.target;
+      (navigator.clipboard ? navigator.clipboard.writeText(code) : Promise.reject()).then(function () { b.textContent = '¡Copiado!'; }, function () {
+        var r = document.createRange(); r.selectNodeContents(c.querySelector('pre')); var sel = getSelection(); sel.removeAllRanges(); sel.addRange(r); b.textContent = 'Seleccionado: Ctrl+C';
+      });
+      setTimeout(function () { b.textContent = 'Copiar'; }, 1800);
+    };
+    c.querySelector('.try').onclick = function () { location.href = '?sitio=' + s[0]; };
+    box.appendChild(c);
+  });
+  // la burbuja de esta página usa el sitio elegido (o general)
+  var q = new URLSearchParams(location.search).get('sitio');
+  var w = document.createElement('script'); w.src = '/widget.js'; w.defer = true; w.dataset.sitio = /^(zonahack|taller|portfolio)$/.test(q || '') ? q : 'general';
+  document.body.appendChild(w);
+  var est = document.getElementById('estado'), t = document.getElementById('estadoT'), pb = document.getElementById('probar');
+  pb.onclick = function () { window.GonzaAsistente && GonzaAsistente.abrir(); };
+  fetch('/api/salud').then(function (r) { return r.json(); }).then(function (j) {
+    if (j.clave) { est.className = 'estado ok'; t.textContent = 'Funcionando: la clave de OpenRouter está configurada.' + (j.origenesRestringidos ? ' Solo responde en tus dominios.' : ''); pb.hidden = false; }
+    else { est.className = 'estado mal'; t.textContent = 'Publicado, pero falta la clave: agregá OPENROUTER_API_KEY en Vercel (abajo te explico cómo).'; }
+  }).catch(function () { est.className = 'estado mal'; t.textContent = 'No pude consultar el servidor.'; });
+})();
+</script>
+</body>
+</html>
