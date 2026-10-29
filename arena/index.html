@@ -1,0 +1,142 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>GonzaArena · MOBA gratis en el navegador</title>
+<meta name="description" content="GonzaArena: MOBA 5 contra 5 gratis en el navegador. Cinco campeones originales, tres carriles, jungla, Dragón y Coloso. Contra bots u online con tus amigos en tu propio servidor.">
+<meta property="og:title" content="GonzaArena">
+<meta property="og:description" content="MOBA 5 contra 5 gratis en el navegador, contra bots u online con tus amigos.">
+<meta property="og:image" content="img/pelea.jpg">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@700;800&family=Figtree:wght@400;500;600;800&display=swap">
+<style>
+:root{--bg:#090a16;--panel:#11132a;--line:#2a2c4c;--fg:#efe9da;--muted:#a9a49a;--gold:#d8b45a;--gold2:#f3d98a;--blue:#4aa3ff;--red:#ff5a5a;--t:Cinzel,Georgia,serif;--f:Figtree,system-ui,sans-serif}
+*{box-sizing:border-box}
+html{scroll-behavior:smooth;background:#090a16}
+body{margin:0;background:radial-gradient(ellipse at 50% -10%,#251a45,var(--bg) 60%) fixed;color:var(--fg);font:16px/1.55 var(--f)}
+a{color:var(--gold2)}
+.wrap{width:min(1120px,100% - 32px);margin-inline:auto}
+header{display:flex;align-items:center;justify-content:space-between;padding:18px 0}
+.brand{display:flex;align-items:center;gap:10px;font:800 22px var(--t);color:var(--fg);text-decoration:none;letter-spacing:.04em}
+.brand img{width:36px;height:36px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}.back:hover{color:var(--fg)}
+.hero{position:relative;border-radius:18px;overflow:hidden;min-height:540px;display:flex;align-items:flex-end;background:#000;border:1px solid var(--line)}
+.hero img{position:absolute;inset:0;width:100%;height:100%;object-fit:cover}
+.hero::after{content:"";position:absolute;inset:0;background:linear-gradient(90deg,rgba(8,8,18,.75),rgba(8,8,18,0) 70%),linear-gradient(180deg,rgba(0,0,0,0) 30%,rgba(8,8,18,.95) 90%)}
+.hero .in{position:relative;z-index:1;padding:36px;max-width:720px}
+h1{font:800 clamp(46px,9vw,92px)/.95 var(--t);margin:0 0 14px;letter-spacing:.04em;text-shadow:0 6px 26px rgba(0,0,0,.7)}
+h1 span{background:linear-gradient(180deg,#fff2c4,#d8b45a 55%,#8a6420);-webkit-background-clip:text;background-clip:text;color:transparent}
+.lead{font-size:clamp(17px,2.1vw,20px);color:#e6e0d2;margin:0 0 24px;max-width:600px;text-shadow:0 2px 10px rgba(0,0,0,.85)}
+.cta{display:flex;flex-wrap:wrap;gap:10px}
+.btn{display:inline-flex;align-items:center;gap:10px;font:700 16px var(--f);padding:13px 22px;border-radius:10px;text-decoration:none;color:var(--fg);background:rgba(255,255,255,.08);border:1px solid rgba(255,255,255,.2);min-height:50px}
+.btn:hover{background:rgba(255,255,255,.16)}
+.btn.main{background:linear-gradient(#e2c26c,#b88a2e);color:#1a1205;border-color:#f3d98a;font-size:18px}
+.btn.main:hover{filter:brightness(1.08)}
+.note{margin:14px 0 0;color:var(--muted);font-size:14px}
+section{padding:56px 0 8px}
+h2{font:800 30px var(--t);margin:0 0 20px;color:var(--gold2);letter-spacing:.02em}
+.grid3{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:20px}
+.card b{display:block;font:800 18px var(--f);margin-bottom:4px}
+.card p{margin:0;color:var(--muted)}
+.card .ic{width:38px;height:38px;border-radius:10px;margin-bottom:12px}
+.champs{display:grid;grid-template-columns:repeat(5,1fr);gap:12px}
+.champ{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;border-top:4px solid var(--c)}
+.champ b{display:block;font:800 20px var(--t)}
+.champ em{display:block;font-style:normal;color:var(--gold);font-size:12px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:8px}
+.champ p{margin:0;color:var(--muted);font-size:14px}
+.shots{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+.shots figure{margin:0;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+.shots figure:first-child{grid-row:span 2}
+.shots img{display:block;width:100%;height:100%;object-fit:cover}
+.shots figure:first-child img{aspect-ratio:16/9}
+.shots figcaption{padding:10px 14px;color:var(--muted);font-size:14px}
+code{font:14px ui-monospace,Consolas,monospace;background:#07081a;border:1px solid var(--line);border-radius:6px;padding:2px 6px;color:#f3d98a;user-select:all}
+pre{background:#07081a;border:1px solid var(--line);border-radius:8px;padding:10px 12px;overflow:auto;margin:8px 0}
+pre code{border:0;padding:0;background:none}
+table{width:100%;border-collapse:collapse}
+td{padding:7px 4px;border-bottom:1px solid var(--line);vertical-align:top}
+td:first-child{white-space:nowrap;padding-right:16px;color:var(--gold2)}
+kbd{font:700 12px ui-monospace,monospace;background:#1a1c30;border:1px solid #3a3d5c;border-bottom-width:3px;border-radius:5px;padding:1px 6px}
+footer{padding:48px 0 32px;color:var(--muted);font-size:14px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px}
+@media (max-width:900px){.grid3,.champs{grid-template-columns:1fr 1fr}.shots{grid-template-columns:1fr}.shots figure:first-child{grid-row:auto}}
+@media (max-width:560px){.grid3,.champs{grid-template-columns:1fr}.hero{min-height:480px}.hero .in{padding:22px}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><a class="brand" href="./"><img src="icon.svg" alt="">GonzaArena</a><a class="back" href="../">← Volver a Taller</a></header>
+  <div class="hero">
+    <img src="img/pelea.jpg" alt="Partida de GonzaArena: Brasa lanzando una bola de fuego en el carril del medio">
+    <div class="in">
+      <h1>GONZA<span>ARENA</span></h1>
+      <p class="lead">Un MOBA 5 contra 5 que corre en el navegador. Elegí tu campeón, ganá tu carril, conquistá la jungla y destruí el Núcleo enemigo. Contra bots o con tus amigos, gratis y sin descargar nada.</p>
+      <div class="cta"><a class="btn main" href="jugar/">⚔ Jugar ahora</a><a class="btn" href="#online">Jugar online con amigos</a></div>
+      <p class="note">Funciona en la compu (Chrome, Edge, Firefox) y en el celular, con controles táctiles.</p>
+    </div>
+  </div>
+
+  <section>
+    <h2>Qué tiene</h2>
+    <div class="grid3" id="feat"></div>
+  </section>
+
+  <section>
+    <h2>Campeones</h2>
+    <div class="champs">
+      <div class="champ" style="--c:#ff6a2a"><b>Brasa</b><em>Maga</em><p>Bola de fuego, columnas de llamas y una lluvia de meteoros. Todo lo que toca se quema.</p></div>
+      <div class="champ" style="--c:#9a8a74"><b>Pedrón</b><em>Tanque</em><p>Embiste y aturde, escuda a su equipo y parte la tierra con su terremoto.</p></div>
+      <div class="champ" style="--c:#8a5cff"><b>Sombra</b><em>Asesina</em><p>Se vuelve invisible, salta a la espalda del enemigo y lo marca para rematarlo.</p></div>
+      <div class="champ" style="--c:#3fbf6a"><b>Flecha</b><em>Tiradora</em><p>Daño constante desde lejos, abanico de flechas y una flecha gigante que cruza el mapa.</p></div>
+      <div class="champ" style="--c:#ff4f8b"><b>Ceibo</b><em>Soporte</em><p>Enraíza, cura, acelera a sus aliados y hace crecer un jardín que sana.</p></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Capturas</h2>
+    <div class="shots">
+      <figure><img src="img/pelea.jpg" alt="Pelea en el carril del medio" loading="lazy"><figcaption>Bola de fuego en el carril del medio, con niebla de guerra y minimapa.</figcaption></figure>
+      <figure><img src="img/sala.jpg" alt="Sala online con equipos" loading="lazy"><figcaption>Sala online: cada uno elige equipo y campeón; los lugares vacíos son bots.</figcaption></figure>
+      <figure><img src="img/celular.jpg" alt="Controles táctiles en el celular" loading="lazy"><figcaption>En el celular: joystick, ataque y habilidades que se apuntan solas o arrastrando.</figcaption></figure>
+    </div>
+  </section>
+
+  <section id="online">
+    <h2>Online con tus amigos</h2>
+    <div class="card">
+      <p style="color:#e6e0d2;margin-bottom:10px">Para jugar online necesitás un servidor prendido. Si tenés un VPS con Ubuntu o Debian, se arma con un solo comando (convive con los servidores de GonzaCraft y GonzaSky):</p>
+      <pre><code>curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-arena/instalar.sh | sudo NOMBRE="Arena de Gonza" bash</code></pre>
+      <p>Al final te muestra la dirección (algo como <code>arena.1-2-3-4.sslip.io</code>). En el juego: <b>Jugar online → pegá la dirección → Crear sala</b> y pasales el código de 5 letras. También se puede abrir esa dirección directo en el navegador. Más detalles en la <a href="https://github.com/GonzalitoDev/corte-editor/tree/main/servidor-arena">guía del servidor</a>.</p>
+    </div>
+  </section>
+
+  <section>
+    <h2>Controles</h2>
+    <div class="card"><table>
+      <tr><td>Clic derecho</td><td>Mover · atacar (también mantenido)</td></tr>
+      <tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>Habilidades: mantené para ver el indicador y soltá para lanzar</td></tr>
+      <tr><td><kbd>Ctrl</kbd> + <kbd>Q</kbd>…</td><td>Subir de nivel una habilidad (o el <b>+</b> sobre el ícono)</td></tr>
+      <tr><td><kbd>D</kbd> · <kbd>F</kbd></td><td>Destello · Curar</td></tr>
+      <tr><td><kbd>A</kbd> · <kbd>S</kbd> · <kbd>B</kbd></td><td>Avanzar atacando · Frenar · Volver a la base</td></tr>
+      <tr><td><kbd>P</kbd> · <kbd>Tab</kbd> · <kbd>Y</kbd></td><td>Tienda · Tabla de puntos · Cámara fija o libre</td></tr>
+      <tr><td>Celular</td><td>Joystick para moverse, ⚔ ataca al más cercano, Q W E R se lanzan al tocar o se apuntan arrastrando</td></tr>
+    </table></div>
+  </section>
+
+  <footer><span>GonzaArena es un juego original hecho por GonzalitoDev: campeones, mapa y nombres propios. Código abierto en <a href="https://github.com/GonzalitoDev/corte-editor/tree/main/arena">GitHub</a>.</span><span>Parte de <a href="../">Taller</a></span></footer>
+</div>
+<script>
+  const F = [
+    ['#d8b45a', '5 contra 5', 'Dos equipos, tres carriles, torres, inhibidores y el Núcleo. Ganás cuando destruís el Núcleo enemigo.'],
+    ['#4aa3ff', 'Bots que juegan de verdad', 'Hacen su carril, farmean, pelean cuando les conviene, se retiran, compran y van por los objetivos. Fácil, normal o difícil.'],
+    ['#ff6a3d', 'Online con salas', 'Creá una sala en tu servidor, pasá el código y elijan equipo. Los lugares vacíos se llenan con bots.'],
+    ['#3fbf6a', 'Jungla y objetivos', 'Campamentos con buffs, el Dragón del río (+daño para tu equipo) y el Coloso, que da poder por un rato.'],
+    ['#8a5cff', 'Tienda y niveles', 'Ganá oro rematando minions y matando enemigos. 19 objetos, niveles hasta el 18 y habilidades que subís a tu gusto.'],
+    ['#ff4f8b', 'Niebla de guerra', 'Solo ves lo que ven tus aliados. En línea, el servidor ni siquiera te manda lo que no ves.'],
+  ];
+  document.getElementById('feat').innerHTML = F.map(([c, t, d]) => `<div class="card"><div class="ic" style="background:linear-gradient(135deg,${c},#11132a)"></div><b>${t}</b><p>${d}</p></div>`).join('');
+</script>
+</body>
+</html>

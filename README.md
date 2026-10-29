@@ -11,6 +11,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **Onda** | Editor de audio multipista | [`onda/`](onda/) |
 | **GonzaCraft** | Juego de bloques (Windows, Linux Mint, Android y navegador) | [`gonzacraft/`](gonzacraft/) |
 | **GonzaSky** | Simulador de vuelo (Windows, Linux Mint, Android y navegador) | [`gonzasky/`](gonzasky/) |
+| **GonzaArena** | MOBA 5 contra 5 en el navegador (bots y online) | [`arena/`](arena/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
 
@@ -84,3 +85,13 @@ Cada tag `v*` que subas a GitHub arma los dos instaladores en Windows y los publ
 Es un sitio estático. Publicalo en Vercel (ya incluye `vercel.json`), Netlify o GitHub Pages, o servilo localmente con `npx serve`. Las librerías y los modelos de IA se cargan desde CDN la primera vez y después quedan en caché.
 
 Librerías de código abierto usadas: paper.js, pdf-lib, pdf.js, JSZip, jsPDF, svg2pdf.js, Transformers.js (Whisper), MediaPipe, @imgly/background-removal, lamejs, three.js y PeerJS.
+
+## GonzaArena · MOBA 5 contra 5
+
+Juego original en el navegador (three.js), con campeones, mapa y nombres propios.
+
+- `arena/jugar/js/sim-*.js`: la simulación (mapa con 3 carriles y A*, combate, minions, torres, jungla, Dragón y Coloso, oro, niveles, tienda, niebla de guerra y bots). Corre igual en el navegador (partidas contra bots) y en Node (servidor online).
+- `arena/jugar/js/models.js` y `client.js`: modelos low-poly, efectos, cámara, controles de PC (clic derecho, QWER con indicador) y de celular, interfaz, tienda, minimapa y salas online.
+- Cinco campeones: Brasa (maga), Pedrón (tanque), Sombra (asesina), Flecha (tiradora) y Ceibo (soporte).
+- **Online:** `servidor-arena/` corre la simulación a 30 pasos por segundo con salas por código; cada jugador recibe solo lo que ve su equipo. Se instala en un VPS con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-arena/instalar.sh | sudo bash` y queda en `arena.IP.sslip.io` (convive con los de GonzaCraft y GonzaSky).
+

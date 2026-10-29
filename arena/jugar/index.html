@@ -1,0 +1,185 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>GonzaArena</title>
+<meta name="description" content="GonzaArena: MOBA gratis en el navegador. 5 contra 5 con bots u online con tus amigos.">
+<link rel="icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cinzel:wght@600;800&family=Figtree:wght@400;500;600;700;800&family=JetBrains+Mono:wght@600;700&display=swap">
+<link rel="stylesheet" href="arena.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+<canvas id="ov"></canvas>
+
+<!-- ── interfaz en partida ── -->
+<div id="hud" hidden>
+  <div id="top"><span class="blue" id="kB">0</span><span id="clock">0:00</span><span class="red" id="kR">0</span><small id="drag"></small></div>
+  <div id="feed"></div>
+  <div id="banner" hidden></div>
+  <div id="dead" hidden>Reaparecés en <b id="deadT">0</b> s</div>
+  <div id="recallBar" hidden><i></i><span>Volviendo a la base…</span></div>
+  <div id="bar">
+    <div id="stats"></div>
+    <div id="portrait"><canvas id="face" width="96" height="96"></canvas><b id="lvl">1</b><div id="xp"><i></i></div></div>
+    <div id="mid">
+      <div id="abil"></div>
+      <div id="hpbar" class="pbar"><i></i><span></span></div>
+      <div id="mpbar" class="pbar mp"><i></i><span></span></div>
+    </div>
+    <div id="spells"></div>
+    <div id="inv"><div id="items"></div><div id="gold"><b id="goldN">0</b> oro<button id="btnShop" title="Tienda (P)">Tienda</button></div></div>
+  </div>
+  <canvas id="mini" width="220" height="220"></canvas>
+  <div id="touch" hidden>
+    <div id="joy"><i></i></div>
+    <div id="tAct">
+      <button data-tk="atk" class="big">⚔</button>
+      <button data-tk="0" class="ab">Q</button><button data-tk="1" class="ab">W</button><button data-tk="2" class="ab">E</button><button data-tk="3" class="ab">R</button>
+      <button data-tk="d" class="sp">D</button><button data-tk="f" class="sp">F</button><button data-tk="b" class="sp">B</button>
+    </div>
+    <div id="tTop"><button data-tk="menu">☰</button><button data-tk="shop">Tienda</button><button data-tk="board">Tabla</button><button data-tk="pot">Poción</button></div>
+  </div>
+</div>
+
+<!-- ── pantallas ── -->
+<section class="screen" id="sTitle">
+  <div class="logo"><b>GONZA<span>ARENA</span></b><small>5 contra 5 · campeones · torres · gloria</small></div>
+  <div class="menu">
+    <button class="primary" data-go="pick">Jugar contra bots</button>
+    <button data-go="online" class="gold">Jugar online</button>
+    <button data-go="help">Cómo se juega</button>
+    <button data-go="champs">Campeones</button>
+  </div>
+  <footer>Juego original de GonzalitoDev · <a href="../">Más información</a></footer>
+</section>
+
+<section class="screen" id="sPick" hidden>
+  <div class="panel wide">
+    <h2>Elegí tu campeón</h2>
+    <div id="pickList" class="champs"></div>
+    <div id="pickInfo" class="cinfo"></div>
+    <div class="cols">
+      <label>Dificultad de los bots<select id="pDiff"><option value="facil">Fácil</option><option value="normal" selected>Normal</option><option value="dificil">Difícil</option></select></label>
+      <label>Tu equipo<select id="pTeam"><option value="0">Azul (abajo)</option><option value="1">Rojo (arriba)</option></select></label>
+      <label>Tu nombre<input id="pName" maxlength="16" placeholder="Invocador"></label>
+    </div>
+    <div class="row"><button data-go="title">Volver</button><button class="primary" data-act="startBots">¡A la arena!</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sOnline" hidden>
+  <div class="panel wide">
+    <h2>Jugar online</h2>
+    <p>Armá una sala en tu servidor y pasale el código a tus amigos. Los lugares vacíos se llenan con bots.</p>
+    <div class="cols">
+      <label>Tu nombre<input id="oName" maxlength="16" placeholder="Invocador"></label>
+      <label>Dirección del servidor<input id="oAddr" list="oList" autocomplete="off" spellcheck="false" placeholder="arena.1-2-3-4.sslip.io"></label>
+      <label>Contraseña (si tiene)<input id="oPass" type="password" autocomplete="off"></label>
+    </div>
+    <datalist id="oList"></datalist>
+    <p id="oInfo" class="hint">Escribí la dirección que te dio el instalador del servidor.</p>
+    <div id="rooms" class="rooms"></div>
+    <div class="row"><button data-go="title">Volver</button><input id="oCode" maxlength="5" placeholder="CÓDIGO" class="code"><button data-act="joinCode">Entrar con código</button><button class="primary" data-act="createRoom">Crear sala</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sLobby" hidden>
+  <div class="panel wide">
+    <h2>Sala <span id="lCode" class="codebig"></span></h2>
+    <p class="hint">Pasale este código a tus amigos. Tocá un lugar libre para cambiarte de equipo.</p>
+    <div class="teams"><div><h3 class="blue">Equipo azul</h3><div id="lBlue" class="slots"></div></div><div><h3 class="red">Equipo rojo</h3><div id="lRed" class="slots"></div></div></div>
+    <div id="lPick" class="champs small"></div>
+    <div class="cols"><label>Bots<select id="lDiff"><option value="facil">Fácil</option><option value="normal" selected>Normal</option><option value="dificil">Difícil</option></select></label></div>
+    <div id="lChat" class="lchat"></div>
+    <div class="row"><button data-act="leaveRoom">Salir</button><input id="lMsg" maxlength="120" placeholder="Escribí algo…"><button data-act="lobbyChat">Enviar</button><button class="primary" data-act="startOnline" id="btnStart">Empezar</button></div>
+  </div>
+</section>
+
+<section class="screen dim" id="sShop" hidden>
+  <div class="panel wide">
+    <h2>Tienda <small id="shopGold"></small></h2>
+    <p id="shopNote" class="hint"></p>
+    <div id="shopList" class="shop"></div>
+    <h3>Tu inventario <small>(tocá para vender)</small></h3>
+    <div id="shopInv" class="shopinv"></div>
+    <div class="row"><button class="primary" data-act="closeShop">Cerrar (P)</button></div>
+  </div>
+</section>
+
+<section class="screen dim" id="sBoard" hidden><div class="panel wide" id="board"></div></section>
+
+<section class="screen dim" id="sMenu" hidden>
+  <div class="panel">
+    <h2>Menú</h2>
+    <p id="menuNote" class="hint"></p>
+    <div class="menu">
+      <button class="primary" data-act="resume">Seguir</button>
+      <button data-act="toggleCam">Cámara fija: <b id="camState">sí</b></button>
+      <button data-act="toggleSound">Sonido: <b id="sndState">sí</b></button>
+      <button data-go="help">Controles</button>
+      <button data-act="quit">Salir de la partida</button>
+    </div>
+  </div>
+</section>
+
+<section class="screen" id="sEnd" hidden>
+  <div class="panel wide">
+    <h2 id="endTitle" class="endt"></h2>
+    <div id="endStats"></div>
+    <div class="row"><button class="primary" data-act="toTitle">Volver al menú</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sHelp" hidden>
+  <div class="panel wide">
+    <h2>Cómo se juega</h2>
+    <div class="help2">
+      <div>
+        <h3>El objetivo</h3>
+        <p>Dos equipos de 5. Ganás si destruís el <b>Núcleo</b> enemigo, en su base. Para llegar tenés que tirar las torres de un carril, después su inhibidor, y las dos torres del núcleo.</p>
+        <p>Cada 30 segundos salen <b>minions</b> por los tres carriles. Rematarlos (dar el último golpe) te da oro. Con el oro comprás objetos en la tienda de tu base.</p>
+        <p>En la jungla hay campamentos de monstruos. El <b>Dragón</b> da +6% de daño a tu equipo y el <b>Coloso</b> (desde el minuto 10) da mucho poder por un rato.</p>
+        <p>Las torres le pegan fuerte a los campeones: no te metas bajo una torre enemiga sin minions propios.</p>
+      </div>
+      <table class="keys">
+        <tr><th colspan="2">Controles (PC)</th></tr>
+        <tr><td>Clic derecho</td><td>Mover · atacar al enemigo</td></tr>
+        <tr><td><kbd>Q</kbd> <kbd>W</kbd> <kbd>E</kbd> <kbd>R</kbd></td><td>Habilidades: mantené para apuntar, soltá para lanzar</td></tr>
+        <tr><td><kbd>Ctrl</kbd> + <kbd>Q</kbd>…</td><td>Subir de nivel una habilidad</td></tr>
+        <tr><td><kbd>D</kbd> <kbd>F</kbd></td><td>Destello · Curar</td></tr>
+        <tr><td><kbd>A</kbd> · <kbd>S</kbd></td><td>Avanzar atacando · Frenar</td></tr>
+        <tr><td><kbd>B</kbd> · <kbd>1</kbd></td><td>Volver a la base · Poción</td></tr>
+        <tr><td><kbd>P</kbd> · <kbd>Tab</kbd></td><td>Tienda · Tabla de puntos</td></tr>
+        <tr><td><kbd>Y</kbd> · <kbd>Espacio</kbd></td><td>Cámara fija · Centrar cámara</td></tr>
+        <tr><td><kbd>Enter</kbd> · <kbd>Esc</kbd></td><td>Chat (online) · Menú</td></tr>
+        <tr><td colspan="2" class="tip">En el celular: el círculo de la izquierda mueve. ⚔ ataca al más cercano. Tocá Q W E R para lanzar al enemigo más cercano, o arrastrá para apuntar.</td></tr>
+      </table>
+    </div>
+    <div class="row"><button class="primary" data-go="back">Listo</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sChamps" hidden>
+  <div class="panel wide">
+    <h2>Campeones</h2>
+    <div id="champsAll" class="champdocs"></div>
+    <div class="row"><button class="primary" data-go="title">Volver</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sLoad" hidden><p id="loadMsg">Preparando la arena…</p></section>
+<form id="chatBox" hidden><input id="chatIn" maxlength="140" autocomplete="off" placeholder="Escribí y apretá Enter · Esc para cerrar"></form>
+<div id="toast" hidden></div>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/sim-map.js"></script>
+<script src="js/sim-core.js"></script>
+<script src="js/sim-champs.js"></script>
+<script src="js/sim-bots.js"></script>
+<script src="js/models.js"></script>
+<script src="js/client.js"></script>
+</body>
+</html>

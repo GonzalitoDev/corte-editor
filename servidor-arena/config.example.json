@@ -1,0 +1,8 @@
+{
+  "name": "Arena de Gonza",
+  "host": "0.0.0.0",
+  "port": 7779,
+  "password": "",
+  "maxRooms": 6,
+  "snapshotHz": 10
+}
