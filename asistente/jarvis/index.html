@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>J.A.R.V.I.S.</title>
+<meta name="description" content="Jarvis: tu asistente personal por voz. Hablale y te responde.">
+<meta name="theme-color" content="#04080d">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="icon" href="icon.svg">
+<link rel="apple-touch-icon" href="icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;900&family=Rajdhani:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="jarvis.css">
+</head>
+<body>
+<div class="grid-bg"></div>
+
+<header class="top">
+  <div class="brand"><b>J.A.R.V.I.S.</b><small id="modo">Navegador</small></div>
+  <div class="top-r">
+    <button id="bManos" class="chip" title="Escuchar siempre: decí «Jarvis» y tu pedido">Manos libres: <b>no</b></button>
+    <button id="bAyuda" class="ico" title="Qué le puedo decir">?</button>
+    <button id="bAjustes" class="ico" title="Ajustes">⚙</button>
+  </div>
+</header>
+
+<main class="hud">
+  <aside class="col izq">
+    <section class="panel reloj"><div id="hora">--:--</div><div id="fecha"></div></section>
+    <section class="panel" id="pClima"><h3>Clima</h3><div id="clima" class="mut">Decime «¿cómo está el clima?»</div></section>
+    <section class="panel" id="pTimers"><h3>Temporizadores</h3><div id="timers" class="mut">Ninguno activo</div></section>
+    <section class="panel" id="pNotas"><h3>Notas</h3><div id="notas" class="mut">Decí «anotá…»</div></section>
+  </aside>
+
+  <section class="centro">
+    <div class="orbe-wrap">
+      <canvas id="orbe" aria-hidden="true"></canvas>
+      <button id="bMic" class="mic" aria-label="Hablar con Jarvis (Espacio)">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 003.5-3.5v-6a3.5 3.5 0 10-7 0v6A3.5 3.5 0 0012 15zm6-3.5a.9.9 0 10-1.8 0 4.2 4.2 0 01-8.4 0 .9.9 0 10-1.8 0 6 6 0 005.1 5.9V20H8.8a.9.9 0 100 1.8h6.4a.9.9 0 100-1.8H12.9v-2.6a6 6 0 005.1-5.9z"/></svg>
+      </button>
+    </div>
+    <div id="estado" class="estado">En línea</div>
+    <div id="vivo" class="vivo" aria-live="polite"></div>
+    <div id="enlaces" class="enlaces"></div>
+    <form id="fTexto" class="entrada" autocomplete="off">
+      <input id="tTexto" maxlength="500" placeholder="Hablá (Espacio) o escribí acá…" aria-label="Escribile a Jarvis">
+      <button type="submit" aria-label="Enviar">➤</button>
+    </form>
+    <div id="sugs" class="sugs"></div>
+  </section>
+
+  <aside class="col der">
+    <section class="panel log-p"><h3>Registro <button id="bBorrar" class="link">limpiar</button></h3><div id="log" class="log"></div></section>
+  </aside>
+</main>
+
+<div id="mAjustes" class="modal" hidden>
+  <div class="caja">
+    <h2>Ajustes</h2>
+    <label>Tu nombre<input id="aNombre" maxlength="30" placeholder="Para que Jarvis te llame por tu nombre"></label>
+    <label>Voz<select id="aVoz"></select></label>
+    <div class="dos">
+      <label>Velocidad <output id="oVel"></output><input id="aVel" type="range" min="0.7" max="1.5" step="0.05"></label>
+      <label>Tono <output id="oTono"></output><input id="aTono" type="range" min="0.5" max="1.5" step="0.05"></label>
+    </div>
+    <button id="bProbar" class="sec">Probar la voz</button>
+    <label>Ciudad para el clima<input id="aCiudad" maxlength="60" placeholder="Vacío = usar tu ubicación"></label>
+    <label>Servidor de IA<input id="aServidor" maxlength="200" placeholder="https://tu-asistente.vercel.app" spellcheck="false"></label>
+    <p class="hint" id="hServidor">La dirección de tu asistente publicado en Vercel. Vacío = este mismo sitio.</p>
+    <label class="check"><input id="aSonidos" type="checkbox"> Sonidos de la interfaz</label>
+    <div class="fila"><button id="bOlvidar" class="sec">Olvidar la charla</button><button id="bBorrarNotas" class="sec">Borrar notas</button></div>
+    <div class="fila fin"><button id="bCerrarAj" class="pri">Listo</button></div>
+  </div>
+</div>
+
+<div id="mAyuda" class="modal" hidden>
+  <div class="caja ancha">
+    <h2>Qué le podés decir</h2>
+    <div class="ayuda">
+      <div><h4>Cosas rápidas</h4><ul>
+        <li>¿Qué hora es? · ¿Qué día es hoy?</li>
+        <li>¿Cómo está el clima? · ¿Va a llover en Rosario?</li>
+        <li>Poné un temporizador de 10 minutos</li>
+        <li>Recordame sacar la ropa a las 18:30</li>
+        <li>Anotá comprar pan · Leé mis notas</li>
+        <li>Callate · Silencio (lo interrumpe)</li>
+      </ul></div>
+      <div><h4>Internet</h4><ul>
+        <li>Abrí YouTube · Abrí WhatsApp</li>
+        <li>Buscá recetas de pizza</li>
+        <li>Poné música de Duki en YouTube</li>
+        <li>Buscá Messi en Wikipedia</li>
+      </ul></div>
+      <div id="ayudaPC"><h4>Tu PC <small>(Jarvis para Windows)</small></h4><ul>
+        <li>Abrí la calculadora · Abrí Spotify · Abrí Descargas</li>
+        <li>Subí el volumen · Volumen al 30 · Silenciá</li>
+        <li>Pausá la música · Siguiente canción</li>
+        <li>Cerrá Chrome · Sacá una captura de pantalla</li>
+        <li>Bloqueá la compu · Apagá la computadora</li>
+      </ul></div>
+      <div><h4>Charla</h4><ul>
+        <li>Contame un chiste · Explicame qué es un agujero negro</li>
+        <li>Ayudame a escribir un mensaje para mi jefe</li>
+        <li>¿Cuánto es el 15 % de 2300?</li>
+      </ul></div>
+    </div>
+    <p class="hint"><b>Manos libres:</b> Jarvis escucha todo el tiempo y responde cuando decís «Jarvis» antes del pedido («Jarvis, abrí YouTube»). Sin manos libres, tocá el micrófono o apretá <kbd>Espacio</kbd>.</p>
+    <div class="fila fin"><button class="pri" data-cerrar>Entendido</button></div>
+  </div>
+</div>
+
+<div id="aviso" class="aviso" hidden></div>
+<script src="jarvis.js"></script>
+</body>
+</html>

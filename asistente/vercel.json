@@ -1,9 +1,38 @@
 {
-  "functions": { "api/chat.js": { "maxDuration": 30 } },
+  "functions": {
+    "api/chat.js": {
+      "maxDuration": 30
+    }
+  },
   "headers": [
-    { "source": "/widget.js", "headers": [
-      { "key": "Access-Control-Allow-Origin", "value": "*" },
-      { "key": "Cache-Control", "value": "public, max-age=300, stale-while-revalidate=86400" }
-    ] }
+    {
+      "source": "/widget.js",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/jarvis/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ],
+  "redirects": [
+    {
+      "source": "/jarvis",
+      "destination": "/jarvis/",
+      "permanent": true
+    }
   ]
 }

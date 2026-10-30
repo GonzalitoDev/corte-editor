@@ -1,0 +1,64 @@
+{
+  "name": "jarvis",
+  "productName": "Jarvis",
+  "version": "1.0.0",
+  "description": "Jarvis: tu asistente personal por voz que maneja tu PC",
+  "author": {
+    "name": "GonzalitoDev",
+    "email": "gonzalitodev@users.noreply.github.com"
+  },
+  "license": "MIT",
+  "homepage": "https://github.com/GonzalitoDev/corte-editor",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "node prepare.js && electron .",
+    "probar": "node prepare.js && node agente.js",
+    "dist:win": "node prepare.js && electron-builder --win nsis --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "dev.gonzalito.jarvis",
+    "productName": "Jarvis",
+    "copyright": "GonzalitoDev",
+    "directories": {
+      "output": "dist",
+      "buildResources": "build"
+    },
+    "files": [
+      "main.js",
+      "agente.js",
+      "acciones.js",
+      "app/**/*",
+      "build/icon.png",
+      "build/icon.ico"
+    ],
+    "win": {
+      "target": [
+        "nsis"
+      ],
+      "icon": "build/icon.ico"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": false,
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "Jarvis",
+      "runAfterFinish": true,
+      "installerLanguages": [
+        "es_ES"
+      ],
+      "language": "3082",
+      "artifactName": "Jarvis-Setup.${ext}"
+    }
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/GonzalitoDev/corte-editor.git"
+  }
+}

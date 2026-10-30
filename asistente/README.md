@@ -29,3 +29,17 @@ This is an AI chat that runs on **OpenRouter** and is hosted on **Vercel**. It a
 | `ASISTENTE_LIMITE` | Messages allowed per visitor every 10 minutes. Default: 20. |
 
 After changing a variable, go to Deployments → Redeploy.
+
+## Jarvis (`/jarvis/`)
+
+Jarvis is a voice assistant that runs on this same server: open `https://YOUR-PROJECT.vercel.app/jarvis/` in Chrome or Edge, either on a PC or on Android. You can install it like an app.
+
+- **Talk to it:** tap the microphone or press Space. With hands-free mode on, say "Jarvis, …".
+- **It answers out loud** and handles these on its own, without asking the AI:
+  - time and date
+  - weather
+  - timers and reminders
+  - notes
+  - opening sites and searches
+- **Everything else** it asks the AI, through the `jarvis` site in `lib/conocimiento.js`.
+- **To control the PC** (programs, volume, music, shutting down), use **Jarvis for Windows** (`desktop-jarvis/`).

@@ -7,7 +7,7 @@
  *   ASISTENTE_ORIGENES   (opcional) dominios que pueden usar el asistente, separados por coma (ej: https://offlinevideoplayer.vercel.app). Vacío = cualquiera.
  *   ASISTENTE_LIMITE     (opcional) mensajes por visitante cada 10 minutos (por defecto 20).
  */
-import { SITIOS, sistema } from '../lib/conocimiento.js';
+import { SITIOS, sistema, sistemaJarvis } from '../lib/conocimiento.js';
 
 const MODELOS = (process.env.ASISTENTE_MODELOS || 'google/gemma-4-31b-it:free,google/gemma-4-26b-a4b-it:free,nvidia/nemotron-3.5-super-vl:free,thinkingmachines/inkling-small:free')
   .split(',').map(s => s.trim()).filter(Boolean).slice(0, 4);
@@ -29,7 +29,9 @@ export function OPTIONS(req) { return new Response(null, { status: 204, headers:
 
 export async function POST(req) {
   const origin = req.headers.get('origin');
-  if (!origenOk(origin)) return json(403, { error: 'Este sitio no tiene permiso para usar el asistente.' }, origin);
+  // las páginas del propio proyecto (como /jarvis/) siempre pueden usarlo
+  let propio = false; try { propio = !!origin && new URL(origin).host === (req.headers.get('x-forwarded-host') || req.headers.get('host') || new URL(req.url).host); } catch (e) { }
+  if (!propio && !origenOk(origin)) return json(403, { error: 'Este sitio no tiene permiso para usar el asistente.' }, origin);
   // límite por visitante
   const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon', now = Date.now();
   const lista = (golpes.get(ip) || []).filter(t => now - t < VENTANA);
@@ -51,7 +53,7 @@ export async function POST(req) {
     r = await fetch('https://openrouter.ai/api/v1/chat/completions', {
       method: 'POST',
       headers: { Authorization: `Bearer ${key}`, 'Content-Type': 'application/json', 'HTTP-Referer': origin || 'https://github.com/GonzalitoDev', 'X-Title': 'Asistente de Gonzadev' },
-      body: JSON.stringify({ models: MODELOS, model: MODELOS[0], stream: true, max_tokens: 700, temperature: .5, messages: [{ role: 'system', content: sistema(sitio, body.pagina) }, ...mensajes] }),
+      body: JSON.stringify({ models: MODELOS, model: MODELOS[0], stream: true, max_tokens: sitio === 'jarvis' ? 500 : 700, temperature: sitio === 'jarvis' ? .6 : .5, messages: [{ role: 'system', content: sitio === 'jarvis' ? sistemaJarvis(body.contexto) : sistema(sitio, body.pagina) }, ...mensajes] }),
       signal: AbortSignal.timeout(28000),
     });
   } catch (e) { return json(502, { error: 'No pude conectarme con la IA. Probá de nuevo en un momento.' }, origin); }
