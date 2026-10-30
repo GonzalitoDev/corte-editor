@@ -1,0 +1,51 @@
+name: Jarvis (instalador de Windows)
+
+# Cada vez que cambia Jarvis, arma el instalador y lo publica en el release "jarvis".
+# La página jarvis/ del Taller apunta siempre a ese archivo.
+on:
+  push:
+    branches: [main]
+    paths: ['jarvis/**', 'desktop-jarvis/**', '.github/workflows/jarvis.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: desktop-jarvis
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - run: npm run dist:win
+      - uses: actions/upload-artifact@v4
+        with:
+          name: jarvis-windows
+          path: desktop-jarvis/dist/Jarvis-Setup.exe
+
+  publish:
+    needs: [windows]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Publicar en el release "jarvis"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la out
+          if ! gh release view jarvis >/dev/null 2>&1; then
+            gh release create jarvis --target "${{ github.sha }}" --latest=false \
+              --title "Jarvis (última versión)" \
+              --notes "Jarvis para Windows: asistente personal por voz que maneja tu PC. Instalá Jarvis-Setup.exe y apretá Ctrl+Alt+J para hablarle. Página: https://corte-editor-nine.vercel.app/jarvis/"
+          fi
+          gh release upload jarvis out/* --clobber
