@@ -80,7 +80,7 @@ app.whenReady().then(async () => {
   const oculto = process.argv.includes('--oculto');
   const primera = !fs.existsSync(path.join(DATOS, '.ya-abierto'));
   if (primera) { try { fs.writeFileSync(path.join(DATOS, '.ya-abierto'), new Date().toISOString()); } catch (e) { } app.setLoginItemSettings({ openAtLogin: true, args: ['--oculto'] }); tray.setContextMenu(menu()); }
-  if (!oculto) abrirUI(primera && !agente.config().servidor ? 'ajustes=1' : '');
+  if (!oculto) abrirUI();
   if (Notification.isSupported() && (primera || oculto)) new Notification({ title: 'Jarvis está listo', body: 'Está en la bandeja (al lado del reloj). Apretá Ctrl+Alt+J en cualquier momento para hablarle.', icon: ICONO }).show();
 });
 

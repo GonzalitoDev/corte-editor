@@ -17,22 +17,6 @@
           "value": "public, max-age=300, stale-while-revalidate=86400"
         }
       ]
-    },
-    {
-      "source": "/jarvis/sw.js",
-      "headers": [
-        {
-          "key": "Cache-Control",
-          "value": "no-cache"
-        }
-      ]
-    }
-  ],
-  "redirects": [
-    {
-      "source": "/jarvis",
-      "destination": "/jarvis/",
-      "permanent": true
     }
   ]
 }

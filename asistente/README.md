@@ -30,9 +30,13 @@ This is an AI chat that runs on **OpenRouter** and is hosted on **Vercel**. It a
 
 After changing a variable, go to Deployments → Redeploy.
 
+## Hosted in the Taller
+
+The Taller project on Vercel (repo root) already serves this assistant: `api/chat.mjs` and `api/salud.mjs` reuse this same code. You only need to add `OPENROUTER_API_KEY` to that project. The demo is at `/asistente/` and the bubble at `/asistente/widget.js`. You can also publish this folder on its own as a separate project (Root Directory `asistente`).
+
 ## Jarvis (`/jarvis/`)
 
-Jarvis is a voice assistant that runs on this same server: open `https://YOUR-PROJECT.vercel.app/jarvis/` in Chrome or Edge, either on a PC or on Android. You can install it like an app.
+Jarvis is a voice assistant that lives in the Taller (`jarvis/`). Open `https://corte-editor-nine.vercel.app/jarvis/` in Chrome or Edge, on a PC or on Android. You can install it like an app.
 
 - **Talk to it:** tap the microphone or press Space. With hands-free mode on, say "Jarvis, …".
 - **It answers out loud** and handles these on its own, without asking the AI:

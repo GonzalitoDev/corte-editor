@@ -1,0 +1,133 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Jarvis · Taller</title>
+<meta name="description" content="Jarvis: tu asistente personal por voz. Hablale y te responde. En el navegador, en el celular y en Windows, donde además maneja tu PC.">
+<meta name="theme-color" content="#04080d">
+<link rel="icon" href="app/icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&family=Orbitron:wght@700;900&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<style>
+:root{--c:#38e1ff;--c2:#9ff3ff}
+body{font-size:16px;background:radial-gradient(ellipse at 50% -10%,#0b2230 0%,var(--bg) 55%) fixed var(--bg)}
+.wrap{max-width:1080px;margin:0 auto}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;padding-block:22px}
+.brand{display:flex;align-items:center;gap:10px;font:900 18px Orbitron,var(--f-display);letter-spacing:.28em;color:var(--c);text-decoration:none}
+.brand img{width:34px;height:34px}
+.back{color:var(--muted);text-decoration:none;font-size:14px}.back:hover{color:var(--fg)}
+.hero{display:grid;grid-template-columns:minmax(0,1.05fr) minmax(0,1fr);gap:40px;align-items:center;padding-block:34px 26px}
+.hero h1{font:900 clamp(40px,7vw,74px)/1 Orbitron,var(--f-display);letter-spacing:.08em;margin:0;color:var(--c2);text-shadow:0 0 30px rgba(56,225,255,.35)}
+.hero h1 small{display:block;font:600 15px var(--f-body);letter-spacing:.02em;color:var(--muted);text-shadow:none;margin-top:12px}
+.lead{color:#c3cad6;font-size:18px;line-height:1.55;margin:18px 0 0;max-width:52ch}
+.orb{position:relative;aspect-ratio:1;max-width:420px;justify-self:center;width:100%}
+.orb img{width:100%;height:100%;filter:drop-shadow(0 0 40px rgba(56,225,255,.35));animation:flota 6s ease-in-out infinite}
+@keyframes flota{50%{transform:translateY(-8px) rotate(4deg)}}
+.dl{display:grid;gap:10px;margin-top:26px;max-width:470px}
+.big{display:flex;align-items:center;gap:14px;padding:14px 18px;border-radius:12px;border:1px solid var(--line);background:var(--panel);color:var(--fg);text-decoration:none;transition:.18s}
+.big:hover{border-color:var(--c);transform:translateY(-1px)}
+.big.pri{background:var(--c);border-color:var(--c);color:#03141c}
+.big.pri:hover{filter:brightness(1.07)}
+.big svg{width:26px;height:26px;flex:none}
+.big span{display:grid;font-weight:700;font-size:16px}.big small{font-weight:500;font-size:13px;opacity:.75}
+.note{color:var(--muted);font-size:14px;margin-top:12px}
+section{margin-top:56px}
+h2{font-family:var(--f-display);font-weight:800;font-size:28px;letter-spacing:-.02em;margin:0 0 18px}
+.shot{margin:0;border:1px solid var(--line);border-radius:14px;overflow:hidden;box-shadow:0 30px 80px rgba(0,0,0,.45)}
+.shot img{display:block;width:100%;height:auto}
+.grid3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:14px}
+.card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:18px}
+.card h3{margin:0 0 6px;font-family:var(--f-display);font-size:18px;display:flex;align-items:center;gap:8px}
+.card h3 i{font-style:normal;color:var(--c)}
+.card p,.card li{color:#b5bcc8;line-height:1.5;margin:0}
+.card ul,.card ol{margin:0;padding-left:20px;display:grid;gap:6px}
+.card .tag{display:inline-block;margin-top:10px;font:500 12px var(--f-mono);color:#ffb347}
+.dichos{display:flex;flex-wrap:wrap;gap:8px}
+.dichos span{border:1px solid color-mix(in srgb,var(--c) 35%,var(--line));color:var(--c2);border-radius:999px;padding:7px 14px;font-size:15px;background:rgba(56,225,255,.05)}
+.dichos span.pc{border-color:rgba(255,179,71,.45);color:#ffd59e;background:rgba(255,179,71,.06)}
+.leyenda{color:var(--muted);font-size:14px;margin-top:10px}.leyenda b{color:#ffd59e;font-weight:600}
+.steps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
+kbd{font:600 13px var(--f-mono);border:1px solid #3a414e;border-bottom-width:3px;border-radius:5px;padding:1px 6px;background:#12161c}
+footer{margin:64px 0 0;padding:26px 0 40px;border-top:1px solid var(--line);color:var(--muted);font-size:14px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
+footer a{color:var(--muted)}
+@media (max-width:860px){.hero{grid-template-columns:1fr;gap:10px}.orb{max-width:260px;grid-row:1}.grid3,.steps{grid-template-columns:1fr}}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <a class="brand" href="./"><img src="app/icon.svg" alt="">JARVIS</a>
+    <a class="back" href="../">← Volver a Taller</a>
+  </header>
+
+  <div class="hero">
+    <div>
+      <h1>J.A.R.V.I.S.<small>Tu asistente personal por voz</small></h1>
+      <p class="lead">Hablale y te responde con su propia voz. Te dice la hora y el clima, pone temporizadores, anota cosas, busca en internet y charla de lo que quieras. En Windows, además, maneja tu PC: abre programas, cambia el volumen, pausa la música y hasta la apaga.</p>
+      <div class="dl">
+        <a class="big pri" href="app/">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M12 15a3.5 3.5 0 003.5-3.5v-6a3.5 3.5 0 10-7 0v6A3.5 3.5 0 0012 15zm6-3.5a.9.9 0 10-1.8 0 4.2 4.2 0 01-8.4 0 .9.9 0 10-1.8 0 6 6 0 005.1 5.9V20H8.8a.9.9 0 100 1.8h6.4a.9.9 0 100-1.8H12.9v-2.6a6 6 0 005.1-5.9z"/></svg>
+          <span>Hablar con Jarvis ahora<small>En el navegador o el celular · sin instalar</small></span></a>
+        <a class="big" href="https://github.com/GonzalitoDev/corte-editor/releases/download/jarvis/Jarvis-Setup.exe">
+          <svg viewBox="0 0 24 24" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg>
+          <span>Descargar para Windows<small>Instalador .exe · maneja tu PC · Ctrl+Alt+J para hablarle</small></span></a>
+      </div>
+      <p class="note">Gratis y sin cuenta · Necesita micrófono, internet y Chrome o Edge.</p>
+    </div>
+    <div class="orb"><img src="img/orbe.svg" alt=""></div>
+  </div>
+
+  <figure class="shot"><img src="img/captura.jpg" width="1400" height="820" alt="La pantalla de Jarvis: un núcleo de luz celeste en el centro, el reloj, el clima, un temporizador y notas a la izquierda, y la charla a la derecha" loading="lazy"></figure>
+
+  <section>
+    <h2>Qué hace</h2>
+    <div class="grid3">
+      <div class="card"><h3><i>◉</i>Te escucha</h3><p>Tocá el micrófono o apretá <kbd>Espacio</kbd>. Con <b>manos libres</b> escucha siempre y responde cuando decís «Jarvis, …».</p></div>
+      <div class="card"><h3><i>◉</i>Te contesta con voz</h3><p>Con la mejor voz en español de tu equipo. En Windows usa las voces naturales de Microsoft, incluida una argentina.</p></div>
+      <div class="card"><h3><i>◉</i>Piensa con IA</h3><p>Lo que no sabe al instante se lo pregunta a una IA. Recuerda la charla y entiende lo que le pedís con tus palabras.</p></div>
+      <div class="card"><h3><i>◉</i>Tu día</h3><p>Hora, fecha, clima de tu ciudad, temporizadores, recordatorios con hora y notas que te lee en voz alta.</p></div>
+      <div class="card"><h3><i>◉</i>Internet</h3><p>Abre tus páginas, busca en Google, YouTube o Wikipedia y te pone la música que le pidas.</p></div>
+      <div class="card"><h3><i>◉</i>Tu PC</h3><p>Abre programas y carpetas, sube o baja el volumen, pausa y pasa canciones, cierra programas, saca capturas, bloquea y apaga.</p><span class="tag">Solo en Windows</span></div>
+    </div>
+  </section>
+
+  <section>
+    <h2>Qué le podés decir</h2>
+    <div class="dichos">
+      <span>¿Qué hora es?</span><span>¿Va a llover hoy?</span><span>Clima en Rosario</span><span>Poné un temporizador de 10 minutos</span>
+      <span>Recordame llamar a mamá a las 18:30</span><span>Anotá comprar pan</span><span>Leé mis notas</span><span>Abrí YouTube</span>
+      <span>Poné música de Duki en YouTube</span><span>Buscá recetas de pizza</span><span>Contame un chiste</span><span>Explicame qué es un agujero negro</span>
+      <span class="pc">Abrí Spotify</span><span class="pc">Abrí Descargas</span><span class="pc">Volumen al 30</span><span class="pc">Siguiente canción</span>
+      <span class="pc">Cerrá Chrome</span><span class="pc">Sacá una captura de pantalla</span><span class="pc">Bloqueá la compu</span><span class="pc">Apagá la computadora</span>
+    </div>
+    <p class="leyenda">Las de color <b>naranja</b> funcionan con Jarvis para Windows. Para apagar, reiniciar o suspender te pide que confirmes.</p>
+  </section>
+
+  <section>
+    <h2>Cómo empezar</h2>
+    <div class="steps">
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><path d="M3 5.5 10 4.5v7H3zM11 4.4 21 3v8.5H11zM3 12.5h7v7l-7-1zM11 12.5h10V21l-10-1.4z"/></svg>Windows 10 y 11</h3>
+        <ol>
+          <li>Descargá <b>Jarvis-Setup.exe</b> y abrilo. Si aparece «Windows protegió su PC», tocá <b>Más información</b> y <b>Ejecutar de todas formas</b>: pasa porque no tiene firma digital paga.</li>
+          <li>Al terminar se abre Jarvis y queda en la bandeja, al lado del reloj. Arranca solo con Windows.</li>
+          <li>Apretá <kbd>Ctrl</kbd>+<kbd>Alt</kbd>+<kbd>J</kbd> en cualquier momento y hablale.</li>
+        </ol>
+      </div>
+      <div class="card">
+        <h3><svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2"><rect x="6" y="2" width="12" height="20" rx="2.5"/><path d="M11 18h2"/></svg>Navegador y celular</h3>
+        <ol>
+          <li>Tocá <b>Hablar con Jarvis ahora</b> en Chrome o Edge (en Android, en Chrome).</li>
+          <li>Tocá el micrófono y aceptá el permiso. Para tenerlo como app: menú ⋮ → <b>Instalar app</b> o <b>Agregar a la pantalla principal</b>.</li>
+          <li>Si al abrir una página dice que el navegador la bloqueó, permití las ventanas emergentes para este sitio.</li>
+        </ol>
+      </div>
+    </div>
+  </section>
+
+  <footer><span>Jarvis · hecho por GonzalitoDev</span><span><a href="https://github.com/GonzalitoDev/corte-editor/tree/main/jarvis" target="_blank" rel="noopener">Código en GitHub</a></span></footer>
+</div>
+</body>
+</html>

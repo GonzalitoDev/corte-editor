@@ -7,6 +7,7 @@ const os = require('os');
 const { Readable } = require('stream');
 const { crear } = require('./acciones');
 
+const SERVIDOR_POR_DEFECTO = 'https://corte-editor-nine.vercel.app'; // el Taller, que también sirve la IA
 const TIPOS = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript; charset=utf-8', '.css': 'text/css; charset=utf-8', '.svg': 'image/svg+xml', '.png': 'image/png', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.ico': 'image/x-icon' };
 
 function iniciar({ puerto = 47800, raiz, configPath, abrirExterno, perfilNavegador, version = '1.0.0', alCambiarConfig } = {}) {
@@ -38,7 +39,7 @@ function iniciar({ puerto = 47800, raiz, configPath, abrirExterno, perfilNavegad
           return;
         }
         if (req.headers['x-jarvis'] !== '1') return json(res, 403, { ok: false, mensaje: 'Falta la cabecera' });
-        if (p === '/agente/estado') return json(res, 200, { jarvis: true, version, equipo: os.hostname(), servidor: config.servidor || '', apps: await acc.nombresApps() });
+        if (p === '/agente/estado') return json(res, 200, { jarvis: true, version, equipo: os.hostname(), servidor: config.servidor || SERVIDOR_POR_DEFECTO, apps: await acc.nombresApps() });
         if (p === '/agente/accion' && req.method === 'POST') {
           let a; try { a = JSON.parse((await leer(req)).toString('utf8')); } catch (e) { return json(res, 400, { ok: false, mensaje: 'Pedido inválido' }); }
           const r = await acc.ejecutar(a).catch(e => ({ ok: false, mensaje: 'Algo falló: ' + e.message }));
@@ -53,7 +54,7 @@ function iniciar({ puerto = 47800, raiz, configPath, abrirExterno, perfilNavegad
       }
       if (p === '/api/chat' || p === '/api/salud') {
         if (!origenOk(req)) return json(res, 403, { error: 'Origen no permitido' });
-        const base = (config.servidor || '').replace(/\/+$/, '');
+        const base = (config.servidor || SERVIDOR_POR_DEFECTO).replace(/\/+$/, '');
         if (!base) return json(res, 503, { error: 'Falta la dirección del servidor de IA: abrí Ajustes (el engranaje) y pegá la dirección de tu asistente en Vercel.' });
         const body = req.method === 'POST' ? await leer(req) : undefined;
         let r;

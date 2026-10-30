@@ -505,11 +505,10 @@
       AG = j; $('#modo').textContent = 'Windows · ' + (j.equipo || 'PC'); $('#modo').classList.add('pc');
       $('#ayudaPC').classList.remove('off');
       if (j.servidor != null) { cfg.servidor = j.servidor; }
-      $('#hServidor').textContent = 'La dirección de tu asistente publicado en Vercel (por ejemplo https://gonza-asistente.vercel.app). El programa la guarda.';
+      $('#hServidor').textContent = 'Por defecto usa el Taller (corte-editor-nine.vercel.app). Cambiala solo si publicaste el asistente en otro lado.';
       // eventos del programa (atajo de teclado global)
       const es = new EventSource('agente/eventos');
       es.onmessage = ev => { let d = {}; try { d = JSON.parse(ev.data); } catch (e) { } if (d.tipo === 'escuchar') { window.focus(); escucharUnaVez(); } if (d.tipo === 'decir' && d.texto) { logMsg('j', d.texto); decir(d.texto); } };
-      if (!j.servidor) setTimeout(() => { aviso('Falta la dirección del servidor de IA: abrí Ajustes (⚙) y pegala.', 9000); }, 1500);
     } catch (e) { }
     if (!AG) $('#ayudaPC').classList.add('off');
   }

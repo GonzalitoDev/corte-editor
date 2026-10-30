@@ -1,3 +1,43 @@
 {
-  "trailingSlash": true
+  "redirects": [
+    {
+      "source": "/:dir(corte|lienzo|trazo|folio|onda|gonzacraft|gonzasky|arena|asistente|jarvis)",
+      "destination": "/:dir/",
+      "permanent": true
+    },
+    {
+      "source": "/:sub(gonzacraft/jugar|gonzasky/volar|arena/jugar|jarvis/app)",
+      "destination": "/:sub/",
+      "permanent": true
+    }
+  ],
+  "functions": {
+    "api/chat.mjs": {
+      "maxDuration": 30
+    }
+  },
+  "headers": [
+    {
+      "source": "/asistente/widget.js",
+      "headers": [
+        {
+          "key": "Access-Control-Allow-Origin",
+          "value": "*"
+        },
+        {
+          "key": "Cache-Control",
+          "value": "public, max-age=300, stale-while-revalidate=86400"
+        }
+      ]
+    },
+    {
+      "source": "/jarvis/app/sw.js",
+      "headers": [
+        {
+          "key": "Cache-Control",
+          "value": "no-cache"
+        }
+      ]
+    }
+  ]
 }

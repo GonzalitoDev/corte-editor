@@ -16,8 +16,8 @@ Jarvis is a voice assistant. It lives in the system tray, controls your PC and a
 
 `main.js` (Electron) creates the tray icon and the hotkey. It also starts `agente.js`, a server that only listens on `127.0.0.1:47800`. That server does three things:
 
-- Serves the interface, which is a copy of `asistente/jarvis`.
-- Forwards questions to `https://YOUR-ASSISTANT.vercel.app/api/chat`. Set that address in Ajustes and the program saves it.
+- Serves the interface, which is a copy of `jarvis/app`.
+- Forwards questions to the Taller's AI (`https://corte-editor-nine.vercel.app/api/chat`). You can change that address in Ajustes, and the program saves it.
 - Runs the PC actions in `acciones.js`. It only accepts requests from its own page.
 
 ## Build the installer

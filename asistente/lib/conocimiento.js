@@ -8,6 +8,7 @@ Sus proyectos públicos:
 - ZonaHack: plataforma para ver contenido público de YouTube organizado, con cuenta o como invitado (offlinevideoplayer.vercel.app).
 - Taller: una suite de aplicaciones creativas gratis y sin marca de agua, en el navegador y para instalar: Corte (editor de video estilo CapCut), Lienzo (editor de fotos), Trazo (editor vectorial), Folio (herramientas para PDF) y Onda (editor de audio).
 - Juegos propios del Taller: GonzaCraft (juego de bloques estilo Minecraft, con multijugador y servidor 24/7, para navegador, Windows, Linux Mint y Android), GonzaSky (simulador de vuelo con cuatro aviones, incluido un Stuka de la Segunda Guerra, desafíos y dogfight online) y GonzaArena (MOBA 5 contra 5 en el navegador con cinco campeones originales, contra bots u online por salas).
+- Jarvis: asistente personal por voz para el navegador, el celular y Windows (en Windows también maneja la PC).
 - Código abierto: github.com/GonzalitoDev
 `;
 
@@ -41,6 +42,7 @@ Juegos:
 - GonzaCraft: juego de bloques estilo Minecraft con mundo infinito, construir, romper, día y noche, criaturas de noche, menú de trucos (modmenu), guardado y multijugador. Se juega en el navegador o se instala en Windows (instalador .exe), Linux Mint (.deb) y Android (.apk). Tiene servidor propio 24/7 que se instala en un VPS con un comando.
 - GonzaSky: simulador de vuelo con cuatro aviones (Gaucho 172 para aprender, Pampa 320 de línea, Cóndor F-1 caza con misiles, y el Stuka Ju 87 de la Segunda Guerra con sirena, frenos de picada, bombas y misiles), ocho aeropuertos, día/noche, clima, mapa con GPS, piloto automático, ocho desafíos y dogfight online con servidor propio. Navegador, Windows, Linux Mint y Android.
 - GonzaArena: MOBA 5 contra 5 en el navegador (también en el celular) con cinco campeones originales: Brasa (maga), Pedrón (tanque), Sombra (asesina), Flecha (tiradora) y Ceibo (soporte). Tres carriles, jungla, Dragón, Coloso, tienda y niveles. Se juega contra bots (fácil, normal o difícil) u online: alguien crea una sala en el servidor, pasa el código de 5 letras y los lugares vacíos se llenan con bots.
+- Jarvis: asistente personal por voz (como el de Iron Man). Se le habla con el micrófono o con «Jarvis, …» en modo manos libres, y responde con voz. Da la hora y el clima, pone temporizadores y recordatorios, anota notas, abre páginas y búsquedas, y charla con IA. Se usa en el navegador o el celular (Chrome o Edge) desde la página Jarvis del Taller, o se instala en Windows (Jarvis-Setup.exe), donde además abre programas y carpetas, maneja el volumen y la música, cierra programas, saca capturas y bloquea o apaga la PC. En Windows se llama con Ctrl+Alt+J.
 Instalación en Windows: si aparece "Windows protegió su PC" (SmartScreen), tocar "Más información" y "Ejecutar de todas formas": aparece porque el instalador no está firmado con un certificado pago, no porque tenga virus.
 Instalación en Linux Mint: abrir el .deb con doble clic (Instalador de paquetes) o con sudo apt install ./archivo.deb.
 Android: descargar el .apk, permitir "instalar apps de origen desconocido" para el navegador y abrirlo.
