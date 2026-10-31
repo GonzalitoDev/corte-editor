@@ -80,7 +80,9 @@ jobs:
           cd out
           VER="1.0.${{ github.run_number }}"
           sha() { if [ -f "$1" ]; then sha256sum "$1" | cut -d' ' -f1; else echo ""; fi; }
-          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "${NOTAS:-Nueva versión de GonzaCraft.}" \
+          NOTAS_LIMPIA="$(printf '%s' "${NOTAS:-Nueva versión de GonzaCraft.}" | awk 'BEGIN{RS="\n\n"} NR==1{print; exit}' | grep -v -E '^(Co-Authored-By|Claude-Session):' || true)"
+          [ -z "$NOTAS_LIMPIA" ] && NOTAS_LIMPIA="Nueva versión de GonzaCraft."
+          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "$NOTAS_LIMPIA" \
             --arg ds "$(sha GonzaCraft.deb)" --arg as "$(sha GonzaCraft.AppImage)" \
             '{producto:"GonzaCraft",version:$v,fecha:$f,notas:$n,deb:"GonzaCraft.deb",appimage:"GonzaCraft.AppImage",exe:"GonzaCraft-Setup.exe",sha256:{deb:$ds,appimage:$as}}' > latest.json
           cat latest.json

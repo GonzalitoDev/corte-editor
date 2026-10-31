@@ -80,7 +80,9 @@ jobs:
           cd out
           VER="1.0.${{ github.run_number }}"
           sha() { if [ -f "$1" ]; then sha256sum "$1" | cut -d' ' -f1; else echo ""; fi; }
-          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "${NOTAS:-Nueva versión de GonzaSky.}" \
+          NOTAS_LIMPIA="$(printf '%s' "${NOTAS:-Nueva versión de GonzaSky.}" | awk 'BEGIN{RS="\n\n"} NR==1{print; exit}' | grep -v -E '^(Co-Authored-By|Claude-Session):' || true)"
+          [ -z "$NOTAS_LIMPIA" ] && NOTAS_LIMPIA="Nueva versión de GonzaSky."
+          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "$NOTAS_LIMPIA" \
             --arg ds "$(sha GonzaSky.deb)" --arg as "$(sha GonzaSky.AppImage)" \
             '{producto:"GonzaSky",version:$v,fecha:$f,notas:$n,deb:"GonzaSky.deb",appimage:"GonzaSky.AppImage",exe:"GonzaSky-Setup.exe",sha256:{deb:$ds,appimage:$as}}' > latest.json
           cat latest.json
