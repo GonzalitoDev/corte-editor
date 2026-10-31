@@ -116,7 +116,7 @@
 
   /* ───────── estado ───────── */
   const G = { state: 'boot', world: null, meta: null, remote: false, time: .1, ui: null, target: null, breakT: 0, breakKey: '', lastAct: 0, mouse: [false, false, false], saveT: 0, fpsN: 0, fpsT: 0, fps: 0, menuYaw: 0, lockWanted: false };
-  const P = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, onGround: false, flying: false, inWater: false, headWater: false, sprint: false, crouch: false, health: 20, air: 10, mode: 'survival', inv: new Array(36).fill(null), sel: 0, fallStart: null, lastHurt: 0, regenT: 0, spawn: [0, 80, 0], step: 0 };
+  const P = { pos: new THREE.Vector3(), vel: new THREE.Vector3(), yaw: 0, pitch: 0, onGround: false, flying: false, inWater: false, headWater: false, sprint: false, crouch: false, health: 20, air: 10, food: 20, foodT: 0, starveT: 0, eatT: 0, mode: 'survival', inv: new Array(36).fill(null), sel: 0, fallStart: null, lastHurt: 0, regenT: 0, spawn: [0, 80, 0], step: 0 };
   const K = {};
   const W_ = .3, EYE = 1.62;
   const playing = () => G.state === 'play';
@@ -163,31 +163,87 @@
   /* ───────── hotbar e inventario ───────── */
   const heartImg = (() => { const mk = f => { const c = document.createElement('canvas'); c.width = c.height = 9; const g = c.getContext('2d'); const px = [[0, 1, 1, 0, 0, 0, 1, 1, 0], [1, 2, 2, 1, 0, 1, 2, 2, 1], [1, 2, 2, 2, 1, 2, 2, 2, 1], [1, 2, 2, 2, 2, 2, 2, 2, 1], [0, 1, 2, 2, 2, 2, 2, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 0, 0, 1, 2, 1, 0, 0, 0], [0, 0, 0, 0, 1, 0, 0, 0, 0]]; px.forEach((r, y) => r.forEach((v, x) => { if (!v) return; g.fillStyle = v === 1 ? '#1a0000' : (f === 2 || (f === 1 && x < 5)) ? '#e3262a' : '#3a2020'; g.fillRect(x, y, 1, 1); })); return c.toDataURL(); }; return [mk(0), mk(1), mk(2)]; })();
   const bubbleImg = (() => { const c = document.createElement('canvas'); c.width = c.height = 9; const g = c.getContext('2d'); g.fillStyle = '#9cd2ff'; g.beginPath(); g.arc(4.5, 4.5, 3.5, 0, 7); g.fill(); g.fillStyle = '#fff'; g.fillRect(3, 2, 2, 2); return c.toDataURL(); })();
-  const slotHtml = (it, on) => `<div class="slot${on ? ' on' : ''}">${it ? `<img src="${icon(it.id)}" alt="${B[it.id].n}">${P.mode === 'survival' && it.n > 1 ? `<b>${it.n}</b>` : ''}` : ''}</div>`;
+  const hungerImg = (() => {
+    const grid = [[0, 0, 0, 0, 0, 0, 1, 1, 0], [0, 0, 0, 0, 0, 1, 2, 2, 1], [0, 0, 0, 0, 1, 2, 2, 2, 1], [0, 0, 0, 1, 2, 2, 2, 1, 0], [0, 0, 1, 2, 2, 2, 1, 0, 0], [0, 1, 2, 2, 2, 1, 0, 0, 0], [1, 3, 2, 2, 1, 0, 0, 0, 0], [1, 3, 3, 1, 0, 0, 0, 0, 0], [0, 1, 1, 0, 0, 0, 0, 0, 0]];
+    const mk = f => { const c = document.createElement('canvas'); c.width = c.height = 9; const g = c.getContext('2d'); grid.forEach((r, y) => r.forEach((v, x) => { if (!v) return; g.fillStyle = v === 1 ? '#2a1200' : v === 3 ? '#efe9d8' : (f === 2 || (f === 1 && x < 5)) ? '#b9702f' : '#3a2a1e'; g.fillRect(x, y, 1, 1); })); return c.toDataURL(); };
+    return [mk(0), mk(1), mk(2)];
+  })();
+  /* ───────── items: herramientas, comida y materiales (ids 100+) ───────── */
+  const IMK = draw => { const c = document.createElement('canvas'); c.width = c.height = 48; const g = c.getContext('2d'); g.imageSmoothingEnabled = false; const px = (x, y, col, w = 1, h = 1) => { g.fillStyle = col; g.fillRect(x * 3, y * 3, w * 3, h * 3); }; draw(px, g); return c.toDataURL(); };
+  const MATCOL = { wood: ['#a9743a', '#7c5529'], stone: ['#9a9a9e', '#6f6f73'], iron: ['#e2e6ec', '#a7adb8'] };
+  function toolIcon(kind, mat) {
+    const [a, b] = MATCOL[mat];
+    return IMK(px => {
+      for (let i = 0; i < 9; i++) { px(6 + ((i * .45) | 0), 13 - i, '#9a6a33'); px(7 + ((i * .45) | 0), 13 - i, '#6f4620'); }
+      if (kind === 'pico') { for (let x = 3; x < 13; x++) px(x, 3, a); px(3, 4, b); px(12, 4, b); px(2, 3, b); px(13, 3, b); }
+      else if (kind === 'hacha') { for (let y = 2; y < 7; y++) for (let x = 9; x < 13; x++) px(x, y, a); px(12, 2, b); px(12, 6, b); px(9, 4, b); }
+      else { for (let i = 0; i < 7; i++) { px(11 - i, 3 + i, a); px(12 - i, 3 + i, b); } px(5, 9, '#caa24a'); px(6, 8, '#caa24a'); px(4, 10, '#caa24a'); }
+    });
+  }
+  function foodIcon(kind, cooked) {
+    return IMK(px => {
+      if (kind === 'carne') { const m = cooked ? '#8a4a28' : '#d06a72', e = cooked ? '#5e2f18' : '#a84a54'; for (let y = 5; y < 12; y++) for (let x = 4; x < 12; x++) { const d = Math.hypot(x - 7.5, y - 8.5); if (d < 4) px(x, y, d > 3 ? e : m); } px(10, 6, '#f0ead8'); px(11, 5, '#f0ead8'); }
+      else { const m = cooked ? '#b9702f' : '#e8c9a0', e = cooked ? '#8a4e1e' : '#caa470'; for (let y = 3; y < 11; y++) for (let x = 5; x < 11; x++) { const d = Math.hypot(x - 7.5, y - 6.5); if (d < 3.3) px(x, y, d > 2.4 ? e : m); } for (let y = 10; y < 15; y++) { px(7, y, '#f0ead8'); px(8, y, '#e4dcc8'); } }
+    });
+  }
+  const IT = {
+    100: { n: 'Palo', img: IMK(px => { for (let y = 3; y < 14; y++) { px(7, y, '#9a6a33'); px(8, y, '#6f4620'); } }) },
+    101: { n: 'Lingote de hierro', img: IMK(px => { for (let y = 6; y < 11; y++) { const w = 10 - (y - 6), x = (16 - w) >> 1; for (let x2 = x; x2 < x + w; x2++) px(x2, y, y < 8 ? '#e5e9f0' : '#b9bfca'); px(x, y, '#9aa0ab'); } }) },
+    102: { n: 'Lingote de oro', img: IMK(px => { for (let y = 6; y < 11; y++) { const w = 10 - (y - 6), x = (16 - w) >> 1; for (let x2 = x; x2 < x + w; x2++) px(x2, y, y < 8 ? '#ffe07a' : '#e0a81e'); } }) },
+  };
+  const TOOLS = [[110, 'Pico de madera', 'pico', 'wood'], [111, 'Pico de piedra', 'pico', 'stone'], [112, 'Pico de hierro', 'pico', 'iron'], [113, 'Hacha de madera', 'hacha', 'wood'], [114, 'Hacha de piedra', 'hacha', 'stone'], [115, 'Hacha de hierro', 'hacha', 'iron'], [116, 'Espada de madera', 'espada', 'wood'], [117, 'Espada de piedra', 'espada', 'stone'], [118, 'Espada de hierro', 'espada', 'iron']];
+  const DUR = { wood: 60, stone: 132, iron: 250 }, SPD = { wood: 2, stone: 4, iron: 6 }, SWDMG = { wood: 5, stone: 6, iron: 8 }, AXDMG = { wood: 4, stone: 5, iron: 6 };
+  TOOLS.forEach(([id, n, kind, mat]) => IT[id] = { n, img: toolIcon(kind, mat), tool: kind, mat, dur: DUR[mat] });
+  const FOODS = [[120, 'Carne cruda', 'carne', false, 3], [121, 'Carne asada', 'carne', true, 8], [122, 'Pollo crudo', 'pollo', false, 2], [123, 'Pollo asado', 'pollo', true, 6]];
+  FOODS.forEach(([id, n, kind, cooked, heal]) => IT[id] = { n, img: foodIcon(kind, cooked), food: heal });
+  const DEF = id => id < 100 ? B[id] : IT[id];
+  const NAME = id => { const d = DEF(id); return d ? d.n : '?'; };
+  const ICON = id => id < 100 ? icon(id) : (IT[id] ? IT[id].img : '');
+  const isTool = id => id >= 100 && IT[id] && !!IT[id].tool;
+  const isFood = id => id >= 100 && IT[id] && IT[id].food != null;
+  const stackMax = id => isTool(id) ? 1 : 64;
+
+  const slotHtml = (it, on) => `<div class="slot${on ? ' on' : ''}">${it ? `<img src="${ICON(it.id)}" alt="${NAME(it.id)}">${P.mode === 'survival' && it.n > 1 && stackMax(it.id) > 1 ? `<b>${it.n}</b>` : ''}${isTool(it.id) && it.dur != null ? `<i class="dur" style="--d:${Math.max(0, it.dur) / IT[it.id].dur}"></i>` : ''}` : ''}</div>`;
   let lastHud = '';
   function renderHud() {
-    const s = P.inv.slice(0, 9).map(i => i ? i.id + ':' + i.n : '-').join() + P.sel + P.mode + Math.ceil(P.health) + (P.headWater ? Math.ceil(P.air) : 'x');
+    const s = P.inv.slice(0, 9).map(i => i ? i.id + ':' + i.n + ':' + (i.dur || '') : '-').join() + P.sel + P.mode + Math.ceil(P.health) + Math.ceil(P.food) + (P.headWater ? Math.ceil(P.air) : 'x');
     if (s === lastHud) return; lastHud = s;
     $('#hotbar').innerHTML = P.inv.slice(0, 9).map((it, i) => slotHtml(it, i === P.sel)).join('');
     const surv = P.mode === 'survival';
     $('#hearts').innerHTML = surv ? Array.from({ length: 10 }, (_, i) => `<img class="ht" src="${heartImg[P.health >= (i + 1) * 2 ? 2 : P.health >= i * 2 + 1 ? 1 : 0]}" alt="">`).join('') : '';
+    $('#hunger').innerHTML = surv ? Array.from({ length: 10 }, (_, i) => `<img class="ht" src="${hungerImg[P.food >= (i + 1) * 2 ? 2 : P.food >= i * 2 + 1 ? 1 : 0]}" alt="">`).join('') : '';
     $('#air').innerHTML = surv && P.headWater ? Array.from({ length: Math.ceil(P.air) }, () => `<img class="ht" src="${bubbleImg}" alt="">`).join('') : '';
   }
   let nameT;
-  function selectSlot(i) { P.sel = (i + 9) % 9; renderHud(); const it = P.inv[P.sel], n = $('#slotName'); n.textContent = it ? B[it.id].n : ''; n.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => n.classList.remove('on'), 1400); }
+  function selectSlot(i) { P.sel = (i + 9) % 9; renderHud(); const it = P.inv[P.sel], n = $('#slotName'); n.textContent = it ? NAME(it.id) : ''; n.classList.add('on'); clearTimeout(nameT); nameT = setTimeout(() => n.classList.remove('on'), 1400); }
   function addItem(id, n = 1) {
     if (P.mode === 'creative' || !id) return true;
+    if (stackMax(id) === 1) { for (let i = 0; i < 36 && n > 0; i++) if (!P.inv[i]) { P.inv[i] = { id, n: 1, dur: IT[id].dur }; n--; } renderHud(); if (G.ui === 'sInv') renderInv(); return n === 0; }
     for (const it of P.inv) if (it && it.id === id && it.n < 64) { const k = Math.min(n, 64 - it.n); it.n += k; n -= k; if (!n) break; }
     for (let i = 0; i < 36 && n > 0; i++) if (!P.inv[i]) { const k = Math.min(n, 64); P.inv[i] = { id, n: k }; n -= k; }
     renderHud(); if (G.ui === 'sInv') renderInv(); return n === 0;
   }
   const count = id => P.inv.reduce((s, it) => s + (it && it.id === id ? it.n : 0), 0);
   function take(id, n) { for (let i = 35; i >= 0 && n > 0; i--) { const it = P.inv[i]; if (it && it.id === id) { const k = Math.min(n, it.n); it.n -= k; n -= k; if (!it.n) P.inv[i] = null; } } }
+  // recetas a mano (siempre disponibles)
   const RECIPES = [
-    { in: [[7, 1]], out: [9, 4] }, { in: [[22, 1]], out: [9, 4] }, { in: [[5, 2]], out: [10, 1] }, { in: [[5, 4]], out: [21, 1] },
-    { in: [[4, 4]], out: [20, 2] }, { in: [[15, 1], [10, 1]], out: [24, 1] }, { in: [[9, 3]], out: [37, 1] }, { in: [[4, 3], [8, 1]], out: [39, 3] },
-    { in: [[8, 4]], out: [28, 1] }, { in: [[28, 1], [25, 1]], out: [29, 1] }, { in: [[28, 1], [26, 1]], out: [31, 1] },
+    { in: [[7, 1]], out: [9, 4] }, { in: [[22, 1]], out: [9, 4] }, { in: [[9, 2]], out: [100, 4] }, { in: [[9, 4]], out: [40, 1] },
+    { in: [[100, 1], [15, 1]], out: [43, 4] }, { in: [[5, 2]], out: [10, 1] }, { in: [[5, 4]], out: [21, 1] },
+    { in: [[4, 4]], out: [20, 2] }, { in: [[15, 1], [10, 1]], out: [24, 1] }, { in: [[8, 4]], out: [28, 1] },
+    { in: [[28, 1], [25, 1]], out: [29, 1] }, { in: [[28, 1], [26, 1]], out: [31, 1] },
   ];
+  // recetas que necesitan una mesa de trabajo cerca
+  const RECIPES_ADV = [
+    { in: [[4, 8]], out: [41, 1] }, { in: [[9, 8]], out: [42, 1] }, { in: [[9, 3]], out: [37, 1] }, { in: [[4, 3], [8, 1]], out: [39, 3] },
+    { in: [[9, 3], [100, 2]], out: [110, 1] }, { in: [[4, 3], [100, 2]], out: [111, 1] }, { in: [[101, 3], [100, 2]], out: [112, 1] },
+    { in: [[9, 3], [100, 2]], out: [113, 1] }, { in: [[4, 3], [100, 2]], out: [114, 1] }, { in: [[101, 3], [100, 2]], out: [115, 1] },
+    { in: [[9, 2], [100, 1]], out: [116, 1] }, { in: [[4, 2], [100, 1]], out: [117, 1] }, { in: [[101, 2], [100, 1]], out: [118, 1] },
+  ];
+  // fundición en el horno: material -> resultado (gasta 1 combustible)
+  const SMELT = [[120, 121], [122, 123], [5, 10], [4, 3], [16, 101], [17, 102]];
+  const FUEL = [15, 9, 7, 22, 100];
+  let curRecipes = [];
+  function nearStation(id) { const px = Math.floor(P.pos.x), py = Math.floor(P.pos.y), pz = Math.floor(P.pos.z); for (let dy = -2; dy <= 2; dy++) for (let dz = -4; dz <= 4; dz++) for (let dx = -4; dx <= 4; dx++) if (G.world && G.world.get(px + dx, py + dy, pz + dz) === id) return true; return false; }
   let carry = null;
   function renderInv() {
     const cre = P.mode === 'creative';
@@ -195,15 +251,20 @@
     $('#invGrid').innerHTML = cre ? PALETTE.map(id => slotHtml({ id, n: 1 }, false)).join('') : P.inv.slice(9).map(it => slotHtml(it, false)).join('');
     $('#invBar').innerHTML = P.inv.slice(0, 9).map((it, i) => slotHtml(it, cre && i === P.sel)).join('');
     $('#craft').hidden = cre;
-    if (!cre) $('#recipes').innerHTML = RECIPES.map((r, i) => `<button class="rec" data-rec="${i}" ${r.in.every(([id, n]) => count(id) >= n) ? '' : 'disabled'} title="${r.in.map(([id, n]) => n + ' ' + B[id].n).join(' + ')} → ${r.out[1]} ${B[r.out[0]].n}">${r.in.map(([id, n]) => `${n}<img src="${icon(id)}" alt="${B[id].n}">`).join('+')} → ${r.out[1]}<img src="${icon(r.out[0])}" alt="${B[r.out[0]].n}"></button>`).join('');
-    $('#invHelp').textContent = cre ? 'Tocá un bloque para ponerlo en el casillero elegido de la barra rápida. Tocá un casillero de la barra para elegirlo.' : 'Tocá un casillero para agarrar ese bloque y otro para dejarlo. Con lo que juntás podés fabricar bloques nuevos.';
-    const c = $('#carry'); c.hidden = !carry; if (carry) c.src = icon(carry.id);
+    if (!cre) {
+      const mesa = nearStation(40);
+      curRecipes = RECIPES.concat(mesa ? RECIPES_ADV : []);
+      $('#recipes').innerHTML = curRecipes.map((r, i) => `<button class="rec" data-rec="${i}" ${r.in.every(([id, n]) => count(id) >= n) ? '' : 'disabled'} title="${r.in.map(([id, n]) => n + ' ' + NAME(id)).join(' + ')} → ${r.out[1]} ${NAME(r.out[0])}">${r.in.map(([id, n]) => `${n}<img src="${ICON(id)}" alt="${NAME(id)}">`).join('+')} → ${r.out[1]}<img src="${ICON(r.out[0])}" alt="${NAME(r.out[0])}"></button>`).join('');
+      $('#craftHint').textContent = mesa ? '' : 'Poné una mesa de trabajo cerca para fabricar herramientas, horno y cofre.';
+    }
+    $('#invHelp').textContent = cre ? 'Tocá un bloque para ponerlo en el casillero elegido de la barra rápida. Tocá un casillero de la barra para elegirlo.' : 'Tocá un casillero para agarrar lo que hay y otro para dejarlo. Con lo que juntás podés fabricar cosas.';
+    const c = $('#carry'); c.hidden = !carry; if (carry) c.src = ICON(carry.id);
   }
   function openInv() { if (!playing()) return; G.ui = 'sInv'; unlock(); $('#sInv').hidden = false; renderInv(); }
   function closeInv() { if (carry) { addItem(carry.id, carry.n); carry = null; } $('#sInv').hidden = true; G.ui = null; renderHud(); lock(); }
   $('#sInv').addEventListener('click', e => {
     const r = e.target.closest('[data-rec]');
-    if (r) { const R = RECIPES[+r.dataset.rec]; if (R.in.every(([id, n]) => count(id) >= n)) { R.in.forEach(([id, n]) => take(id, n)); addItem(R.out[0], R.out[1]); sfx('pop'); renderInv(); } return; }
+    if (r) { const R = curRecipes[+r.dataset.rec]; if (R && R.in.every(([id, n]) => count(id) >= n)) { R.in.forEach(([id, n]) => take(id, n)); addItem(R.out[0], R.out[1]); sfx('pop'); renderInv(); } return; }
     const s = e.target.closest('.slot'); if (!s) { if (e.target === $('#sInv')) closeInv(); return; }
     const inBar = s.parentElement.id === 'invBar', idx = [...s.parentElement.children].indexOf(s);
     if (P.mode === 'creative') {
@@ -216,6 +277,44 @@
     renderInv(); renderHud();
   });
   addEventListener('mousemove', e => { if (carry) { const c = $('#carry'); c.style.left = e.clientX + 'px'; c.style.top = e.clientY + 'px'; } });
+
+  /* ───────── horno (fundir) ───────── */
+  const fuelCount = () => FUEL.reduce((s, f) => s + count(f), 0);
+  function openFurnace() { if (!playing() || G.ui) return; if (G.remote) return toast('El horno anda jugando solo'); G.ui = 'sFurnace'; unlock(); $('#sFurnace').hidden = false; renderFurnace(); }
+  function closeFurnace() { $('#sFurnace').hidden = true; G.ui = null; renderHud(); lock(); }
+  function renderFurnace() {
+    const fuel = fuelCount(); $('#furnFuel').textContent = fuel;
+    const rows = SMELT.filter(([i]) => count(i) > 0);
+    $('#furnList').innerHTML = rows.length ? rows.map(([i, o]) => `<button class="smelt" data-sm="${i}" ${fuel > 0 ? '' : 'disabled'}><img src="${ICON(i)}" alt=""><span>${NAME(i)} (${count(i)})</span><b>→</b><img src="${ICON(o)}" alt=""><span>${NAME(o)}</span></button>`).join('') : '<p class="empty2">No tenés nada para fundir. Traé minerales de hierro u oro, arena, roca o comida cruda.</p>';
+  }
+  $('#sFurnace').addEventListener('click', e => {
+    if (e.target === $('#sFurnace') || e.target.closest('[data-cerrarf]')) return closeFurnace();
+    const b = e.target.closest('[data-sm]'); if (!b) return;
+    const i = +b.dataset.sm, pair = SMELT.find(s => s[0] === i); if (!pair) return;
+    if (count(i) < 1 || fuelCount() < 1) return;
+    const f = FUEL.find(f => count(f) > 0); take(f, 1); take(i, 1); addItem(pair[1], 1); sfx('place', 'stone'); renderFurnace(); renderHud();
+  });
+
+  /* ───────── cofre (guardar) ───────── */
+  function openChest() { if (!playing() || G.ui) return; if (G.remote) return toast('Los cofres andan jugando solo'); if (!G.chest) G.chest = new Array(27).fill(null); G.ui = 'sChest'; unlock(); $('#sChest').hidden = false; renderChest(); }
+  function closeChest() { $('#sChest').hidden = true; G.ui = null; renderHud(); lock(); saveGame(); }
+  const chestSlot = (it, attr) => `<div class="slot" ${attr}>${it ? `<img src="${ICON(it.id)}" alt="${NAME(it.id)}">${it.n > 1 && stackMax(it.id) > 1 ? `<b>${it.n}</b>` : ''}${isTool(it.id) && it.dur != null ? `<i class="dur" style="--d:${Math.max(0, it.dur) / IT[it.id].dur}"></i>` : ''}` : ''}</div>`;
+  function renderChest() {
+    $('#chestGrid').innerHTML = G.chest.map((it, i) => chestSlot(it, `data-ch="${i}"`)).join('');
+    $('#chestInv').innerHTML = P.inv.map((it, i) => chestSlot(it, `data-pi="${i}"`)).join('');
+  }
+  function moveStack(idx, src, dst) {
+    let it = src[idx]; if (!it) return;
+    if (stackMax(it.id) > 1) { for (const s of dst) { if (it.n <= 0) break; if (s && s.id === it.id && s.n < 64) { const k = Math.min(it.n, 64 - s.n); s.n += k; it.n -= k; } } }
+    if (it.n > 0) { const e = dst.indexOf(null); if (e >= 0) { dst[e] = it; src[idx] = null; return; } }
+    if (it.n <= 0) src[idx] = null;
+  }
+  $('#sChest').addEventListener('click', e => {
+    if (e.target === $('#sChest') || e.target.closest('[data-cerrarc]')) return closeChest();
+    const ch = e.target.closest('[data-ch]'), pi = e.target.closest('[data-pi]');
+    if (ch) { moveStack(+ch.dataset.ch, G.chest, P.inv); sfx('pop'); renderChest(); renderHud(); }
+    else if (pi) { moveStack(+pi.dataset.pi, P.inv, G.chest); sfx('pop'); renderChest(); renderHud(); }
+  });
 
   /* ───────── chat ───────── */
   function chat(text, color) { const d = document.createElement('div'); d.textContent = text; if (color) d.style.color = color; $('#chatLog').appendChild(d); while ($('#chatLog').children.length > 12) $('#chatLog').firstChild.remove(); }
@@ -272,6 +371,8 @@
     if (e.code === 'F2') { e.preventDefault(); shot(); return; }
     if (!playing()) { if (e.key === 'Escape' && ['sWorlds', 'sMulti', 'sOptions', 'sNew'].includes(G.ui)) G.ui === 'sOptions' ? act.optBack() : G.ui === 'sNew' ? go.worlds() : go.title(); return; }
     if (G.ui === 'sInv') { if (e.code === 'KeyE' || e.key === 'Escape') { e.preventDefault(); closeInv(); } return; }
+    if (G.ui === 'sFurnace') { if (e.code === 'KeyE' || e.key === 'Escape') { e.preventDefault(); closeFurnace(); } return; }
+    if (G.ui === 'sChest') { if (e.code === 'KeyE' || e.key === 'Escape') { e.preventDefault(); closeChest(); } return; }
     if (G.ui === 'sPause') { if (e.key === 'Escape') { e.preventDefault(); resume(); } return; }
     if (G.ui === 'sOptions') { if (e.key === 'Escape') act.optBack(); return; }
     if (G.ui === 'sMod') { if (e.key === 'Escape' || e.code === 'KeyM') { e.preventDefault(); closeMod(); } return; }
@@ -345,7 +446,13 @@
     if (P.mode === 'survival') {
       if (P.headWater) { P.air -= dt; if (P.air <= 0) { P.air = 1; hurt(2, 'Te quedaste sin aire.'); } } else P.air = Math.min(10, P.air + dt * 4);
       if (w.get(Math.floor(p.x), Math.floor(p.y + .5), Math.floor(p.z)) === 14 || [[.35, 0], [-.35, 0], [0, .35], [0, -.35]].some(([a, b]) => w.get(Math.floor(p.x + a), Math.floor(p.y + .5), Math.floor(p.z + b)) === 14)) if (now - P.lastHurt > 700) hurt(1, 'Abrazaste un cactus.');
-      if (P.health < 20 && now - P.lastHurt > 4000) { P.regenT += dt; if (P.regenT > 2.5) { P.regenT = 0; P.health = Math.min(20, P.health + 1); } }
+      // hambre: baja con la actividad; si está llena te curás, si llega a cero te debilitás
+      const moving = Math.hypot(P.vel.x, P.vel.z) > 1;
+      P.foodT += dt * (P.sprint ? .85 : moving ? .32 : .11);
+      if (P.foodT >= 1) { P.foodT = 0; P.food = Math.max(0, P.food - 1); lastHud = ''; }
+      if (P.food >= 18 && P.health < 20 && now - P.lastHurt > 3000) { P.regenT += dt; if (P.regenT > 2.5) { P.regenT = 0; P.health = Math.min(20, P.health + 1); P.food = Math.max(0, P.food - 1); } }
+      else if (P.food <= 0 && P.health > 4) { P.starveT += dt; if (P.starveT > 4) { P.starveT = 0; hurt(1, 'Te moriste de hambre.'); } }
+      else P.regenT = 0;
     }
     renderHud();
   }
@@ -358,7 +465,7 @@
     renderHud();
     if (P.health <= 0) { P.health = 0; unlock(); G.state = 'dead'; $('#deadWhy').textContent = why || ''; show('sDead'); $('#hud').hidden = false; }
   }
-  function respawn() { P.health = 20; P.air = 10; P.pos.set(...P.spawn); P.vel.set(0, 0, 0); P.fallStart = null; G.state = 'play'; hideScreens(); lock(); renderHud(); }
+  function respawn() { P.health = 20; P.air = 10; P.food = 20; P.foodT = 0; P.pos.set(...P.spawn); P.vel.set(0, 0, 0); P.fallStart = null; G.state = 'play'; hideScreens(); lock(); renderHud(); }
 
   /* ───────── romper y poner ───────── */
   const eyePos = () => new THREE.Vector3(P.pos.x, P.pos.y + (P.crouch ? EYE - .25 : EYE), P.pos.z);
@@ -367,19 +474,30 @@
     const t = G.target; if (!t) return; const d = B[t.id]; if (d.h === Infinity && P.mode !== 'creative') return;
     if (t.id === 19 && P.mode !== 'creative') return;
     G.world.set(t.x, t.y, t.z, 0); sfx('break', d.mat); burst(t.x, t.y, t.z, t.id);
-    if (P.mode === 'survival') { if (!addItem(d.drop)) toast('Tu inventario está lleno'); }
+    if (P.mode === 'survival') { if (!addItem(d.drop)) toast('Tu inventario está lleno'); useTool(P.inv[P.sel]); }
     const up = G.world.get(t.x, t.y + 1, t.z); if (KIND[up] === 2) { G.world.set(t.x, t.y + 1, t.z, 0); if (P.mode === 'survival') addItem(up); }
     G.target = null;
   }
+  function useTool(slot) { if (!slot || !isTool(slot.id) || slot.dur == null) return; slot.dur--; if (slot.dur <= 0) { P.inv[P.sel] = null; sfx('break', 'stone'); toast('Se rompió tu ' + NAME(slot.id).toLowerCase()); } renderHud(); }
+  function eat(it) {
+    if (P.mode !== 'survival') return;
+    if (P.food >= 20) { toast('Ya estás lleno'); return; }
+    const now = performance.now(); if (now - (P.eatT || 0) < 700) return; P.eatT = now;
+    P.food = Math.min(20, P.food + IT[it.id].food); it.n--; if (!it.n) P.inv[P.sel] = null;
+    sfx('pop'); renderHud();
+  }
   function place() {
-    const t = G.target, it = P.inv[P.sel]; if (!t || !it) return;
+    const t = G.target, it = P.inv[P.sel];
+    if (t && !P.crouch && (t.id === 40 || t.id === 41 || t.id === 42)) { if (t.id === 40) openInv(); else if (t.id === 41) openFurnace(); else openChest(); return; }
+    if (it && isFood(it.id)) { eat(it); return; }
+    if (!t || !it || it.id >= 100) return;
     let x = t.x + t.n[0], y = t.y + t.n[1], z = t.z + t.n[2];
     if (KIND[t.id] === 2) { x = t.x; y = t.y; z = t.z; }
     const cur = G.world.get(x, y, z); if (cur && cur !== 11 && KIND[cur] !== 2) return;
     if (y < 0 || y >= CH) return;
     const id = it.id;
     if (SOL[id]) { const h = P.crouch ? 1.5 : 1.8, p = P.pos; if (x + 1 > p.x - W_ && x < p.x + W_ && y + 1 > p.y && y < p.y + h && z + 1 > p.z - W_ && z < p.z + W_) return; }
-    if (KIND[id] === 2 && ![1, 2, 12].includes(G.world.get(x, y - 1, z))) return;
+    if (KIND[id] === 2) { const below = G.world.get(x, y - 1, z); if (id === 43) { if (!SOL[below]) return; } else if (![1, 2, 12].includes(below)) return; }
     if (!G.world.set(x, y, z, id)) return;
     sfx('place', B[id].mat);
     if (P.mode === 'survival' && !MOD.infinite) { it.n--; if (!it.n) P.inv[P.sel] = null; renderHud(); }
@@ -402,7 +520,9 @@
       else {
         const k = t.x + ',' + t.y + ',' + t.z; if (k !== G.breakKey) { G.breakKey = k; G.breakT = 0; }
         const hard = B[t.id].h; if (hard === Infinity) return;
-        const need = MOD.instant ? 0 : hard * .7 + .05; G.breakT += dt;
+        const held = P.inv[P.sel]; let mul = 1;
+        if (held && isTool(held.id)) { const ti = IT[held.id], mat = B[t.id].mat, ore = t.id >= 15 && t.id <= 18 || t.id === 36; if (ti.tool === 'pico' && (mat === 'stone' || ore)) mul = SPD[ti.mat]; else if (ti.tool === 'hacha' && mat === 'wood') mul = SPD[ti.mat]; }
+        const need = MOD.instant ? 0 : (hard * .7 + .05) / mul; G.breakT += dt;
         crack.visible = true; crack.position.copy(hl.position); crack.material.opacity = Math.min(.6, G.breakT / need * .6);
         if (Math.random() < dt * 5) sfx('dig', B[t.id].mat);
         if (G.breakT >= need) { breakTarget(); G.breakT = 0; G.breakKey = ''; crack.visible = false; }
@@ -421,9 +541,12 @@
   let atkT = 0;
   function attackMob() {
     const m = G.targetMob; if (!m || performance.now() - atkT < 350) return; atkT = performance.now();
-    const d = lookDir(), l = Math.hypot(d.x, d.z) || 1, dir = [d.x / l, d.z / l], dmg = 4 * MOD.strength;
+    const d = lookDir(), l = Math.hypot(d.x, d.z) || 1, dir = [d.x / l, d.z / l];
+    const held = P.inv[P.sel]; let dmg = 4 * MOD.strength;
+    if (held && isTool(held.id)) { const ti = IT[held.id]; if (ti.tool === 'espada') dmg = SWDMG[ti.mat] * MOD.strength; else if (ti.tool === 'hacha') dmg = AXDMG[ti.mat] * MOD.strength; }
     if (G.remote && !NET.mobAuth) { NET.send({ t: 'hm', id: m.id, d: dmg, dir }); m.flash = .2; sfx('hit'); }
     else G.mobs.hit(m, dmg, dir);
+    if (P.mode === 'survival') useTool(P.inv[P.sel]);
   }
   function explode(x, y, z, r, remote) {
     const w = G.world; if (!w) return;
@@ -540,9 +663,10 @@
       onEdit: (x, y, z, id) => NET.send({ t: 's', x, y, z, b: id }),
     });
     const pl = meta.player;
-    P.mode = meta.mode; P.flying = false; P.health = 20; P.air = 10; P.vel.set(0, 0, 0); P.fallStart = null; P.sel = 0; carry = null;
+    P.mode = meta.mode; P.flying = false; P.health = 20; P.air = 10; P.food = 20; P.foodT = 0; P.starveT = 0; P.vel.set(0, 0, 0); P.fallStart = null; P.sel = 0; carry = null;
+    G.chest = (meta.chest || new Array(27).fill(null)); meta.chest = G.chest;
     P.spawn = meta.spawn || G.world.findSpawn(); meta.spawn = P.spawn;
-    if (pl) { P.pos.set(pl.x, pl.y, pl.z); P.yaw = pl.yaw; P.pitch = pl.pitch; P.health = pl.health ?? 20; P.inv = (pl.inv || []).concat(new Array(36).fill(null)).slice(0, 36); P.sel = pl.sel || 0; P.flying = !!pl.flying && P.mode === 'creative'; }
+    if (pl) { P.pos.set(pl.x, pl.y, pl.z); P.yaw = pl.yaw; P.pitch = pl.pitch; P.health = pl.health ?? 20; P.food = pl.food ?? 20; P.inv = (pl.inv || []).concat(new Array(36).fill(null)).slice(0, 36); P.sel = pl.sel || 0; P.flying = !!pl.flying && P.mode === 'creative'; }
     else { P.pos.set(...(opt.pos || P.spawn)); P.yaw = Math.PI * .75; P.pitch = -.15; P.inv = new Array(36).fill(null); if (P.mode === 'creative') [1, 2, 3, 4, 9, 7, 8, 10, 24].forEach((id, i) => P.inv[i] = { id, n: 64 }); }
     G.needFit = !pl; lastHud = ''; $('#chatLog').innerHTML = ''; G.loadStart = performance.now();
     if (G.mobs) G.mobs.clear();
@@ -555,7 +679,7 @@
     show('sClick'); $('#hud').hidden = false; $('#clickTitle').textContent = G.meta.name; $('#clickMsg').textContent = TOUCH ? 'Tocá la pantalla para jugar' : 'Hacé clic para jugar';
     if (!G.remote) chat('Bienvenido a ' + G.meta.name + '. Escribí /ayuda para ver los comandos.', '#ffe46b');
   }
-  const playerState = () => ({ x: P.pos.x, y: P.pos.y, z: P.pos.z, yaw: P.yaw, pitch: P.pitch, health: P.health, inv: P.inv, sel: P.sel, flying: P.flying });
+  const playerState = () => ({ x: P.pos.x, y: P.pos.y, z: P.pos.z, yaw: P.yaw, pitch: P.pitch, health: P.health, food: P.food, inv: P.inv, sel: P.sel, flying: P.flying });
   async function saveGame() {
     if (G.server && G.world && (G.state === 'play' || G.state === 'dead')) { NET.send({ t: 'save', d: { mode: P.mode, player: playerState() } }); return; }
     if (!G.meta || G.remote || !G.world || G.world === menuWorld) return;
@@ -620,6 +744,8 @@
   /* botón Atrás de Android */
   window.__gcBack = () => {
     if (G.ui === 'sInv') { closeInv(); return true; }
+    if (G.ui === 'sFurnace') { closeFurnace(); return true; }
+    if (G.ui === 'sChest') { closeChest(); return true; }
     if (G.ui === 'sMod') { closeMod(); return true; }
     if (G.ui === 'chat') { closeChat(); return true; }
     if (G.ui === 'sOptions') { act.optBack(); return true; }
@@ -853,7 +979,7 @@
         if (!frozen && G.state === 'play') {
           acc += dt; let n = 0; while (acc >= 1 / 60 && n++ < 6) { step(1 / 60); acc -= 1 / 60; } if (n >= 6) acc = 0;
           if (!MOD.freeze) G.time = (G.time + dt / 720) % 1;
-          if (G.mobs && (!G.remote || NET.mobAuth)) G.mobs.update(dt, { spawn: MOD.mobs, dark: (G.dl ?? 1) < .3, day: (G.dl ?? 1) > .55, peaceful: MOD.peaceful, max: 10 });
+          if (G.mobs && (!G.remote || NET.mobAuth)) G.mobs.update(dt, { spawn: MOD.mobs, dark: (G.dl ?? 1) < .3, day: (G.dl ?? 1) > .55, peaceful: MOD.peaceful, max: 10, animals: true, maxAnimals: 6 });
         }
         if (G.mobs && G.remote && !NET.mobAuth) G.mobs.follow(dt);
         if (G.mobs && NET.peer && (!NET.conn || NET.mobAuth) && now - (NET.mobT || 0) > 125) { NET.mobT = now; NET.send({ t: 'mobs', l: G.mobs.pack() });
@@ -882,9 +1008,9 @@
   }
 
   /* inicio */
-  const SPL = ['¡Gratis para siempre!', '¡Hecho en Argentina!', '¡Mundo infinito!', '¡Con multijugador!', '¡Sin marca de agua!', '¡Ahora con lámparas!', '¡Bloques artesanales!', '¡Cuidado con los cactus!', '¡Ojo con las Sombras!', '¡Apretá M!'];
+  const SPL = ['¡Gratis para siempre!', '¡Hecho en Argentina!', '¡Mundo infinito!', '¡Con multijugador!', '¡Sin marca de agua!', '¡Ahora con herramientas!', '¡Fabricá un horno!', '¡Cuidado con los cactus!', '¡Ojo con las Sombras!', '¡Apretá M!', '¡Ahora con vacas!', '¡Asá tu comida!', '¡Antorchas para la noche!'];
   $('#splash').textContent = SPL[Math.random() * SPL.length | 0];
   startMenuWorld(); G.state = 'title'; go.title();
   requestAnimationFrame(frame);
-  window.__gc = { MOD, openMod, closeMod, explode, attackMob, get mobs() { return G.mobs; }, G, P, S, K, act, go, DB, NET, startWorld, quitWorld, saveGame, step, place, breakTarget, selectSlot, openInv, closeInv, command, hideScreens, camera, renderer, scene, get world() { return G.world; } };
+  window.__gc = { MOD, openMod, closeMod, explode, attackMob, get mobs() { return G.mobs; }, G, P, S, K, act, go, DB, NET, startWorld, quitWorld, saveGame, step, place, breakTarget, selectSlot, openInv, closeInv, openFurnace, openChest, eat, addItem, renderHud, IT, command, hideScreens, camera, renderer, scene, get world() { return G.world; } };
 })();

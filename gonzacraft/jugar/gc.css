@@ -184,3 +184,20 @@ body.touch #modTag{top:auto;bottom:62px}
 .srv .w button{flex:none;min-height:36px;padding:4px 10px;font-size:15px}
 .srv .w button.x{width:36px;padding:0;background:#5a2a2a}
 .field .row input{flex:1}
+
+/* GonzaCraft 2.0 — hambre, durabilidad, horno y cofre */
+#hunger{display:flex;gap:1px}
+.slot .dur{position:absolute;left:4px;right:4px;bottom:3px;height:3px;background:#000;pointer-events:none}
+.slot .dur::after{content:"";position:absolute;left:0;top:0;bottom:0;width:calc(var(--d,1)*100%);background:hsl(calc(var(--d,1)*120),80%,45%)}
+.inv.station{max-width:min(560px,96vw)}
+.stationsub{margin:0 0 10px;color:#4a4a4a;font-size:14px;text-align:left;max-width:470px}
+.smeltlist{display:flex;flex-direction:column;gap:5px;max-width:470px;min-width:300px}
+.smelt{display:flex;align-items:center;gap:8px;background:#8b8b8b;color:#fff;border:2px solid;border-color:#fff #373737 #373737 #fff;padding:6px 10px;min-height:44px;text-align:left}
+.smelt img{width:30px;height:30px;image-rendering:pixelated}
+.smelt span{font-size:14px}.smelt b{color:#ffd75e;font-size:18px;margin:0 2px}
+.smelt:disabled{opacity:.45}
+.smelt span:first-of-type{flex:1}
+.empty2{color:#555;text-align:left;max-width:440px;font-size:14px}
+.grid.chest{margin-bottom:6px}
+.inv.station button.primary{margin-top:10px}
+@media (max-width:620px){.smeltlist{min-width:0}.smelt span{font-size:12px}}

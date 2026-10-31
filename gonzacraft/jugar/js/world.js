@@ -164,9 +164,9 @@
       const i = I(x & 15, y, z & 15), old = c.data[i]; if (old === id) return false;
       c.data[i] = id; c.mod = true; this.toSave.add(c.key); if (this.opt.track) this.savedKeys.add(c.key);
       const lk = x + ',' + y + ',' + z;
-      if (id === 24) this.lamps.set(lk, [x, y, z]); else if (old === 24) this.lamps.delete(lk);
+      if (LIT[id]) this.lamps.set(lk, [x, y, z]); else if (LIT[old]) this.lamps.delete(lk);
       const lx = x & 15, lz = z & 15;
-      if (id === 24 || old === 24) { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) this.dirty(c.cx + dx, c.cz + dz); }
+      if (LIT[id] || LIT[old]) { for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) this.dirty(c.cx + dx, c.cz + dz); }
       else { this.dirty(c.cx, c.cz); if (lx === 0) this.dirty(c.cx - 1, c.cz); if (lx === 15) this.dirty(c.cx + 1, c.cz); if (lz === 0) this.dirty(c.cx, c.cz - 1); if (lz === 15) this.dirty(c.cx, c.cz + 1); if (lx === 0 && lz === 0) this.dirty(c.cx - 1, c.cz - 1); if (lx === 15 && lz === 15) this.dirty(c.cx + 1, c.cz + 1); if (lx === 0 && lz === 15) this.dirty(c.cx - 1, c.cz + 1); if (lx === 15 && lz === 0) this.dirty(c.cx + 1, c.cz - 1); }
       if (this.opt.onEdit && !remote) this.opt.onEdit(x, y, z, id);
       return true;
@@ -176,7 +176,7 @@
     addChunk(cx, cz, data, mod) {
       const c = { cx, cz, key: key(cx, cz), data, mod: !!mod, dirty: true, mesh: null, wmesh: null };
       this.chunks.set(c.key, c);
-      for (let i = 0; i < N; i++) if (data[i] === 24) { const x = i & 15, z = (i >> 4) & 15, y = (i / 256) | 0; this.lamps.set((cx * 16 + x) + ',' + y + ',' + (cz * 16 + z), [cx * 16 + x, y, cz * 16 + z]); }
+      for (let i = 0; i < N; i++) if (LIT[data[i]]) { const x = i & 15, z = (i >> 4) & 15, y = (i / 256) | 0; this.lamps.set((cx * 16 + x) + ',' + y + ',' + (cz * 16 + z), [cx * 16 + x, y, cz * 16 + z]); }
       for (let dz = -1; dz <= 1; dz++) for (let dx = -1; dx <= 1; dx++) if (dx || dz) this.dirty(cx + dx, cz + dz);
       const p = this.pending.get(c.key); if (p) { this.pending.delete(c.key); p.forEach(([x, y, z, id]) => this.set(x, y, z, id, true)); }
       return c;

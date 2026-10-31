@@ -35,7 +35,8 @@
     </div>
   </div>
   <div id="bottom">
-    <div id="stats"><div id="hearts"></div><div id="air"></div></div>
+    <div id="stats"><div id="hearts"></div><div id="hunger"></div></div>
+    <div id="air"></div>
     <div id="slotName"></div>
     <div id="hotbar"></div>
   </div>
@@ -139,7 +140,7 @@
   <div class="inv">
     <h3 id="invTitle">Inventario</h3>
     <div id="invGrid" class="grid"></div>
-    <div id="craft" hidden><h3>Fabricar</h3><div id="recipes"></div></div>
+    <div id="craft" hidden><h3>Fabricar</h3><div id="recipes"></div><p class="help" id="craftHint"></p></div>
     <h3>Barra rápida</h3>
     <div id="invBar" class="grid"></div>
     <p class="help" id="invHelp"></p>
@@ -161,6 +162,26 @@
 <section class="screen dim" id="sClick" hidden>
   <h2 id="clickTitle">¡Listo!</h2>
   <p id="clickMsg">Hacé clic para jugar</p>
+</section>
+
+<section class="screen dim" id="sFurnace" hidden>
+  <div class="inv station">
+    <h3>Horno</h3>
+    <p class="stationsub">Combustible: <b id="furnFuel">0</b> (carbón, tablas, troncos o palos). Cada cosa gasta 1.</p>
+    <div id="furnList" class="smeltlist"></div>
+    <button class="primary" data-cerrarf>Cerrar</button>
+  </div>
+</section>
+
+<section class="screen dim" id="sChest" hidden>
+  <div class="inv station">
+    <h3>Cofre</h3>
+    <div id="chestGrid" class="grid chest"></div>
+    <h3>Tu inventario</h3>
+    <div id="chestInv" class="grid chest"></div>
+    <p class="help">Tocá algo para pasarlo de un lado al otro. El cofre guarda tus cosas aunque salgas del mundo.</p>
+    <button class="primary" data-cerrarc>Cerrar</button>
+  </div>
 </section>
 
 <div id="toast" hidden></div>

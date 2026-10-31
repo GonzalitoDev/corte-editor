@@ -41,9 +41,13 @@
   def(37, 'Estantería', [10, 10, 42], { h: 1.5, mat: 'wood' });
   def(38, 'Calabaza', [44, 44, 43], { h: 1, mat: 'wood' });
   def(39, 'Musgo', 45, { h: 2 });
+  def(40, 'Mesa de trabajo', [46, 10, 47], { h: 2, mat: 'wood' });
+  def(41, 'Horno', [48, 50, 49], { h: 3.5, mat: 'stone' });
+  def(42, 'Cofre', [51, 51, 52], { h: 2.5, mat: 'wood' });
+  def(43, 'Antorcha', 53, { solid: 0, op: 0, kind: 'cross', h: 0, light: 1, mat: 'wood' });
   const NB = B.length;
   /* Lo que aparece en el inventario creativo */
-  const PALETTE = [1, 2, 3, 4, 39, 5, 6, 21, 7, 22, 9, 8, 23, 10, 13, 12, 14, 20, 24, 37, 38, 36, 15, 16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
+  const PALETTE = [1, 2, 3, 4, 39, 5, 6, 21, 7, 22, 9, 8, 23, 10, 13, 12, 14, 20, 24, 40, 41, 42, 43, 37, 38, 36, 15, 16, 17, 18, 19, 25, 26, 27, 28, 29, 30, 31, 32, 33, 34, 35];
 
   /* ── texturas ── */
   const W = TS * COLS, H = TS * ROWS;
@@ -104,6 +108,22 @@
     () => { for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) put(x, y, ...jit(x % 4 === 0 ? [196, 104, 20] : [226, 132, 28], 8)); for (const [x, y] of [[4, 5], [5, 5], [10, 5], [11, 5], [7, 8], [8, 8], [4, 11], [5, 12], [6, 12], [7, 12], [8, 12], [9, 12], [10, 12], [11, 11]]) put(x, y, 60, 30, 8); },
     () => { P.logTop([226, 132, 28], [200, 110, 20], [214, 122, 24]); for (let y = 6; y < 10; y++) for (let x = 6; x < 10; x++) put(x, y, 90, 120, 40); },
     () => { P.cells([110, 110, 110], [70, 70, 70], 7); specks([70, 130, 50], 26, 1); },
+    // 46 mesa (arriba): tablas con cuadrícula de trabajo
+    () => { for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) { const grid = x % 5 === 0 || y % 5 === 0; put(x, y, ...(grid ? jit([110, 84, 50], 5) : jit([166, 132, 80], 9))); } for (const [x, y] of [[3, 3], [11, 3], [3, 11], [11, 11]]) { put(x, y, 70, 48, 24); put(x + 1, y, 70, 48, 24); } },
+    // 47 mesa (costado): tablas con una sierra
+    () => { for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) put(x, y, ...jit(y % 4 === 3 ? [118, 92, 54] : [166, 132, 80], 8)); for (let x = 3; x < 13; x++) put(x, 6, 196, 198, 208); for (let x = 3; x < 13; x++) if (x % 2) put(x, 7, 150, 152, 162); put(3, 6, 120, 80, 40); put(4, 6, 120, 80, 40); },
+    // 48 horno (arriba): piedra con un hueco
+    () => { P.stone(); for (let y = 5; y < 11; y++) for (let x = 5; x < 11; x++) { const d = Math.hypot(x - 7.5, y - 7.5); if (d < 3) put(x, y, ...jit([40, 40, 44], 6)); } },
+    // 49 horno (frente): boca oscura con brasas
+    () => { P.cells([116, 116, 118], [72, 72, 74], 7); for (let y = 7; y < 14; y++) for (let x = 4; x < 12; x++) put(x, y, ...jit([26, 24, 28], 5)); for (let x = 4; x < 12; x++) put(x, 7, 86, 86, 90); for (let x = 5; x < 12; x += 2) { put(x, 11, 240, 120, 30); put(x, 12, 210, 70, 20); } },
+    // 50 horno (abajo/costado): piedra lisa
+    () => P.cells([116, 116, 118], [70, 70, 72], 7),
+    // 51 cofre (arriba): madera con bisagras
+    () => { for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) put(x, y, ...jit([150, 104, 54], 8)); for (let x = 0; x < TS; x++) { put(x, 0, 110, 78, 40); put(x, 15, 110, 78, 40); } for (const x of [4, 11]) for (let y = 1; y < 4; y++) put(x, y, 80, 80, 84); },
+    // 52 cofre (frente): tablas, flejes y candado
+    () => { for (let y = 0; y < TS; y++) for (let x = 0; x < TS; x++) put(x, y, ...jit([156, 110, 58], 8)); for (const y of [1, 7, 14]) for (let x = 0; x < TS; x++) put(x, y, ...jit([92, 66, 34], 5)); for (let y = 6; y < 10; y++) for (let x = 7; x < 9; x++) put(x, y, 214, 196, 120); put(7, 7, 60, 50, 20); put(8, 7, 60, 50, 20); },
+    // 53 antorcha: palo con llama (cruz, fondo transparente)
+    () => P.cross(() => { for (let y = 8; y < 16; y++) { put(7, y, 110, 78, 40); put(8, y, 124, 88, 48); } for (let y = 3; y < 9; y++) for (let x = 5; x < 11; x++) { const d = Math.hypot(x - 7.5, y - 6); if (d < 2.6) put(x, y, ...jit(d < 1.2 ? [255, 236, 150] : [240, 150, 40], 22)); } put(7, 2, 255, 244, 170); put(8, 2, 255, 244, 170); }),
   ];
   T.forEach((fn, i) => { tile = i; fn(); });
 

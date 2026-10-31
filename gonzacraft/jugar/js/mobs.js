@@ -8,8 +8,13 @@
     sombra: { name: 'Sombra', hp: 20, speed: 2.7, dmg: 3, w: .3, h: 1.95, reach: 1.5, burns: true, drop: [35, 1], why: 'Una Sombra te atrapó.' },
     rocoso: { name: 'Rocoso', hp: 40, speed: 1.6, dmg: 5, w: .45, h: 1.45, reach: 1.7, drop: [4, 3], why: 'Un Rocoso te aplastó.' },
     chispa: { name: 'Chispa', hp: 8, speed: 4.4, dmg: 1, w: .26, h: .62, reach: 1.1, hop: true, drop: [24, 1], why: 'Las Chispas te picaron hasta el final.' },
+    // animales pasivos (aparecen de día, sueltan comida)
+    vaca: { name: 'Vaca', hp: 16, speed: 1.4, dmg: 0, w: .45, h: 1.3, reach: 0, passive: true, drop: [120, 2], why: '' },
+    cerdo: { name: 'Cerdo', hp: 12, speed: 1.5, dmg: 0, w: .42, h: .95, reach: 0, passive: true, drop: [120, 1], why: '' },
+    pollo: { name: 'Pollo', hp: 6, speed: 1.6, dmg: 0, w: .26, h: .7, reach: 0, hop: true, passive: true, drop: [122, 1], why: '' },
   };
   const WEIGHTS = [['sombra', .5], ['chispa', .3], ['rocoso', .2]];
+  const ANIMALS = ['vaca', 'cerdo', 'pollo'];
 
   /* ── modelos (cajas) ── */
   function part(g, w, h, d, col, x, y, z, glow) {
@@ -40,12 +45,41 @@
       r.ll = pivot(g, -.22, .45, 0); part(r.ll, .3, .45, .32, 0x58585c, 0, -.22, 0);
       r.rl = pivot(g, .22, .45, 0); part(r.rl, .3, .45, .32, 0x58585c, 0, -.22, 0);
       r.head = head;
-    } else {
+    } else if (type === 'chispa') {
       const body = pivot(g, 0, .3, 0);
       part(body, .5, .46, .5, 0x52f0d0, 0, 0, 0, true); part(body, .34, .3, .34, 0xc8fff2, 0, .02, 0, true);
       part(body, .08, .1, .02, 0x0b2a2a, -.1, .05, -.26, true); part(body, .08, .1, .02, 0x0b2a2a, .1, .05, -.26, true);
       part(body, .1, .1, .1, 0x9ffff0, 0, .32, 0, true);
       r.body = body;
+    } else if (type === 'vaca') {
+      part(g, .52, .5, .92, 0xf3f1ea, 0, .95, 0); part(g, .54, .22, .5, 0x2b2b2b, .04, 1.08, -.1); part(g, .3, .3, .28, 0x2b2b2b, -.1, .9, .3);
+      const head = pivot(g, 0, 1.02, -.52); part(head, .4, .4, .4, 0xf3f1ea, 0, 0, 0); part(head, .28, .2, .12, 0xefb0a8, 0, -.06, -.22);
+      part(head, .07, .13, .07, 0xdcd6c6, -.15, .2, 0); part(head, .07, .13, .07, 0xdcd6c6, .15, .2, 0);
+      part(head, .05, .05, .02, 0x20201e, -.1, -.02, -.21, true); part(head, .05, .05, .02, 0x20201e, .1, -.02, -.21, true);
+      r.la = pivot(g, -.22, .64, -.32); part(r.la, .16, .64, .16, 0x3a352e, 0, -.32, 0);
+      r.ra = pivot(g, .22, .64, -.32); part(r.ra, .16, .64, .16, 0x3a352e, 0, -.32, 0);
+      r.ll = pivot(g, -.22, .64, .32); part(r.ll, .16, .64, .16, 0x3a352e, 0, -.32, 0);
+      r.rl = pivot(g, .22, .64, .32); part(r.rl, .16, .64, .16, 0x3a352e, 0, -.32, 0);
+      r.head = head;
+    } else if (type === 'cerdo') {
+      part(g, .46, .46, .78, 0xe88aa0, 0, .62, 0); part(g, .48, .2, .5, 0xdf7890, 0, .74, .05);
+      const head = pivot(g, 0, .66, -.44); part(head, .36, .34, .3, 0xe88aa0, 0, 0, 0); part(head, .2, .16, .1, 0xd96f88, 0, -.05, -.18);
+      part(head, .05, .05, .03, 0x7a3b4a, -.05, -.03, -.22, true); part(head, .05, .05, .03, 0x7a3b4a, .05, -.03, -.22, true);
+      part(head, .06, .06, .02, 0x20201e, -.11, .08, -.16, true); part(head, .06, .06, .02, 0x20201e, .11, .08, -.16, true);
+      r.la = pivot(g, -.17, .32, -.26); part(r.la, .15, .32, .15, 0xd2647e, 0, -.16, 0);
+      r.ra = pivot(g, .17, .32, -.26); part(r.ra, .15, .32, .15, 0xd2647e, 0, -.16, 0);
+      r.ll = pivot(g, -.17, .32, .26); part(r.ll, .15, .32, .15, 0xd2647e, 0, -.16, 0);
+      r.rl = pivot(g, .17, .32, .26); part(r.rl, .15, .32, .15, 0xd2647e, 0, -.16, 0);
+      r.head = head;
+    } else { // pollo
+      part(g, .3, .36, .36, 0xf6f4ee, 0, .42, .02); part(g, .2, .12, .3, 0xe8e4da, 0, .3, .12);
+      const head = pivot(g, 0, .66, -.12); part(head, .2, .22, .2, 0xf6f4ee, 0, 0, 0);
+      part(head, .1, .07, .02, 0xd83b2a, 0, .16, -.02, false); part(head, .07, .06, .08, 0xf2a000, 0, -.02, -.16);
+      part(head, .05, .05, .02, 0x20201e, -.07, .02, -.1, true); part(head, .05, .05, .02, 0x20201e, .07, .02, -.1, true);
+      part(g, .04, .22, .18, 0xf2e9da, -.17, .42, .02); part(g, .04, .22, .18, 0xf2e9da, .17, .42, .02);
+      r.ll = pivot(g, -.09, .24, .02); part(r.ll, .05, .24, .05, 0xf2a000, 0, -.12, 0);
+      r.rl = pivot(g, .09, .24, .02); part(r.rl, .05, .24, .05, 0xf2a000, 0, -.12, 0);
+      r.head = head;
     }
     g.traverse(o => { if (o.isMesh) o.userData.mob = true; });
     return { g, r };
@@ -53,7 +87,7 @@
 
   /* ── sistema de criaturas ── */
   class Mobs {
-    constructor(scene, deps) { this.scene = scene; this.d = deps; this.list = []; this.n = 0; this.spawnT = 0; this.soundT = 0; }
+    constructor(scene, deps) { this.scene = scene; this.d = deps; this.list = []; this.n = 0; this.spawnT = 0; this.spawnAT = 0; this.soundT = 0; }
     get count() { return this.list.length; }
     spawn(type, x, y, z, id) {
       const T = TYPES[type]; if (!T) return null;
@@ -66,6 +100,7 @@
     /* golpe del jugador */
     hit(m, dmg, dir, by) {
       m.hp -= dmg; m.flash = .25; this.d.sfx('hit');
+      if (m.T.passive) { m.flee = 6; if (dir) { m.fdir = Math.atan2(dir[0], dir[1]); } }
       if (dir) { m.vel.x += dir[0] * 7; m.vel.z += dir[1] * 7; m.vel.y = 4.5; m.onGround = false; }
       if (m.hp <= 0) { this.d.sfx('mobdie', m.type); this.d.onKill && this.d.onKill(m, by); this.remove(m, true); return true; }
       return false;
@@ -110,6 +145,18 @@
       }
       return null;
     }
+    trySpawnAnimal(px, pz) {
+      const w = this.d.world();
+      for (let k = 0; k < 10; k++) {
+        const a = Math.random() * Math.PI * 2, r = 12 + Math.random() * 20;
+        const x = Math.floor(px + Math.cos(a) * r), z = Math.floor(pz + Math.sin(a) * r);
+        if (!w.loaded(x, z)) continue;
+        const y = this.surfaceY(x, z); if (y < 0) continue;
+        const g = w.get(x, y - 1, z); if (g !== 1 && g !== 12) continue;
+        return this.spawn(ANIMALS[Math.random() * ANIMALS.length | 0], x + .5, y, z + .5);
+      }
+      return null;
+    }
     /* simulación (solo en el que juega solo o en el anfitrión) */
     update(dt, o) {
       const w = this.d.world(); if (!w) return;
@@ -117,6 +164,8 @@
       // aparecer de noche
       this.spawnT -= dt;
       if (o.spawn && o.dark && this.spawnT <= 0 && this.list.length < o.max) { this.spawnT = 1.2; this.trySpawn(me.pos.x, me.pos.z); }
+      this.spawnAT -= dt;
+      if (o.animals && !o.dark && this.spawnAT <= 0) { this.spawnAT = 5; const na = this.list.reduce((s, m) => s + (m.T.passive ? 1 : 0), 0); if (na < (o.maxAnimals || 6)) this.trySpawnAnimal(me.pos.x, me.pos.z); }
       this.soundT -= dt;
       for (const m of [...this.list]) {
         const T = m.T, p = m.pos;
@@ -129,11 +178,13 @@
         // de día: las sombras se queman al sol y el resto se va
         if (o.day) {
           if (T.burns) { const top = this.surfaceTop(p.x, p.z); if (p.y + 1 >= top) { m.burnT -= dt; if (m.burnT <= 0) { m.burnT = .5; if (this.hit(m, 2, null, 'sol')) continue; this.d.smoke(p.x, p.y + 1, p.z); } } }
-          else if (near > 20 && Math.random() < dt * .05) { this.remove(m, true); continue; }
+          else if (!T.passive && near > 20 && Math.random() < dt * .05) { this.remove(m, true); continue; }
         }
-        const hunt = !o.peaceful && tgt && td < 32;
+        const hunt = !o.peaceful && tgt && td < 32 && !T.passive;
+        const fleeing = T.passive && m.flee > 0;
         let dx = 0, dz = 0, sp = T.speed;
         if (hunt) { dx = tgt.pos.x - p.x; dz = tgt.pos.z - p.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; if (l < .6) dx = dz = 0; }
+        else if (fleeing) { m.flee -= dt; if (tgt) { dx = p.x - tgt.pos.x; dz = p.z - tgt.pos.z; const l = Math.hypot(dx, dz) || 1; dx /= l; dz /= l; } else if (m.fdir != null) { dx = Math.sin(m.fdir); dz = Math.cos(m.fdir); } sp = T.speed * 1.9; }
         else { m.wander -= dt; if (m.wander <= 0) { m.wander = 2 + Math.random() * 4; m.wdir = Math.random() < .35 ? NaN : Math.random() * Math.PI * 2; } if (!isNaN(m.wdir)) { dx = Math.sin(m.wdir); dz = Math.cos(m.wdir); sp *= .45; } }
         if (dx || dz) m.yaw = Math.atan2(-dx, -dz);
         const water = w.get(Math.floor(p.x), Math.floor(p.y + .4), Math.floor(p.z)) === 11;
