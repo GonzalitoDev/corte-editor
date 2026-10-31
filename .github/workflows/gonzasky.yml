@@ -86,6 +86,21 @@ jobs:
             --arg ds "$(sha GonzaSky.deb)" --arg as "$(sha GonzaSky.AppImage)" \
             '{producto:"GonzaSky",version:$v,fecha:$f,notas:$n,deb:"GonzaSky.deb",appimage:"GonzaSky.AppImage",exe:"GonzaSky-Setup.exe",sha256:{deb:$ds,appimage:$as}}' > latest.json
           cat latest.json
+      - name: Firmar latest.json
+        if: env.SIGN_KEY != ''
+        env:
+          SIGN_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          cd out
+          printf '%s' "$SIGN_KEY" > "$RUNNER_TEMP/sign.pem"
+          openssl pkeyutl -sign -rawin -inkey "$RUNNER_TEMP/sign.pem" -in latest.json | base64 -w0 > latest.json.sig
+          rm -f "$RUNNER_TEMP/sign.pem"
+          echo "firma: $(cat latest.json.sig)"
+      - name: Aviso si falta la clave de firma
+        if: env.SIGN_KEY == ''
+        env:
+          SIGN_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: echo "::warning::Falta el secreto UPDATE_SIGNING_KEY. latest.json quedó sin firmar y el Actualizador lo va a rechazar por seguridad."
       - name: Publicar en el release "gonzasky"
         env:
           GH_TOKEN: ${{ github.token }}

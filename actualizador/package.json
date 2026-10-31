@@ -21,7 +21,7 @@
     "productName": "Actualizador GonzaDev",
     "copyright": "GonzalitoDev",
     "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["main.js", "preload.js", "lib.js", "app/**/*", "build/icon.png"],
+    "files": ["main.js", "preload.js", "lib.js", "clave-publica.pem", "app/**/*", "build/icon.png"],
     "linux": {
       "target": ["deb", "AppImage"],
       "icon": "build/icon.png",

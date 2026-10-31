@@ -5,7 +5,10 @@ const fs = require('fs');
 const os = require('os');
 const crypto = require('crypto');
 const { execFile } = require('child_process');
-const { APPS, parseLatest, estado, elegirFormato } = require('./lib');
+const { APPS, parseLatest, estado, elegirFormato, verificarFirma, nombreSeguro, hostConfiable } = require('./lib');
+
+// clave pública que firma las actualizaciones (la privada es secreta, está en GitHub)
+const PUB = fs.readFileSync(path.join(__dirname, 'clave-publica.pem'), 'utf8');
 
 app.commandLine.appendSwitch('ignore-gpu-blocklist');
 if (!app.requestSingleInstanceLock()) app.quit();
@@ -40,14 +43,16 @@ async function versionInstalada(pkg) {
   return out.replace(/^[0-9]+:/, '');            // saca el "epoch" si lo hubiera
 }
 
-// baja un archivo siguiendo redirecciones, con progreso
+// baja un archivo siguiendo redirecciones, con progreso (solo HTTPS y desde GitHub)
 function descargar(url, destino, onProgress) {
   return new Promise((resolve, reject) => {
+    if (!hostConfiable(url)) return reject(new Error('Descarga bloqueada: el origen no es GitHub por HTTPS'));
     const req = net.request(url);
     req.on('response', resp => {
       if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location) {
         const loc = [].concat(resp.headers.location)[0];
         resp.resume();
+        if (!hostConfiable(loc)) return reject(new Error('Redirección bloqueada: fuera de GitHub'));
         return descargar(loc, destino, onProgress).then(resolve, reject);
       }
       if (resp.statusCode !== 200) { reject(new Error('El servidor respondió ' + resp.statusCode)); resp.resume(); return; }
@@ -63,17 +68,37 @@ function descargar(url, destino, onProgress) {
   });
 }
 
-async function traerJson(url) {
+// trae el texto crudo de un archivo chico desde GitHub (con tope de tamaño)
+function traerTexto(url) {
   return new Promise((resolve, reject) => {
-    const req = net.request(url + (url.includes('?') ? '&' : '?') + 't=' + Date.now());
+    if (!hostConfiable(url)) return reject(new Error('Origen no confiable'));
+    let pedido = url;
+    try { if (/(^|\.)github\.com$/.test(new URL(url).hostname)) pedido = url + (url.includes('?') ? '&' : '?') + 't=' + Date.now(); } catch (e) {}
+    const req = net.request(pedido);
     req.on('response', resp => {
-      if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location) { resp.resume(); return traerJson([].concat(resp.headers.location)[0]).then(resolve, reject); }
+      if (resp.statusCode >= 300 && resp.statusCode < 400 && resp.headers.location) {
+        const loc = [].concat(resp.headers.location)[0]; resp.resume();
+        if (!hostConfiable(loc)) return reject(new Error('Redirección no confiable'));
+        return traerTexto(loc).then(resolve, reject);
+      }
       if (resp.statusCode !== 200) { reject(new Error('HTTP ' + resp.statusCode)); resp.resume(); return; }
-      let data = ''; resp.on('data', d => data += d); resp.on('end', () => { try { resolve(JSON.parse(data)); } catch (e) { reject(new Error('Respuesta inválida')); } });
+      let data = '', size = 0;
+      resp.on('data', d => { size += d.length; if (size > 512 * 1024) { reject(new Error('Respuesta demasiado grande')); resp.resume(); return; } data += d; });
+      resp.on('end', () => resolve(data));
       resp.on('error', reject);
     });
     req.on('error', reject); req.end();
   });
+}
+
+// trae el latest.json y su firma, y SOLO lo acepta si la firma es válida
+async function cargarLatest(a) {
+  const crudo = await traerTexto(a.base + 'latest.json');
+  let firma = null;
+  try { firma = await traerTexto(a.base + 'latest.json.sig'); }
+  catch (e) { throw new Error('La actualización no viene firmada; por seguridad no se instala.'); }
+  if (!verificarFirma(crudo, firma, PUB)) throw new Error('La firma de la actualización no coincide; por seguridad no se instala.');
+  return parseLatest(JSON.parse(crudo));
 }
 
 // ── IPC ──
@@ -86,7 +111,7 @@ ipcMain.handle('cargar', async () => {
 
 ipcMain.handle('buscar', async (_e, id) => {
   const a = APPS.find(x => x.id === id); if (!a) return { error: 'desconocido' };
-  try { const latest = parseLatest(await traerJson(a.base + 'latest.json')); const instalada = await versionInstalada(a.pkg); return { latest, instalada, estado: estado(instalada, latest.version) }; }
+  try { const latest = await cargarLatest(a); const instalada = await versionInstalada(a.pkg); return { latest, instalada, estado: estado(instalada, latest.version) }; }
   catch (e) { return { error: e.message }; }
 });
 
@@ -101,10 +126,12 @@ ipcMain.handle('actualizar', async (e, id) => {
   const a = APPS.find(x => x.id === id); if (!a) return { ok: false, error: 'desconocido' };
   const enviar = (fase, extra) => e.sender.send('progreso', Object.assign({ id, fase }, extra));
   try {
-    const latest = parseLatest(await traerJson(a.base + 'latest.json'));
+    const latest = await cargarLatest(a);
     const dpkg = await existe('dpkg-query');
     const fmt = elegirFormato(latest, dpkg);
     if (!fmt) return { ok: false, error: 'No hay un archivo para tu sistema' };
+    if (!nombreSeguro(fmt.archivo)) return { ok: false, error: 'Nombre de archivo inválido' };
+    if (!fmt.sha) return { ok: false, error: 'La actualización no trae su huella (sha256); por seguridad no se instala.' };
     const destino = path.join(os.tmpdir(), fmt.archivo);
     enviar('descargando', { pct: 0 });
     const sha = await descargar(a.base + fmt.archivo, destino, (p, b, t) => enviar('descargando', { pct: p, bajado: b, total: t }));

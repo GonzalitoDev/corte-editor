@@ -1,5 +1,6 @@
 // Actualizador GonzaDev — lógica pura (sin Electron), para poder probarla aparte.
 'use strict';
+const crypto = require('crypto');
 
 // Qué juegos conoce el actualizador. Cada uno publica un latest.json en su release.
 const APPS = [
@@ -61,4 +62,29 @@ function elegirFormato(latest, tieneDpkg) {
   return null;
 }
 
-module.exports = { APPS, partes, cmpVersion, parseLatest, estado, elegirFormato };
+// verifica la firma Ed25519 del latest.json con la clave pública que trae la app
+function verificarFirma(datos, firmaB64, pubPem) {
+  try {
+    const buf = Buffer.isBuffer(datos) ? datos : Buffer.from(String(datos), 'utf8');
+    const sig = Buffer.from(String(firmaB64 || '').replace(/\s+/g, ''), 'base64');
+    if (!sig.length) return false;
+    return crypto.verify(null, buf, pubPem, sig);
+  } catch (e) { return false; }
+}
+
+// el nombre del archivo a bajar tiene que ser simple (sin rutas ni trucos)
+function nombreSeguro(n) {
+  return typeof n === 'string' && /^[A-Za-z0-9][A-Za-z0-9._-]{0,80}$/.test(n) && !n.includes('..');
+}
+
+// solo bajamos por HTTPS y desde GitHub (incluidas sus redirecciones de descarga)
+function hostConfiable(url) {
+  try {
+    const u = new URL(url);
+    if (u.protocol !== 'https:') return false;
+    const h = u.hostname.toLowerCase();
+    return h === 'github.com' || h === 'githubusercontent.com' || h.endsWith('.githubusercontent.com');
+  } catch (e) { return false; }
+}
+
+module.exports = { APPS, partes, cmpVersion, parseLatest, estado, elegirFormato, verificarFirma, nombreSeguro, hostConfiable };
