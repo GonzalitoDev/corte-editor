@@ -1,12 +1,12 @@
 {
   "redirects": [
     {
-      "source": "/:dir(corte|lienzo|trazo|folio|onda|gonzacraft|gonzasky|arena|asistente|jarvis)",
+      "source": "/:dir(corte|lienzo|trazo|folio|onda|gonzacraft|gonzasky|arena|asistente|jarvis|gonzaops)",
       "destination": "/:dir/",
       "permanent": true
     },
     {
-      "source": "/:sub(gonzacraft/jugar|gonzasky/volar|arena/jugar|jarvis/app)",
+      "source": "/:sub(gonzacraft/jugar|gonzasky/volar|arena/jugar|jarvis/app|gonzaops/jugar)",
       "destination": "/:sub/",
       "permanent": true
     }

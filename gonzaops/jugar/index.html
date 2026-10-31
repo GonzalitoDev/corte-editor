@@ -1,0 +1,181 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
+<title>GonzaOps</title>
+<meta name="description" content="GonzaOps: shooter táctico 5 contra 5 gratis en el navegador. Plantá la carga o defendé el sitio, contra bots u online.">
+<meta name="theme-color" content="#0d0f12">
+<link rel="icon" href="../icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Chakra+Petch:wght@500;600;700&family=Figtree:wght@400;500;600;700&display=swap">
+<link rel="stylesheet" href="ops.css">
+</head>
+<body>
+<canvas id="c"></canvas>
+
+<!-- ── interfaz en partida ── -->
+<div id="hud" hidden>
+  <canvas id="radar" width="200" height="175"></canvas>
+  <div id="top">
+    <div class="eqA"><span id="vivosA" class="vivos"></span><b id="mA">0</b></div>
+    <div class="centro"><b id="reloj">0:00</b><small id="fase"></small></div>
+    <div class="eqG"><b id="mG">0</b><span id="vivosG" class="vivos"></span></div>
+  </div>
+  <div id="feed"></div>
+  <div id="cruz"><i></i><i></i><i></i><i></i></div>
+  <div id="hitm"><i></i><i></i><i></i><i></i></div>
+  <div id="dirs"></div>
+  <div id="msg" hidden><b></b><span></span></div>
+  <div id="prog" hidden><span id="progT"></span><div><i id="progB"></i></div></div>
+  <div id="pista"></div>
+  <div id="vida"><div class="hp"><small>VIDA</small><b id="hp">100</b><div class="barra"><i id="hpB"></i></div></div><div class="ar"><small>CHALECO</small><b id="ar">0</b><span id="casco"></span></div><div id="plata">$ 800</div></div>
+  <div id="arma"><div id="grans"></div><div><b id="muni">12</b><span id="res">/ 36</span></div><small id="armaN">Pampa 9</small><span id="extras"></span></div>
+  <div id="muerte" hidden><b>Te eliminaron</b><span id="muerteT"></span></div>
+  <div id="mira" hidden></div>
+  <div id="flash"></div>
+  <div id="dano"></div>
+  <div id="touch" hidden>
+    <div id="joy"><i></i></div>
+    <button data-t="fuego" class="t fuego">●</button>
+    <button data-t="mira" class="t b1">◎</button>
+    <button data-t="rec" class="t b2">R</button>
+    <button data-t="salto" class="t b3">⤒</button>
+    <button data-t="ag" class="t b4">⤓</button>
+    <button data-t="arma" class="t b5">⇄</button>
+    <button data-t="usar" class="t b6">E</button>
+    <div class="tTop"><button data-t="menu">☰</button><button data-t="compra">Comprar</button><button data-t="tabla">Tabla</button></div>
+  </div>
+</div>
+
+<!-- ── pantallas ── -->
+<section class="screen" id="sec-titulo">
+  <div class="logo"><b>GONZA<span>OPS</span></b><small>Shooter táctico · 5 contra 5 · plantá o defendé</small></div>
+  <div class="menu">
+    <button class="pri" data-ir="bots">Jugar contra bots</button>
+    <button class="oro" data-ir="online">Jugar online</button>
+    <button data-ir="ayuda">Cómo se juega</button>
+    <button data-accion="ajustes">Ajustes</button>
+  </div>
+  <footer>Juego original de GonzalitoDev · <a href="../">Más información</a></footer>
+</section>
+
+<section class="screen" id="sec-bots" hidden>
+  <div class="panel">
+    <h2>Partida contra bots</h2>
+    <p class="hint">Mapa <b>Puerto</b>. El <b style="color:#f39a3d">Asalto</b> tiene que plantar la carga en el sitio A o B; la <b style="color:#5aa9ff">Guardia</b> lo tiene que impedir o desactivarla. A mitad de partida se cambia de lado.</p>
+    <div class="cols">
+      <label>Tu nombre<input id="bNombre" maxlength="16" placeholder="Operador"></label>
+      <label>Empezás en<select id="bLado"><option value="0">Asalto (atacar)</option><option value="1">Guardia (defender)</option><option value="azar">Al azar</option></select></label>
+      <label>Bots<select id="bDif"><option value="facil">Fáciles</option><option value="normal" selected>Normales</option><option value="dificil">Difíciles</option></select></label>
+      <label>Duración<select id="bLargo"><option value="corto">Corta (primero a 5)</option><option value="largo" selected>Normal (primero a 8)</option></select></label>
+    </div>
+    <div class="row"><button data-ir="titulo">Volver</button><button class="pri" data-accion="jugarBots">¡A jugar!</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sec-online" hidden>
+  <div class="panel">
+    <h2>Jugar online</h2>
+    <p class="hint">Creá una sala en tu servidor y pasale el código a tus amigos. Los lugares vacíos los ocupan bots.</p>
+    <div class="cols">
+      <label>Tu nombre<input id="oNombre" maxlength="16" placeholder="Operador"></label>
+      <label>Dirección del servidor<input id="oDir" list="oLista" autocomplete="off" spellcheck="false" placeholder="ops.1-2-3-4.sslip.io"></label>
+      <label>Contraseña (si tiene)<input id="oClave" type="password" autocomplete="off"></label>
+    </div>
+    <datalist id="oLista"></datalist>
+    <p id="oInfo" class="hint">Escribí la dirección que te dio el instalador del servidor.</p>
+    <div id="salas" class="salas"></div>
+    <div class="row"><button data-ir="titulo">Volver</button><input id="oCodigo" maxlength="5" placeholder="CÓDIGO" class="codigo"><button id="oUnirse">Entrar con código</button><button class="pri" id="oCrear">Crear sala</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sec-sala" hidden>
+  <div class="panel">
+    <h2>Sala <span id="sCodigo" class="codigoG"></span></h2>
+    <p class="hint">Pasale este código a tus amigos. Tocá un lugar libre para cambiarte de escuadra. La escuadra 1 empieza atacando.</p>
+    <div class="equipos"><div><h3 style="color:#f39a3d">Escuadra 1 · empieza en Asalto</h3><div id="slots0" class="slots"></div></div><div><h3 style="color:#5aa9ff">Escuadra 2 · empieza en Guardia</h3><div id="slots1" class="slots"></div></div></div>
+    <div class="cols"><label>Bots<select id="sDif"><option value="facil">Fáciles</option><option value="normal">Normales</option><option value="dificil">Difíciles</option></select></label><label>Duración<select id="sLargo"><option value="corto">Corta (primero a 5)</option><option value="largo">Normal (primero a 8)</option></select></label></div>
+    <div id="sChat" class="schat"></div>
+    <p id="sEstado" class="hint"></p>
+    <div class="row"><button id="bSalirSala">Salir</button><input id="sMsg" maxlength="120" placeholder="Escribí algo y Enter…"><button class="pri" id="bEmpezar">Empezar</button></div>
+  </div>
+</section>
+
+<section class="screen" id="sec-ayuda" hidden>
+  <div class="panel ancho">
+    <h2>Cómo se juega</h2>
+    <div class="ayuda">
+      <div>
+        <h3>La ronda</h3>
+        <p>Dos equipos de 5. El <b style="color:#f39a3d">Asalto</b> lleva una carga explosiva y gana si la planta en el sitio <b>A</b> o <b>B</b> y explota (40 s), o si elimina a toda la Guardia. La <b style="color:#5aa9ff">Guardia</b> gana si elimina al Asalto antes de que plante, si desactiva la carga o si se acaba el tiempo.</p>
+        <p>Al empezar cada ronda tenés unos segundos para <b>comprar</b> (tecla B) con la plata que ganás por rondas y por bajas. Si sobrevivís, te quedás con tus armas.</p>
+        <p>No hay reapariciones: si te eliminan, mirás a tus compañeros hasta la próxima ronda. A la cabeza el daño es cuatro veces mayor.</p>
+      </div>
+      <table class="teclas">
+        <tr><th colspan="2">Controles (PC)</th></tr>
+        <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd></td><td>Moverse · <kbd>Espacio</kbd> saltar</td></tr>
+        <tr><td>Mouse</td><td>Mirar · clic izquierdo dispara</td></tr>
+        <tr><td>Clic derecho</td><td>Mira del rifle Cóndor · tiro suave de granada</td></tr>
+        <tr><td><kbd>Shift</kbd> · <kbd>Ctrl</kbd>/<kbd>C</kbd></td><td>Caminar en silencio · agacharse</td></tr>
+        <tr><td><kbd>1</kbd> <kbd>2</kbd> <kbd>3</kbd> <kbd>4</kbd></td><td>Arma principal · pistola · cuchillo · granadas</td></tr>
+        <tr><td><kbd>R</kbd> · <kbd>G</kbd> · <kbd>Q</kbd></td><td>Recargar · tirar el arma · arma anterior</td></tr>
+        <tr><td><kbd>E</kbd> (mantener)</td><td>Plantar o desactivar la carga</td></tr>
+        <tr><td><kbd>B</kbd> · <kbd>Tab</kbd> · <kbd>Esc</kbd></td><td>Comprar · tabla · menú</td></tr>
+        <tr><td colspan="2" class="tip">En el celular: el círculo izquierdo te mueve; arrastrá en la mitad derecha para mirar; ● dispara.</td></tr>
+      </table>
+    </div>
+    <div class="row"><button class="pri" data-ir="titulo">Listo</button></div>
+  </div>
+</section>
+
+<!-- ── capas sobre el juego ── -->
+<section class="capa" id="sCompra" hidden>
+  <div class="panel ancho">
+    <h2>Comprar <span id="compraPlata" class="plataG"></span></h2>
+    <div id="compraLista" class="compra"></div>
+    <div class="row"><button class="pri" data-accion="cerrarCompra">Listo (B)</button></div>
+  </div>
+</section>
+<section class="capa" id="sTabla" hidden><div class="panel ancho" id="tabla"></div></section>
+<section class="capa" id="sMenu" hidden>
+  <div class="panel">
+    <h2>Menú</h2>
+    <p id="menuNota" class="hint"></p>
+    <div class="menu">
+      <button class="pri" data-accion="seguir">Seguir jugando</button>
+      <button data-accion="ajustes">Ajustes (mouse, campo de visión, volumen)</button>
+      <button data-accion="salir">Salir de la partida</button>
+    </div>
+  </div>
+</section>
+<section class="capa" id="sAjustes" hidden>
+  <div class="panel">
+    <h2>Ajustes</h2>
+    <label>Sensibilidad <output id="oSens"></output><input id="aSens" type="range" min="0.2" max="3" step="0.05"></label>
+    <label>Campo de visión <output id="oFov"></output><input id="aFov" type="range" min="65" max="105" step="1"></label>
+    <label>Volumen <output id="oVol"></output><input id="aVol" type="range" min="0" max="1" step="0.05"></label>
+    <label class="check"><input id="aInv" type="checkbox"> Invertir el mouse vertical</label>
+    <label>Calidad gráfica<select id="aCal"><option value="auto">Automática</option><option value="alta">Alta (sombras)</option><option value="media">Media</option><option value="baja">Baja (celulares y PCs viejas)</option></select></label>
+    <p id="aCalNota" class="hint" hidden>La calidad nueva se aplica al recargar la página.</p>
+    <div class="row"><button class="pri" data-accion="cerrarAjustes">Listo</button></div>
+  </div>
+</section>
+<section class="capa" id="sFin" hidden>
+  <div class="panel ancho">
+    <h2 id="finT" class="fin"></h2>
+    <p id="finM" class="finM"></p>
+    <div id="finTabla"></div>
+    <div class="row"><button data-accion="volver">Volver al menú</button><button class="pri" id="bRevancha" data-accion="revancha">Revancha</button></div>
+  </div>
+</section>
+<form id="chatBox" hidden><input id="chatIn" maxlength="120" autocomplete="off" placeholder="Mensaje para todos · Enter para enviar · Esc para cerrar"></form>
+
+<script src="vendor/three.min.js"></script>
+<script src="js/sim-mapa.js"></script>
+<script src="js/sim-juego.js"></script>
+<script src="js/sim-bots.js"></script>
+<script src="js/render.js"></script>
+<script src="js/client.js"></script>
+</body>
+</html>

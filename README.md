@@ -13,6 +13,7 @@ Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua
 | **GonzaSky** | Simulador de vuelo (Windows, Linux Mint, Android y navegador) | [`gonzasky/`](gonzasky/) |
 | **GonzaArena** | MOBA 5 contra 5 en el navegador (bots y online) | [`arena/`](arena/) |
 | **Asistente** | Chat con IA (OpenRouter) para tus sitios, alojado en Vercel | [`asistente/`](asistente/) |
+| **GonzaOps** | Shooter táctico 5 contra 5 en el navegador (bots y online) | [`gonzaops/`](gonzaops/) |
 | **Jarvis** | Asistente personal por voz: web (`jarvis/`) y programa de Windows que maneja la PC | [`desktop-jarvis/`](desktop-jarvis/) |
 
 La página de inicio (`index.html`) muestra todas las apps.
@@ -97,3 +98,16 @@ Juego original en el navegador (three.js), con campeones, mapa y nombres propios
 - Cinco campeones: Brasa (maga), Pedrón (tanque), Sombra (asesina), Flecha (tiradora) y Ceibo (soporte).
 - **Online:** `servidor-arena/` corre la simulación a 30 pasos por segundo con salas por código; cada jugador recibe solo lo que ve su equipo. Se instala en un VPS con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-arena/instalar.sh | sudo bash` y queda en `arena.IP.sslip.io` (convive con los de GonzaCraft y GonzaSky).
 
+
+## GonzaOps · shooter táctico 5 contra 5
+
+Juego original en el navegador (three.js) con nombres, mapa y armas propios. El Asalto planta una carga en el sitio A o B y la Guardia la defiende.
+
+- `gonzaops/jugar/js/sim-*.js`: la simulación.
+  - Mapa «Puerto» en grilla, física de movimiento y rayos.
+  - Armas con daño por zona, chalecos, retroceso y dispersión.
+  - Rondas, economía, carga explosiva y granadas (explosiva, humo, cegadora).
+  - Bots que compran, eligen sitio, plantan, desactivan y pelean con reacción y puntería por dificultad.
+  - Corre igual en un Worker (partidas contra bots) y en Node (servidor online).
+- `gonzaops/jugar/js/render.js` y `client.js`: mapa con texturas hechas en código, modelos, arma en mano, efectos, sonido sintetizado, HUD, radar, compra, controles de PC y táctiles, y salas online.
+- **Online:** `servidor-ops/` es autoritativo para el daño: rebobina a los rivales al momento en que el jugador disparó y controla que nadie se mueva más rápido de lo permitido. Salas con código y bots de relleno. Se instala con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-ops/instalar.sh | sudo bash` y queda en `ops.IP.sslip.io`.

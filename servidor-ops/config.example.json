@@ -1,0 +1,8 @@
+{
+  "name": "Servidor de GonzaOps",
+  "host": "0.0.0.0",
+  "port": 7781,
+  "password": "",
+  "maxRooms": 4,
+  "snapshotHz": 20
+}
