@@ -1,0 +1,38 @@
+{
+  "name": "actualizador-gonzadev",
+  "productName": "Actualizador GonzaDev",
+  "version": "1.0.0",
+  "description": "Mantené al día los juegos de GonzaDev en Linux Mint",
+  "author": { "name": "GonzalitoDev", "email": "gonzalitodev@users.noreply.github.com" },
+  "license": "MIT",
+  "homepage": "https://github.com/GonzalitoDev/corte-editor",
+  "main": "main.js",
+  "private": true,
+  "scripts": {
+    "start": "electron .",
+    "dist:linux": "electron-builder --linux deb AppImage --x64 --publish never"
+  },
+  "devDependencies": {
+    "electron": "33.4.11",
+    "electron-builder": "25.1.8"
+  },
+  "build": {
+    "appId": "dev.gonzalito.actualizador",
+    "productName": "Actualizador GonzaDev",
+    "copyright": "GonzalitoDev",
+    "directories": { "output": "dist", "buildResources": "build" },
+    "files": ["main.js", "preload.js", "lib.js", "app/**/*", "build/icon.png"],
+    "linux": {
+      "target": ["deb", "AppImage"],
+      "icon": "build/icon.png",
+      "category": "Utility",
+      "executableName": "actualizador-gonzadev",
+      "synopsis": "Actualizador de los juegos de GonzaDev",
+      "description": "Mantené al día GonzaCraft, GonzaSky y los demás juegos de GonzaDev. Busca la última versión y la instala por vos.",
+      "desktop": { "Name": "Actualizador GonzaDev", "Comment": "Actualizá tus juegos de GonzaDev", "Keywords": "actualizar;update;gonzacraft;gonzasky;juegos;" }
+    },
+    "deb": { "artifactName": "Actualizador-GonzaDev.${ext}", "packageCategory": "utils", "priority": "optional", "depends": ["policykit-1", "libgtk-3-0", "libnotify4", "libnss3", "libxss1", "libxtst6", "xdg-utils", "libatspi2.0-0", "libsecret-1-0"] },
+    "appImage": { "artifactName": "Actualizador-GonzaDev.${ext}" }
+  },
+  "repository": { "type": "git", "url": "https://github.com/GonzalitoDev/corte-editor.git" }
+}

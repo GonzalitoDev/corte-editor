@@ -1,0 +1,43 @@
+name: Actualizador (instalador)
+
+# Arma el actualizador para Linux (.deb y AppImage) y lo publica en el
+# release "actualizador". Cada build sube su número de versión.
+on:
+  push:
+    branches: [main]
+    paths: ['actualizador/**', '.github/workflows/actualizador.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: actualizador
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: Fijar la versión de esta build
+        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version --allow-same-version
+      - run: npm run dist:linux
+      - name: Publicar en el release "actualizador"
+        working-directory: .
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la actualizador/dist
+          if ! gh release view actualizador >/dev/null 2>&1; then
+            gh release create actualizador --target "${{ github.sha }}" --latest=false \
+              --title "Actualizador GonzaDev (última versión)" \
+              --notes "Actualizador de los juegos de GonzaDev para Linux. Linux Mint / Ubuntu: Actualizador-GonzaDev.deb · Otras distros: Actualizador-GonzaDev.AppImage."
+          fi
+          gh release upload actualizador \
+            actualizador/dist/Actualizador-GonzaDev.deb \
+            actualizador/dist/Actualizador-GonzaDev.AppImage --clobber

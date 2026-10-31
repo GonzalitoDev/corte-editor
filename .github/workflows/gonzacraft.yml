@@ -34,6 +34,8 @@ jobs:
         with:
           node-version: 20
       - run: npm install --no-audit --no-fund
+      - name: Fijar la versión de esta build
+        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version --allow-same-version
       - run: npm run ${{ matrix.script }}
       - uses: actions/upload-artifact@v4
         with:
@@ -71,6 +73,17 @@ jobs:
         with:
           path: out
           merge-multiple: true
+      - name: Armar latest.json (para el actualizador)
+        env:
+          NOTAS: ${{ github.event.head_commit.message }}
+        run: |
+          cd out
+          VER="1.0.${{ github.run_number }}"
+          sha() { if [ -f "$1" ]; then sha256sum "$1" | cut -d' ' -f1; else echo ""; fi; }
+          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "${NOTAS:-Nueva versión de GonzaCraft.}" \
+            --arg ds "$(sha GonzaCraft.deb)" --arg as "$(sha GonzaCraft.AppImage)" \
+            '{producto:"GonzaCraft",version:$v,fecha:$f,notas:$n,deb:"GonzaCraft.deb",appimage:"GonzaCraft.AppImage",exe:"GonzaCraft-Setup.exe",sha256:{deb:$ds,appimage:$as}}' > latest.json
+          cat latest.json
       - name: Publicar en el release "gonzacraft"
         env:
           GH_TOKEN: ${{ github.token }}
