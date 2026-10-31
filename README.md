@@ -111,3 +111,18 @@ Juego original en el navegador (three.js) con nombres, mapa y armas propios. El 
   - Corre igual en un Worker (partidas contra bots) y en Node (servidor online).
 - `gonzaops/jugar/js/render.js` y `client.js`: mapa con texturas hechas en código, modelos, arma en mano, efectos, sonido sintetizado, HUD, radar, compra, controles de PC y táctiles, y salas online.
 - **Online:** `servidor-ops/` es autoritativo para el daño: rebobina a los rivales al momento en que el jugador disparó y controla que nadie se mueva más rápido de lo permitido. Salas con código y bots de relleno. Se instala con `curl -fsSL https://raw.githubusercontent.com/GonzalitoDev/corte-editor/main/servidor-ops/instalar.sh | sudo bash` y queda en `ops.IP.sslip.io`.
+
+## En desarrollo
+
+### La Maquinita · juego de clics (beta)
+
+Sátira en pixel art (`maquinita/`). Imprimís billetes, una parte va a tu bolsillo en dólares y con eso subís de cargo, de Puntero barrial a Prócer en un billete.
+
+- **Inflación:** cuanto más imprimís, más sube, los precios suben y la aprobación baja.
+- **Herramientas para que la gente no se enoje:** planes, prensa, subsidios, congelar precios e impuestos absurdos.
+- **Ñoquis y ministerios.**
+- **Eventos con tiempo** para decidir.
+- **Elecciones** cada 4 años (necesitás 40 %).
+- **Contactos:** si perdés, volvés a empezar con contactos que se quedan para siempre.
+
+`logica.js` es la simulación pura (se prueba en Node) y `ui.js` maneja la escena, el tablero, la tienda y el guardado en el navegador. Todos los personajes y situaciones son inventados.

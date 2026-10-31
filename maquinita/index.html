@@ -1,0 +1,93 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La Maquinita · Taller</title>
+<meta name="description" content="La Maquinita: simulador satírico donde imprimís billetes, la inflación se dispara y tenés que sobrevivir a las elecciones. Juego de clics en pixel art.">
+<meta name="theme-color" content="#1b1430">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header class="top">
+  <a class="volver" href="../" title="Volver al Taller">◀ Taller</a>
+  <h1>LA MAQUINITA</h1>
+  <span class="beta" title="Este juego todavía está en desarrollo">EN DESARROLLO</span>
+  <div class="acciones"><button id="bSonido" title="Sonido">♪</button><button id="bAyuda" title="Cómo se juega">?</button><button id="bMenu" title="Opciones">☰</button></div>
+</header>
+
+<main class="juego">
+  <!-- tablero -->
+  <section class="col tablero">
+    <div class="caja-p"><small id="fecha">Año 1, enero</small><div class="cargo" id="cargo">Puntero barrial</div></div>
+    <div class="dato grande"><small>CAJA DEL ESTADO</small><b id="caja">$ 0</b><span id="porSeg">$ 0 por segundo</span></div>
+    <div class="dato verde"><small>TU BOLSILLO</small><b id="usd">US$ 0</b><span id="retorno">3 % de «retorno»</span></div>
+    <div class="dato" id="datoInfl"><small>INFLACIÓN MENSUAL</small><b id="infl">2,0 %</b><canvas id="grafico" width="200" height="54"></canvas></div>
+    <div class="fila"><div class="dato chico"><small>PRECIOS</small><b id="precios">×1</b></div><div class="dato chico"><small>DÓLAR</small><b id="dolar">$ 100</b></div></div>
+    <div class="dato aprob"><small>APROBACIÓN</small><div class="barra"><i id="aprobB"></i><span id="aprob">62 %</span></div><span id="eleccion" class="eleccion">Elecciones en 48 meses (necesitás 40 %)</span></div>
+  </section>
+
+  <!-- la máquina -->
+  <section class="col centro">
+    <div class="escena"><canvas id="escena" width="200" height="120" aria-label="La maquinita de imprimir billetes: tocala para imprimir"></canvas><div id="flotantes"></div></div>
+    <button id="bImprimir" class="imprimir">IMPRIMIR <small id="porClick">+$ 1</small></button>
+    <div class="ticker"><div id="ticker">Bienvenido. Tocá la maquinita para imprimir tus primeros billetes.</div></div>
+    <ul id="noticias" class="noticias"></ul>
+  </section>
+
+  <!-- tienda -->
+  <section class="col tienda">
+    <nav class="tabs"><button data-tab="imprentas" class="on">Imprentas</button><button data-tab="programas">Programas</button><button data-tab="gabinete">Gabinete</button><button data-tab="carrera">Carrera</button></nav>
+    <div class="panel" id="tab-imprentas"></div>
+    <div class="panel" id="tab-programas" hidden></div>
+    <div class="panel" id="tab-gabinete" hidden></div>
+    <div class="panel" id="tab-carrera" hidden></div>
+  </section>
+</main>
+
+<!-- evento -->
+<div class="modal" id="mEvento" hidden>
+  <div class="ventana evento">
+    <div class="tiempo"><i id="evTiempo"></i></div>
+    <h2 id="evT"></h2><p id="evD"></p>
+    <div class="ops" id="evOps"></div>
+  </div>
+</div>
+<!-- fin de la carrera -->
+<div class="modal" id="mFin" hidden>
+  <div class="ventana">
+    <h2 id="finT"></h2><p id="finD"></p>
+    <ul class="stats" id="finStats"></ul>
+    <p class="nota">Los <b>contactos</b> se quedan para siempre: cada uno hace que todo rinda un 3 % más en tu próxima carrera.</p>
+    <button class="pri" id="bRenacer">VOLVER A LA POLÍTICA</button>
+  </div>
+</div>
+<!-- ayuda -->
+<div class="modal" id="mAyuda" hidden>
+  <div class="ventana">
+    <h2>CÓMO SE JUEGA</h2>
+    <p>Sos un político con grandes ambiciones y una maquinita de imprimir billetes. <b>Imprimí</b> (tocando la máquina o con imprentas automáticas) para llenar la caja del Estado.</p>
+    <p>Una parte de todo lo que se imprime termina en <b>tu bolsillo</b>, en dólares. Con esos dólares <b>subís de cargo</b>, y cada cargo multiplica todo y desbloquea imprentas y ministerios nuevos.</p>
+    <p>Pero cuanto más imprimís, más sube la <b>inflación</b>: los precios suben, todo cuesta más y la <b>aprobación</b> baja. Usá programas (planes, prensa, subsidios, congelar precios, impuestos) para que la gente no se enoje.</p>
+    <p>Cada 4 años hay <b>elecciones</b>: necesitás al menos 40 % de aprobación. Si perdés, o si la aprobación llega a cero, se termina tu carrera; volvés a empezar con <b>contactos</b> que hacen todo más rápido.</p>
+    <p>De vez en cuando aparecen <b>eventos</b>: tenés unos segundos para decidir.</p>
+    <p class="nota">Es una sátira: todos los personajes y situaciones son inventados. Tu partida se guarda sola en este navegador.</p>
+    <button class="pri" data-cerrar>¡A IMPRIMIR!</button>
+  </div>
+</div>
+<!-- menú -->
+<div class="modal" id="mMenu" hidden>
+  <div class="ventana">
+    <h2>OPCIONES</h2>
+    <p class="nota">Tu partida se guarda sola cada pocos segundos en este navegador.</p>
+    <div class="col-bot"><button id="bExportar">Copiar código de partida</button><button id="bImportar">Pegar código de partida</button><button id="bRetirarse">Retirarme de la política (empezar de nuevo con contactos)</button><button id="bBorrar" class="peligro">Borrar todo</button><button class="pri" data-cerrar>Seguir</button></div>
+  </div>
+</div>
+<div id="aviso" class="aviso" hidden></div>
+<script src="logica.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>

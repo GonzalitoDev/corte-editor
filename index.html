@@ -41,6 +41,12 @@ body{font-size:15px}
 .pillars span{color:var(--muted);font-size:13px;line-height:1.5}
 footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .apps>.app:last-child:nth-child(odd){grid-column:1/-1}
+.dev{margin-top:40px}
+.dev h2.sec{font-family:var(--f-display);font-weight:800;font-size:22px;margin:0 0 6px;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
+.dev h2.sec small{font:500 13px var(--f-body);color:var(--muted)}
+.dev .nota{color:var(--muted);margin:0 0 14px;font-size:14px}
+.app .beta{position:absolute;right:46px;top:18px;font:600 10px var(--f-mono);letter-spacing:.06em;text-transform:uppercase;color:#1b1306;background:#ffd23f;border-radius:4px;padding:3px 7px}
+.dev .apps>.app:last-child:nth-child(odd){grid-column:auto}
 @media (max-width:760px){.apps{grid-template-columns:1fr}.pillars{grid-template-columns:1fr 1fr}.hero{padding-block:36px 28px}}
 </style>
 </head>
@@ -118,6 +124,20 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
       <svg class="i go" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
     </a>
   </main>
+
+  <section class="dev">
+    <h2 class="sec">En desarrollo <small>versiones de prueba</small></h2>
+    <p class="nota">Proyectos nuevos que todavía estoy armando: se pueden probar, pero pueden cambiar o tener errores.</p>
+    <div class="apps">
+      <a class="app" href="maquinita/" style="--a:#ffd23f">
+        <span class="beta">Beta</span>
+        <span class="ic"><svg class="i" viewBox="0 0 24 24"><rect x="3" y="5" width="13" height="11" rx="1.5"/><path d="M6 9h7M6 12h4M16 9h3l1 3M5 19h11"/><path d="M8 16v3M13 16v3"/></svg></span>
+        <div><h2>La Maquinita <small>juego de clics</small></h2><p>Sátira en pixel art: imprimí billetes, esquivá la inflación, contratá ñoquis y sobreviví a las elecciones para llegar a estar en un billete.</p>
+        <ul><li>Pixel art</li><li>Eventos</li><li>Se guarda solo</li><li>Celular</li></ul></div>
+        <svg class="i go" viewBox="0 0 24 24"><path d="M5 12h14M13 6l6 6-6 6"/></svg>
+      </a>
+    </div>
+  </section>
 
   <section class="pillars">
     <div><b>Gratis de verdad</b><span>Sin planes pagos, sin límites de exportación y sin marcas de agua.</span></div>
