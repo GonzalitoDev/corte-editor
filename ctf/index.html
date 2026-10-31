@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="CTF del Taller: laboratorios reales de seguridad (web, cripto, forense y reversing) con puntaje y ranking. Entrá con un apodo y capturá las flags.">
+<meta name="theme-color" content="#0f1115">
+<title>CTF · Taller</title>
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body class="app-body" data-app="ctf">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.6"><path d="M6 4v16M6 5h11l-3 3.5L17 12H6"/></svg></span>CTF <small>laboratorios · beta</small></a>
+    <div class="spacer"></div>
+    <div id="sesion" class="sesion" hidden>
+      <span class="yo"><b id="miApodo"></b><span id="misPuntos" class="pts">0 pts</span></span>
+      <button class="btn" data-cmd="ranking"><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16M8 20V9M16 20V5M12 20v-7"/></svg>Ranking</button>
+      <button class="btn" data-cmd="salir" title="Salir">Salir</button>
+    </div>
+  </header>
+
+  <main id="vista" class="vista"></main>
+</div>
+
+<div id="aviso" class="aviso" hidden></div>
+
+<script src="../shared/taller.js"></script>
+<script src="datos.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

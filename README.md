@@ -160,3 +160,21 @@ Agrupa lo que se filtra:
 - tiene un límite de pedidos por visitante
 
 Los archivos que se agregan a mano nunca salen del navegador.
+
+### CTF · laboratorios (beta)
+
+Laboratorio de desafíos de seguridad (`ctf/`) para aprender practicando, con puntaje y ranking. 12 retos en cuatro categorías:
+
+- **Web** — entornos vulnerables a propósito y aislados, servidos por una función de Supabase (`ctf-lab`): inyección SQL, IDOR, JWT con secreto débil y path traversal.
+- **Cripto** — XOR de un byte, capas Base64 + ROT13, y RSA con primos cercanos (factorización de Fermat).
+- **Forense** — EXIF en una foto, texto oculto en un `.docx` y esteganografía LSB en un PNG.
+- **Reversing** — una cerradura en JavaScript ofuscado y un crackme ELF de 64 bits.
+
+Cómo funciona:
+
+- Se entra con un apodo (sin registro). El progreso se guarda por un token en el navegador.
+- Cada reto entrega una flag con forma `GONZA{...}` que se envía para sumar puntos.
+- Las flags **no están en el repositorio**: viven en un esquema privado de Supabase (`ctf`) y se verifican del lado del servidor con funciones `ctf_*` (SECURITY DEFINER, con RLS). Los archivos de los retos (cripto/forense/reversing) llevan la flag escondida adentro: encontrarla es el desafío.
+- Los laboratorios web guardan sus datos sólo en memoria dentro de la función y no tocan ninguna otra base ni proyecto.
+
+Los laboratorios son para practicar seguridad defensiva: lo aprendido debe usarse únicamente en sistemas propios o con permiso.

@@ -1,0 +1,5 @@
+Interceptamos este mensaje. Parece cifrado con XOR de un solo byte (el clasico).
+Probá los 256 valores posibles y fijate cuál da texto legible.
+
+Hex:
+1d1514001b212f3405293536350538232e3f053435053b36393b34203b053f3e3b38393b27

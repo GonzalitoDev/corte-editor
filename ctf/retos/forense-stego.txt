@@ -1,0 +1,2 @@
+La flag está escondida en el bit menos significativo (LSB) de los colores de forense-stego.png.
+Orden: por filas, cada pixel aporta R, G y B. Juntá los bits de a 8 hasta llegar a un byte 0.
