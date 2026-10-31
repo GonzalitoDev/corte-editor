@@ -126,3 +126,37 @@ Sátira en pixel art (`maquinita/`). Imprimís billetes, una parte va a tu bolsi
 - **Contactos:** si perdés, volvés a empezar con contactos que se quedan para siempre.
 
 `logica.js` es la simulación pura (se prueba en Node) y `ui.js` maneja la escena, el tablero, la tienda y el guardado en el navegador. Todos los personajes y situaciones son inventados.
+
+### Lupa · metadatos (beta)
+
+Analizador de metadatos en el navegador (`lupa/`), inspirado en FOCA. Lee:
+
+- PDF (con pdf.js)
+- Word, Excel y PowerPoint nuevos (incluidas las imágenes de adentro) y viejos (`.doc`/`.xls`/`.ppt`, leyendo SummaryInformation)
+- OpenDocument
+- fotos (EXIF, XMP y GPS con exifr)
+- SVG
+
+Agrupa lo que se filtra:
+
+- personas y autores
+- usuarios de las PC (sacados de rutas como `C:\Users\…`)
+- programas
+- rutas internas
+- servidores e IP privadas
+- correos
+- impresoras
+- ubicaciones
+
+**Limpieza:** quita los metadatos sin perder calidad en JPEG y PNG, y reescribe Office, OpenDocument y PDF (con pdf-lib).
+
+**Informe:** CSV, JSON o HTML.
+
+**Explorar un sitio:** `api/lupa.mjs` recorre un sitio y baja sus documentos públicos. Tiene estas protecciones:
+
+- no va a direcciones privadas ni locales (lo revisa en cada redirección)
+- solo usa los puertos 80 y 443
+- solo baja documentos, de hasta 4 MB
+- tiene un límite de pedidos por visitante
+
+Los archivos que se agregan a mano nunca salen del navegador.

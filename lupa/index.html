@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="Lupa: analizá los metadatos de documentos e imágenes (autores, usuarios, rutas, impresoras, GPS) y limpialos antes de publicarlos. Todo en tu navegador.">
+<meta name="theme-color" content="#0f1115">
+<title>Lupa · metadatos</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%238bd450'/%3E%3Ccircle cx='14' cy='14' r='6.5' fill='none' stroke='%2312240a' stroke-width='3'/%3E%3Cpath d='M19 19l6 6' stroke='%2312240a' stroke-width='3.4' stroke-linecap='round'/%3E%3C/svg%3E">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:wght@400;600;800&family=Figtree:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap">
+<link rel="stylesheet" href="../shared/taller.css">
+<link rel="stylesheet" href="lupa.css">
+</head>
+<body class="app-body" data-app="lupa">
+<div class="app">
+  <header class="top">
+    <a class="logo" href="../" title="Volver a Taller"><span class="mark"><svg class="i" viewBox="0 0 24 24" style="stroke-width:2.6"><circle cx="10.5" cy="10.5" r="6"/><path d="m15 15 5.5 5.5"/></svg></span>Lupa <small>metadatos · beta</small></a>
+    <input class="docname" id="proyecto" value="Proyecto" aria-label="Nombre del proyecto">
+    <div class="spacer"></div>
+    <button class="btn" data-cmd="agregar"><svg class="i" viewBox="0 0 24 24"><path d="M12 5v14M5 12h14"/></svg>Agregar archivos</button>
+    <button class="btn" data-cmd="explorar"><svg class="i" viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M3 12h18M12 3a14 14 0 0 1 0 18M12 3a14 14 0 0 0 0 18"/></svg>Explorar un sitio</button>
+    <button class="btn" data-cmd="limpiarTodo" id="bLimpiarTodo" disabled><svg class="i" viewBox="0 0 24 24"><path d="M4 20h16M7 16l9-9 3 3-9 9H7z"/></svg>Limpiar todo</button>
+    <button class="btn primary" data-cmd="exportar" id="bExportar" disabled><svg class="i" viewBox="0 0 24 24"><path d="M12 3v12"/><path d="m7 10 5 5 5-5"/><path d="M5 21h14"/></svg>Informe</button>
+  </header>
+
+  <div class="work">
+    <nav class="panel arbol" id="arbol" aria-label="Categorías"></nav>
+    <section class="panel centro">
+      <div class="pbody" id="vista"></div>
+    </section>
+    <aside class="panel detalle" id="detalle" hidden></aside>
+  </div>
+</div>
+
+<input type="file" id="fArchivos" multiple hidden>
+<div class="soltar" id="soltar" hidden><div>Soltá los archivos para analizarlos</div></div>
+
+<div class="modal" id="mExplorar" hidden>
+  <div class="ventana">
+    <h2>Explorar un sitio</h2>
+    <p class="hint">Lupa recorre las páginas públicas del sitio, junta los documentos enlazados (PDF, Office, imágenes…) y los analiza. Usalo en sitios propios o con permiso de sus dueños.</p>
+    <div class="linea"><input id="eSitio" class="inp" placeholder="ejemplo.com.ar" spellcheck="false" autocomplete="off"><button class="btn primary" id="eIr">Explorar</button></div>
+    <label class="check"><input type="checkbox" id="ePermiso"> Es un sitio mío o tengo permiso para revisarlo</label>
+    <p id="eEstado" class="hint"></p>
+    <div id="eLista" class="elista"></div>
+    <div class="linea fin"><button class="btn" data-cerrar>Cerrar</button><button class="btn primary" id="eAnalizar" hidden>Analizar seleccionados</button></div>
+  </div>
+</div>
+<div class="modal" id="mExportar" hidden>
+  <div class="ventana">
+    <h2>Informe</h2>
+    <p class="hint">Descargá todo lo que encontró Lupa para guardarlo o compartirlo.</p>
+    <div class="col"><button class="btn" data-cmd="csv">Planilla (CSV): un hallazgo por fila</button><button class="btn" data-cmd="json">Datos completos (JSON)</button><button class="btn" data-cmd="html">Informe para imprimir (HTML)</button></div>
+    <div class="linea fin"><button class="btn" data-cerrar>Cerrar</button></div>
+  </div>
+</div>
+<div id="aviso" class="aviso" hidden></div>
+
+<script src="vendor/jszip.min.js"></script>
+<script src="vendor/cfb.min.js"></script>
+<script src="vendor/exifr.min.js"></script>
+<script src="js/extraer.js"></script>
+<script src="js/limpiar.js"></script>
+<script src="js/app.js"></script>
+</body>
+</html>
