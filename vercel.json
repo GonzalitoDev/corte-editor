@@ -6,7 +6,7 @@
       "permanent": true
     },
     {
-      "source": "/:sub(gonzacraft/jugar|gonzasky/volar|arena/jugar|jarvis/app|gonzaops/jugar)",
+      "source": "/:sub(gonzacraft/jugar|gonzasky/volar|arena/jugar|jarvis/app|gonzaops/jugar|maquinita/descargar)",
       "destination": "/:sub/",
       "permanent": true
     }

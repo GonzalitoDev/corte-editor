@@ -30,6 +30,8 @@
     },
     "files": [
       "main.js",
+      "autoupdate.js",
+      "clave-publica.pem",
       "app/**/*",
       "build/icon.png"
     ],

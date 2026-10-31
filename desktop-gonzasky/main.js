@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 
+// actualizador automático (no rompe el juego si algo falla)
+try { require('./autoupdate')({ base: 'https://github.com/GonzalitoDev/corte-editor/releases/download/gonzasky/', nombre: 'GonzaSky' }); } catch (e) {}
+
 const SCHEME = 'gonzasky';
 const ROOT = path.join(__dirname, 'app');
 const HOME = `${SCHEME}://app/volar/index.html`;

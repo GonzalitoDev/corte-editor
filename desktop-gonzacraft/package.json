@@ -22,7 +22,7 @@
     "productName": "GonzaCraft",
     "copyright": "GonzalitoDev",
     "directories": { "output": "dist", "buildResources": "build" },
-    "files": ["main.js", "app/**/*", "build/icon.png"],
+    "files": ["main.js", "autoupdate.js", "clave-publica.pem", "app/**/*", "build/icon.png"],
     "win": { "target": ["nsis"], "icon": "build/icon.ico" },
     "nsis": {
       "oneClick": false,

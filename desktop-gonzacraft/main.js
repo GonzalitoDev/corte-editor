@@ -4,6 +4,9 @@ const path = require('path');
 const fs = require('fs');
 const { pathToFileURL } = require('url');
 
+// actualizador automático (no rompe el juego si algo falla)
+try { require('./autoupdate')({ base: 'https://github.com/GonzalitoDev/corte-editor/releases/download/gonzacraft/', nombre: 'GonzaCraft' }); } catch (e) {}
+
 const SCHEME = 'gonzacraft';
 const ROOT = path.join(__dirname, 'app');
 const HOME = `${SCHEME}://app/jugar/index.html`;
