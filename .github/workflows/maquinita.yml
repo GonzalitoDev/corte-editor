@@ -1,0 +1,91 @@
+name: La Maquinita (instaladores)
+
+# Arma los instaladores de La Maquinita y los publica en el release "maquinita".
+on:
+  push:
+    branches: [main]
+    paths: ['maquinita/**', 'desktop-maquinita/**', '.github/workflows/maquinita.yml']
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    strategy:
+      matrix:
+        include:
+          - os: windows-latest
+            script: dist:win
+            files: desktop-maquinita/dist/LaMaquinita-Setup.exe
+          - os: ubuntu-latest
+            script: dist:linux
+            files: |
+              desktop-maquinita/dist/LaMaquinita.deb
+              desktop-maquinita/dist/LaMaquinita.AppImage
+    runs-on: ${{ matrix.os }}
+    defaults:
+      run:
+        working-directory: desktop-maquinita
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - run: npm install --no-audit --no-fund
+      - name: Fijar la versión de esta build
+        run: npm version "1.0.${{ github.run_number }}" --no-git-tag-version --allow-same-version
+      - run: npm run ${{ matrix.script }}
+      - uses: actions/upload-artifact@v4
+        with:
+          name: maquinita-${{ matrix.os }}
+          path: ${{ matrix.files }}
+
+  publish:
+    needs: [build]
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: out
+          merge-multiple: true
+      - name: Armar latest.json (para el actualizador)
+        env:
+          NOTAS: ${{ github.event.head_commit.message }}
+        run: |
+          cd out
+          VER="1.0.${{ github.run_number }}"
+          sha() { if [ -f "$1" ]; then sha256sum "$1" | cut -d' ' -f1; else echo ""; fi; }
+          NOTAS_LIMPIA="$(printf '%s' "${NOTAS:-Nueva versión de La Maquinita.}" | awk 'BEGIN{RS="\n\n"} NR==1{print; exit}' | grep -v -E '^(Co-Authored-By|Claude-Session):' || true)"
+          [ -z "$NOTAS_LIMPIA" ] && NOTAS_LIMPIA="Nueva versión de La Maquinita."
+          jq -n --arg v "$VER" --arg f "$(date -u +%FT%TZ)" --arg n "$NOTAS_LIMPIA" \
+            --arg ds "$(sha LaMaquinita.deb)" --arg as "$(sha LaMaquinita.AppImage)" \
+            '{producto:"La Maquinita",version:$v,fecha:$f,notas:$n,deb:"LaMaquinita.deb",appimage:"LaMaquinita.AppImage",exe:"LaMaquinita-Setup.exe",sha256:{deb:$ds,appimage:$as}}' > latest.json
+          cat latest.json
+      - name: Firmar latest.json
+        if: env.SIGN_KEY != ''
+        env:
+          SIGN_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: |
+          cd out
+          printf '%s' "$SIGN_KEY" > "$RUNNER_TEMP/sign.pem"
+          openssl pkeyutl -sign -rawin -inkey "$RUNNER_TEMP/sign.pem" -in latest.json | base64 -w0 > latest.json.sig
+          rm -f "$RUNNER_TEMP/sign.pem"
+          echo "firma: $(cat latest.json.sig)"
+      - name: Aviso si falta la clave de firma
+        if: env.SIGN_KEY == ''
+        env:
+          SIGN_KEY: ${{ secrets.UPDATE_SIGNING_KEY }}
+        run: echo "::warning::Falta el secreto UPDATE_SIGNING_KEY. latest.json quedó sin firmar y el Actualizador lo va a rechazar por seguridad."
+      - name: Publicar en el release "maquinita"
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: |
+          ls -la out
+          if ! gh release view maquinita >/dev/null 2>&1; then
+            gh release create maquinita --target "${{ github.sha }}" --latest=false \
+              --title "La Maquinita (última versión)" \
+              --notes "Instaladores de La Maquinita. Windows: LaMaquinita-Setup.exe · Linux Mint / Ubuntu: LaMaquinita.deb · Otras distros: LaMaquinita.AppImage. Página: https://github.com/${{ github.repository }}/tree/main/maquinita"
+          fi
+          gh release upload maquinita out/* --clobber

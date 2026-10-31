@@ -16,7 +16,7 @@
   <a class="volver" href="../" title="Volver al Taller">◀ Taller</a>
   <h1>LA MAQUINITA</h1>
   <span class="beta" title="Este juego todavía está en desarrollo">EN DESARROLLO</span>
-  <div class="acciones"><button id="bSonido" title="Sonido">♪</button><button id="bAyuda" title="Cómo se juega">?</button><button id="bMenu" title="Opciones">☰</button></div>
+  <div class="acciones"><a id="bDescargar" class="dl" href="https://github.com/GonzalitoDev/corte-editor/releases/download/maquinita/LaMaquinita.deb" title="Descargar para Linux Mint" target="_blank" rel="noopener">⬇</a><button id="bSonido" title="Sonido">♪</button><button id="bAyuda" title="Cómo se juega">?</button><button id="bMenu" title="Opciones">☰</button></div>
 </header>
 
 <main class="juego">
@@ -87,6 +87,7 @@
   </div>
 </div>
 <div id="aviso" class="aviso" hidden></div>
+<script>if(/Electron/i.test(navigator.userAgent)){var _d=document.getElementById('bDescargar');if(_d)_d.remove();}</script>
 <script src="logica.js"></script>
 <script src="ui.js"></script>
 </body>

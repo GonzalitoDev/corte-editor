@@ -16,6 +16,12 @@ const APPS = [
     base: 'https://github.com/GonzalitoDev/corte-editor/releases/download/gonzasky/',
     resumen: 'Simulador de vuelo con dogfight online, varios aviones y desafíos.',
   },
+  {
+    id: 'maquinita', nombre: 'La Maquinita', pkg: 'maquinita', bin: 'maquinita',
+    color: '#ffd23f', tag: 'maquinita',
+    base: 'https://github.com/GonzalitoDev/corte-editor/releases/download/maquinita/',
+    resumen: 'Juego de clics satírico: imprimí billetes, esquivá la inflación y sobreviví a las elecciones.',
+  },
 ];
 
 // separa una versión "1.0.42" en números; tolera prefijos tipo "v1.2"
