@@ -30,6 +30,9 @@
     { id: 'helicoptero', n: 'Helicóptero monetario', d: 'Tira billetes desde el aire. Muy popular.', costo: 7e7, prod: 1.3e5, cargo: 5 },
     { id: 'bancoParalelo', n: 'Banco Central paralelo', d: 'Uno imprime, el otro firma.', costo: 1.2e9, prod: 1.2e6, cargo: 6 },
     { id: 'satelite', n: 'Maquinita satelital', d: 'Emite desde la órbita. Fuera de la ley de gravedad.', costo: 2e10, prod: 1.2e7, cargo: 7 },
+    { id: 'cuantica', n: 'Imprenta cuántica', d: 'Imprime el billete y su antibillete al mismo tiempo.', costo: 3e11, prod: 1.1e8, cargo: 7 },
+    { id: 'lunar', n: 'Base lunar de emisión', d: 'En la Luna no hay inflación… por ahora.', costo: 5e12, prod: 1e9, cargo: 8 },
+    { id: 'multiverso', n: 'Maquinita del multiverso', d: 'Emite en todos los universos. En todos hay inflación.', costo: 8e13, prod: 9e9, cargo: 8 },
   ];
   M.MINISTERIOS = [
     { id: 'relato', n: 'Ministerio del Relato', d: 'Las operaciones de prensa rinden el doble.', costo: 2500, cargo: 1 },
@@ -39,8 +42,11 @@
     { id: 'celeste', n: 'Ministerio del Dólar Celeste', d: 'Cambiás tus pesos a un dólar 30 % más barato.', costo: 9e7, cargo: 5 },
     { id: 'tinta2', n: 'Ministerio de la Maquinita', d: 'Todas las imprentas producen el triple.', costo: 1.5e9, cargo: 6 },
     { id: 'estadistica', n: 'Instituto de Estadísticas Creativas', d: 'La inflación «medida» enoja la mitad a la gente.', costo: 2.5e10, cargo: 7 },
+    { id: 'propaganda', n: 'Ministerio de la Propaganda Alegre', d: 'Las operaciones de prensa duran mucho más.', costo: 4e8, cargo: 6 },
+    { id: 'cripto', n: 'Secretaría de Innovación Blockchain', d: 'GonzaCoin tiene más chances de irse a la Luna.', costo: 1e11, cargo: 7 },
+    { id: 'patria', n: 'Ministerio de la Patria Financiera', d: 'Todas las imprentas producen el doble (otra vez).', costo: 4e12, cargo: 8 },
   ];
-  M.IMPUESTOS = ['Tasa al viento del sur', 'Impuesto al mate compartido', 'Contribución por mirar el río', 'Tasa a los domingos lindos', 'Impuesto a la sobremesa', 'Tasa por tener razón', 'Gravamen al asado de los sábados', 'Impuesto a las vacaciones imaginadas', 'Tasa por respirar fuerte', 'Impuesto al chiste repetido', 'Contribución solidaria al tío que opina', 'Tasa a la siesta prolongada'];
+  M.IMPUESTOS = ['Tasa al viento del sur', 'Impuesto al mate compartido', 'Contribución por mirar el río', 'Tasa a los domingos lindos', 'Impuesto a la sobremesa', 'Tasa por tener razón', 'Gravamen al asado de los sábados', 'Impuesto a las vacaciones imaginadas', 'Tasa por respirar fuerte', 'Impuesto al chiste repetido', 'Contribución solidaria al tío que opina', 'Tasa a la siesta prolongada', 'Impuesto al “te lo dije”', 'Tasa por hacer la cola bien', 'Gravamen al primer mate amargo', 'Contribución por el feriado puente', 'Impuesto a las ojeras del lunes', 'Tasa al optimismo injustificado'];
   M.RIVALES = [
     { n: 'Cacho Balbuena', usd0: 2, crece: 1.06 }, { n: 'Doña Chela Montero', usd0: 20, crece: 1.055 }, { n: 'El Rulo Iturbe', usd0: 200, crece: 1.05 },
     { n: 'Pocho Ferreyra', usd0: 3e3, crece: 1.048 }, { n: 'Toto Zamudio', usd0: 4e4, crece: 1.045 }, { n: 'La Nena Garbarino', usd0: 6e5, crece: 1.042 },
@@ -53,12 +59,13 @@
       infl: 2, precios: 1, aprob: 62, cargo: 0, imp: {}, min: {}, noquis: 0, impuestos: 0, subsidios: 0,
       congelado: 0, prensa: 0, ultEvento: 0, evento: null, histInfl: [2], noticias: [], logros: {}, mandatos: 0,
       contactos: contactos || 0, fin: null, ceros: 0, prox: 25 + Math.random() * 20, mejorUsd: 0,
+      deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0,
     };
   };
 
   /* ───── números derivados ───── */
   const multCargo = s => Math.pow(2.4, s.cargo);
-  M.multProd = s => multCargo(s) * (1 + 0.03 * s.contactos) * (s.min.tinta ? 2 : 1) * (s.min.tinta2 ? 3 : 1) * Math.pow(s.precios, 0.75);
+  M.multProd = s => multCargo(s) * (1 + 0.03 * s.contactos) * (s.min.tinta ? 2 : 1) * (s.min.tinta2 ? 3 : 1) * (s.min.patria ? 2 : 1) * Math.pow(s.precios, 0.75);
   M.prodBase = s => M.IMPRENTAS.reduce((a, g) => a + (s.imp[g.id] || 0) * g.prod, 0);
   M.porSeg = s => M.prodBase(s) * M.multProd(s) * (1 + s.impuestos * 0.06);
   M.porClick = s => Math.max(1, (1 + M.prodBase(s) * 0.05) * multCargo(s) * (1 + 0.03 * s.contactos) * Math.pow(s.precios, 0.75));
@@ -72,6 +79,9 @@
   M.costoCongelar = s => Math.ceil((150 + M.porSeg(s) * 40));
   M.costoSubsidio = s => Math.ceil((200 + M.porSeg(s) * 60));
   M.costoImpuesto = s => Math.ceil((100 + M.porSeg(s) * 10));
+  M.costoCadena = s => Math.ceil((120 + M.porSeg(s) * 30));
+  M.costoCripto = s => Math.ceil((300 + M.porSeg(s) * 80));
+  M.montoDeuda = s => Math.ceil((500 + M.porSeg(s) * 400));
   M.mesesEleccion = s => ELECCIONES - (s.mes % ELECCIONES);
   M.fecha = s => { const a = 1 + Math.floor(s.mes / 12), m = s.mes % 12; return `Año ${a}, ${['enero', 'febrero', 'marzo', 'abril', 'mayo', 'junio', 'julio', 'agosto', 'septiembre', 'octubre', 'noviembre', 'diciembre'][m]}`; };
   M.inflPercibida = s => s.min.estadistica ? s.infl * 0.5 : s.infl;
@@ -92,7 +102,7 @@
     if (s.fin) return;
     s.t += dt;
     ingresar(s, M.porSeg(s) * dt);
-    if (s.prensa > 0) s.prensa = Math.max(0, s.prensa - dt * 0.15);
+    if (s.prensa > 0) s.prensa = Math.max(0, s.prensa - dt * (s.min.propaganda ? 0.07 : 0.15));
     s._acMes = (s._acMes || 0) + dt;
     while (s._acMes >= MES) { s._acMes -= MES; finDeMes(s); if (s.fin) return; }
     // eventos
@@ -115,6 +125,21 @@
     s.histInfl.push(Math.round(s.infl * 10) / 10); if (s.histInfl.length > 60) s.histInfl.shift();
     // subsidios: se pagan todos los meses
     if (s.subsidios) { const c = M.costoSubsidio(s) * 0.08 * s.subsidios; if (s.caja >= c) s.caja -= c; else { s.subsidios = Math.max(0, s.subsidios - 1); noticia(s, 'No alcanzó la plata: se cortó un subsidio y hay cacerolazo.', 'malo'); s.aprob -= 4; } }
+    // deuda con el Fondo: cuota todos los meses
+    if (s.deuda > 0) {
+      const cuota = s.deudaCuota;
+      if (s.caja >= cuota) { s.caja -= cuota; s.deuda = Math.max(0, s.deuda - cuota); if (s.deuda <= 0) { s.deudaCuota = 0; noticia(s, 'Saldaste la deuda con el Fondo. Aplausos (de ellos).', 'bueno'); } }
+      else { s.aprob = Math.max(0, s.aprob - 3); s.infl += 0.6; noticia(s, 'No llegaste a pagarle al Fondo: sube el riesgo país y la bronca.', 'malo'); }
+    }
+    // GonzaCoin: la cripto nacional se resuelve a los pocos meses
+    if (s.cripto) {
+      s.cripto.meses--;
+      if (s.cripto.meses <= 0) {
+        if (Math.random() < (s.min.cripto ? 0.62 : 0.5)) { s.caja += M.porSeg(s) * 500; s.aprob = Math.min(100, s.aprob + 6); noticia(s, '¡GonzaCoin se fue a la Luna! Los que vendieron a tiempo te aman.', 'bueno'); M.logro(s, 'cripto'); }
+        else { s.aprob = Math.max(0, s.aprob - 9); noticia(s, 'GonzaCoin se fue a cero: hay escrache, memes y una canción.', 'malo'); }
+        s.cripto = null;
+      }
+    }
     // aprobación
     const ip = M.inflPercibida(s);
     let d = -Math.max(0, ip - 1.5) * 0.2 - s.noquis * 0.006 + s.subsidios * 0.55 + (s.min.felicidad ? 0.6 : 0) + s.prensa * 0.12 + (Math.random() - .5) * 0.6;
@@ -156,15 +181,19 @@
   };
   M.programa = function (s, tipo) {
     if (s.fin) return false;
-    const costos = { plan: M.costoPlan(s), prensa: M.costoPrensa(s), congelar: M.costoCongelar(s), subsidio: M.costoSubsidio(s), impuesto: M.costoImpuesto(s) };
+    const costos = { plan: M.costoPlan(s), prensa: M.costoPrensa(s), congelar: M.costoCongelar(s), subsidio: M.costoSubsidio(s), impuesto: M.costoImpuesto(s), cadena: M.costoCadena(s), cripto: M.costoCripto(s), deuda: 0 };
     const c = costos[tipo]; if (c == null || s.caja < c) return false;
     if (tipo === 'congelar' && s.congelado > 0) return false;
+    if (tipo === 'cripto' && s.cripto) return false;
     s.caja -= c;
     if (tipo === 'plan') { s.aprob = Math.min(100, s.aprob + 9); s.impresoMes += c * 4; noticia(s, 'Lanzaste el «Plan Platita»: bono para todos. La gente sonríe; los precios también.', 'bueno'); }
     if (tipo === 'prensa') { s.prensa = Math.min(60, s.prensa + (s.min.relato ? 20 : 10)); s.aprob = Math.min(100, s.aprob + (s.min.relato ? 8 : 4)); noticia(s, ['Los canales amigos dicen que la inflación es «una sensación».', 'Un panel de expertos explica que los precios en realidad bajaron.', 'Encuesta propia: 9 de cada 10 están chochos.'][Math.floor(Math.random() * 3)]); if (Math.random() < 0.12) { s.aprob -= 8; noticia(s, 'Se filtró que pagaste la nota: escándalo en las redes.', 'malo'); } }
     if (tipo === 'congelar') { s.congelado = 6; noticia(s, 'Precios congelados por 6 meses. Las góndolas, misteriosamente vacías.', 'bueno'); }
     if (tipo === 'subsidio') { s.subsidios++; s.aprob = Math.min(100, s.aprob + 2); noticia(s, ['Subsidio a la luz: la boleta llega en blanco.', 'Subsidio al colectivo: viaja hasta el perro.', 'Subsidio al gas: hasta los asados salen más baratos.'][s.subsidios % 3], 'bueno'); }
-    if (tipo === 'impuesto') { const n = M.IMPUESTOS[s.impuestos % M.IMPUESTOS.length]; s.impuestos++; s.aprob = Math.max(0, s.aprob - 4); s.infl = Math.max(0.3, s.infl - 1.5); noticia(s, `Nuevo impuesto: «${n}». La recaudación sube y el humor baja.`, 'malo'); }
+    if (tipo === 'impuesto') { const n = M.IMPUESTOS[s.impuestos % M.IMPUESTOS.length]; s.impuestos++; s.aprob = Math.max(0, s.aprob - 4); s.infl = Math.max(0.3, s.infl - 1.5); noticia(s, `Nuevo impuesto: «${n}». La recaudación sube y el humor baja.`, 'malo'); if (s.impuestos >= 10) M.logro(s, 'impuestazo'); }
+    if (tipo === 'cadena') { s.cadenas++; s.prensa = Math.min(80, s.prensa + (s.min.propaganda ? 22 : 14)); const sale = s.cadenas % 4 !== 0 || Math.random() < 0.5; if (sale) { s.aprob = Math.min(100, s.aprob + 11); noticia(s, 'Cadena nacional: hablaste 40 minutos sin parar. La aprobación sube (el rating no).', 'bueno'); } else { s.aprob = Math.max(0, s.aprob - 5); noticia(s, 'Otra cadena nacional… la gente se cansó de que le cortes la novela.', 'malo'); } M.logro(s, 'cadena'); }
+    if (tipo === 'deuda') { const monto = M.montoDeuda(s); s.caja += monto; s.deuda += monto; s.deudaCuota = Math.ceil(s.deuda * 0.03); s.aprob = Math.max(0, s.aprob - 4); noticia(s, `Pediste plata al Fondo: entraron $ ${M.fmt(monto)}. Ahora pagás una cuota todos los meses.`, 'malo'); M.logro(s, 'deuda'); }
+    if (tipo === 'cripto') { s.cripto = { meses: 2 + Math.floor(Math.random() * 3) }; noticia(s, 'Lanzaste GonzaCoin, la cripto nacional. En unos meses se sabrá si fue una genialidad o un papelón.'); }
     return true;
   };
   M.ascender = function (s) {
@@ -211,6 +240,24 @@
       op: [{ n: 'Darles un bono', f: s => { s.caja -= Math.min(s.caja, M.costoPlan(s)); s.aprob += 6; s.infl += 0.5; return 'Bono otorgado. Te aplaudieron, con bastón.'; } }, { n: 'Mandarlos a esperar', f: s => { s.aprob -= 8; return 'Mala idea: los jubilados votan todos.'; } }], def: 1 },
     { id: 'inversor', t: 'Un inversor extranjero quiere venir', d: 'Promete una fábrica, pero pide reglas claras.',
       op: [{ n: 'Prometer reglas claras', f: s => { s.caja += M.porSeg(s) * 80; s.aprob += 2; return 'Vino, sacó una foto y se fue. Dejó algo de plata.'; } }, { n: 'Pedirle una «colaboración»', f: s => { s.usd += Math.max(0.5, s.usd * 0.05); s.aprob -= 3; return 'Colaboró. No volvió nunca más.'; } }], def: 0 },
+    { id: 'famoso', t: 'Un famoso te banca en vivo', d: 'Un cantante muy conocido dice que sos “lo mejor que le pasó al país”.',
+      op: [{ n: 'Subirlo al escenario', f: s => { s.aprob += Math.random() < .65 ? 9 : -5; return Math.random() < .65 ? 'El recital terminó con tu nombre coreado.' : 'Al otro día lo cancelaron y te arrastró.'; } }, { n: 'Agradecer de lejos', f: s => { s.aprob += 3; return 'Prudente: un tuit y nada más.'; } }], def: 1 },
+    { id: 'nafta', t: 'Aumenta la nafta', d: 'Las petroleras quieren subir el combustible un 20 %.',
+      op: [{ n: 'Congelar el precio', f: s => { s.caja -= Math.min(s.caja, M.porSeg(s) * 70); s.aprob += 4; return 'La nafta no sube. El subsidio, sí.'; } }, { n: 'Dejar que suba', f: s => { s.infl += 2; s.aprob -= 5; return 'Subió todo lo que viaja en camión, o sea, todo.'; } }], def: 1 },
+    { id: 'hacker', t: 'Hackearon el Banco Central', d: 'Un adolescente entró a los sistemas y pide un rescate en cripto.',
+      op: [{ n: 'Pagar el rescate', f: s => { s.caja -= Math.min(s.caja, M.porSeg(s) * 50); return 'Pagaste. El pibe devolvió todo y dejó una reseña de 5 estrellas.'; } }, { n: 'Ofrecerle trabajo', f: s => { s.aprob += 3; return 'Ahora es tu secretario de Ciberseguridad. Tiene 15 años.'; } }], def: 1 },
+    { id: 'temporal', t: 'Temporal en el litoral', d: 'Se inundaron varios pueblos y piden ayuda urgente.', min: s => s.mes > 4,
+      op: [{ n: 'Mandar ayuda ya', f: s => { s.caja -= Math.min(s.caja, M.porSeg(s) * 60); s.aprob += 7; return 'Fuiste con botas de goma y repartiste colchones. Buena imagen.'; } }, { n: 'Mandar un tuit', f: s => { s.aprob -= 6; return '«Fuerza» pusiste. No alcanzó.'; } }], def: 1 },
+    { id: 'viaje', t: 'Gira por el exterior', d: 'Te invitan a una cumbre de presidentes muy importante.',
+      op: [{ n: 'Ir a buscar inversiones', f: s => { s.caja += M.porSeg(s) * 100; s.aprob -= 2; return 'Volviste con fotos, un acuerdo y nueve valijas.'; } }, { n: 'Quedarte a gobernar', f: s => { s.aprob += 3; return '«Primero los problemas de casa», dijiste. Quedó bien.'; } }], def: 0 },
+    { id: 'gremio', t: 'Paritarias con el gremio más duro', d: 'Piden un aumento que no entra en ninguna planilla.',
+      op: [{ n: 'Darles el aumento', f: s => { s.impresoMes += M.porSeg(s) * 50; s.aprob += 2; return 'Firmaron contentos. La maquinita, menos.'; } }, { n: 'Ofrecer un bono único', f: s => { s.aprob -= 3; if (Math.random() < .4) { s.aprob -= 4; return 'No aceptaron: paro por 48 horas.'; } return 'A regañadientes, firmaron.'; } }], def: 1 },
+    { id: 'loteria', t: 'Un jubilado ganó la lotería', d: 'Ganó un premio enorme y la prensa quiere tu reacción.',
+      op: [{ n: 'Felicitarlo en persona', f: s => { s.aprob += 5; return 'Fuiste a su casa a tomar mate. La foto fue un éxito.'; } }, { n: 'Ponerle un impuesto al premio', f: s => { s.caja += M.porSeg(s) * 40; s.aprob -= 7; return 'Recaudaste, pero quedaste como el malo de la película.'; } }], def: 0 },
+    { id: 'feria', t: 'Furor por el dólar en la feria', d: 'En una feria del pueblo empezaron a vender todo en dólares.',
+      op: [{ n: 'Prohibirlo', f: s => { s.aprob -= 4; s.infl = Math.max(0.5, s.infl - 1); return 'Mandaste inspectores. Ahora venden en “puntos”.'; } }, { n: 'Dejar hacer', f: s => { s.infl += 2; return 'La feria dolarizada quedó más ordenada que la economía.'; } }], def: 0 },
+    { id: 'mascota', t: 'Eligen la mascota nacional', d: 'Una encuesta quiere que adoptes un animal como símbolo del país.',
+      op: [{ n: 'El carpincho', f: s => { s.aprob += 6; return 'El carpincho es un fenómeno. Hay peluches, remeras y memes.'; } }, { n: 'El hornero', f: s => { s.aprob += 2; return 'Clásico y tranquilo. A nadie le molesta.'; } }], def: 0 },
   ];
   M.lanzarEvento = function (s) {
     const pool = M.EVENTOS.filter(e => (!e.min || e.min(s)) && e.id !== s.ultEventoId);
@@ -231,11 +278,13 @@
   M.LOGROS = {
     primero: 'Primer billete', mil: 'Mil pesos impresos', millon: 'Millonario (en pesos)', reelecto: 'Reelecto', hiper: 'Hiperinflación', ceros: 'Le sacaste los ceros',
     procer: 'Prócer en un billete', noquis100: 'Cien ñoquis', clicker: 'Mil clics en la maquinita',
+    cadena: 'Cadena nacional', deuda: 'Fuiste al Fondo', cripto: 'GonzaCoin a la Luna', impuestazo: 'Diez impuestos nuevos', ejercito: 'Trescientos ñoquis', ricacho: 'Un palo verde (US$ 1 millón)',
   };
   M.logro = (s, id) => { if (s.logros[id]) return false; s.logros[id] = Date.now(); noticia(s, `🏆 Logro: ${M.LOGROS[id]}`, 'logro'); return true; };
   M.revisarLogros = s => {
     if (s.impresoTotal >= 1) M.logro(s, 'primero'); if (s.impresoTotal >= 1e3) M.logro(s, 'mil'); if (s.impresoTotal >= 1e6) M.logro(s, 'millon');
     if (s.noquis >= 100) M.logro(s, 'noquis100'); if (s.clicks >= 1000) M.logro(s, 'clicker');
+    if (s.noquis >= 300) M.logro(s, 'ejercito'); if (s.usdTotal >= 1e6) M.logro(s, 'ricacho');
   };
 
   /* ───── ranking contra otros políticos (inventados) ───── */

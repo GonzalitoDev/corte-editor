@@ -134,7 +134,7 @@
   let firmaTienda = '';
   function pintarTienda(forzar) {
     // solo se redibuja si cambió algo que se ve
-    const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes].join('|');
+    const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;
     let h = '';
     if (tab === 'imprentas') {
@@ -147,11 +147,19 @@
       const pr = [
         ['plan', 'Plan Platita', 'Bono para todos: +9 de aprobación al instante. Empuja la inflación.', M.costoPlan(s)],
         ['prensa', 'Operación de prensa', `Los medios amigos te defienden: +${s.min.relato ? 8 : 4} ya y un poco más por un tiempo. Puede salir mal.`, M.costoPrensa(s)],
+        ['cadena', 'Cadena nacional', 'Interrumpís la tele y subís la aprobación de golpe. Si abusás, la gente se cansa.', M.costoCadena(s)],
         ['subsidio', `Subsidio (${s.subsidios} activos)`, 'Sube la aprobación todos los meses, pero hay que pagarlo cada mes.', M.costoSubsidio(s)],
         ['congelar', s.congelado ? `Precios congelados (${s.congelado} meses)` : 'Congelar precios', 'Baja mucho la inflación por 6 meses. Después, los precios se descongelan de golpe.', M.costoCongelar(s)],
         ['impuesto', `Inventar un impuesto (${s.impuestos})`, `«${M.IMPUESTOS[s.impuestos % M.IMPUESTOS.length]}»: baja la inflación y sube la recaudación, pero la gente se enoja.`, M.costoImpuesto(s)],
+        ['deuda', 'Pedir plata al Fondo', `Entra un montón ya (+$ ${M.fmt(M.montoDeuda(s))}), pero pagás una cuota todos los meses y baja la aprobación.`, 0],
+        ['cripto', s.cripto ? 'GonzaCoin (en juego…)' : 'Lanzar GonzaCoin', 'La cripto nacional: en unos meses se va a la Luna… o a cero. Más chances con la secretaría de blockchain.', M.costoCripto(s)],
       ];
-      for (const [id, n, d, c] of pr) h += item('prog:' + id, n, d, '$ ' + M.fmt(c), null, s.caja >= c && !(id === 'congelar' && s.congelado), s.caja < c ? 'caro' : '');
+      for (const [id, n, d, c] of pr) {
+        const criptoActivo = id === 'cripto' && s.cripto;
+        const chip = id === 'deuda' ? 'DEUDA' : '$ ' + M.fmt(c);
+        const ok = !criptoActivo && s.caja >= c && !(id === 'congelar' && s.congelado);
+        h += item('prog:' + id, n, d, chip, null, ok, criptoActivo ? 'bloq' : (s.caja < c ? 'caro' : ''));
+      }
     } else if (tab === 'gabinete') {
       const cn = M.costoNoqui(s);
       h += `<p class="sub">ÑOQUIS (EMPLEADOS QUE NADIE VIO)</p>`;
@@ -172,7 +180,7 @@
       h += '<ul class="cargos">' + M.CARGOS.map((c, i) => `<li class="${i === s.cargo ? 'yo' : i < s.cargo ? 'pasado' : ''}"><span>${c.n}</span><span>${i ? M.fmtUsd(c.usd) : '—'}</span></li>`).join('') + '</ul>';
       h += `<p class="sub">RANKING DE FORTUNAS POLÍTICAS</p><ul class="cargos rank">` + M.ranking(s).map((r, i) => `<li class="${r.yo ? 'yo' : ''}"><span>${i + 1}. ${r.n}</span><span>${M.fmtUsd(r.usd)}</span></li>`).join('') + '</ul>';
       h += `<p class="sub">LOGROS</p><div class="logros">` + Object.entries(M.LOGROS).map(([k, n]) => `<span class="${s.logros[k] ? 'ok' : ''}">${n}</span>`).join('') + '</div>';
-      h += `<p class="sub">ESTADÍSTICAS</p><ul class="stats"><li><span>Billetes impresos</span><span>$ ${M.fmt(s.impresoTotal)}</span></li><li><span>Mandatos ganados</span><span>${s.mandatos}</span></li><li><span>Ceros quitados</span><span>${s.ceros}</span></li><li><span>Clics</span><span>${s.clicks}</span></li></ul>`;
+      h += `<p class="sub">ESTADÍSTICAS</p><ul class="stats"><li><span>Billetes impresos</span><span>$ ${M.fmt(s.impresoTotal)}</span></li><li><span>Mandatos ganados</span><span>${s.mandatos}</span></li><li><span>Ceros quitados</span><span>${s.ceros}</span></li><li><span>Clics</span><span>${s.clicks}</span></li>${s.deuda > 0 ? `<li><span>Deuda con el Fondo</span><span>$ ${M.fmt(s.deuda)}</span></li>` : ''}</ul>`;
     }
     const panel = $('#tab-' + tab); const scroll = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = scroll;
   }
