@@ -134,7 +134,7 @@
   let firmaTienda = '';
   function pintarTienda(forzar) {
     // solo se redibuja si cambió algo que se ve
-    const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda].join('|');
+    const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda, Object.keys(s.vip).length].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;
     let h = '';
     if (tab === 'imprentas') {
@@ -172,6 +172,16 @@
         h += item('min:' + m.id, bloq ? '???' : m.n, bloq ? `Se desbloquea siendo ${M.CARGOS[m.cargo].n}.` : m.d, hecho ? 'INAUGURADO' : bloq ? '🔒' : '$ ' + M.fmt(c), null, !bloq && !hecho && s.caja >= c, hecho ? 'hecho' : bloq ? 'bloq' : s.caja < c ? 'caro' : '');
       }
       if (s.cargo >= 4) h += `<p class="sub">MONEDA</p>` + item('ceros', 'Sacarle ceros a la moneda', s.precios >= 1000 ? 'Moneda nueva: los precios vuelven a tener pocos dígitos, la inflación se calma un rato y la gente festeja.' : 'Todavía no hay suficientes ceros para sacar (los precios tienen que multiplicarse por mil).', 'GRATIS', null, s.precios >= 1000);
+    } else if (tab === 'vip') {
+      h += `<p class="sub">LUJOS VIP · SE PAGAN CON TUS DÓLARES</p>`;
+      let algo = false;
+      for (const v of M.VIP) {
+        if (v.cargo > s.cargo + 1) continue;
+        const bloq = s.cargo < v.cargo, hecho = !!s.vip[v.id];
+        h += item('vip:' + v.id, bloq ? '???' : v.n, bloq ? `Se desbloquea siendo ${M.CARGOS[v.cargo].n}.` : v.d, hecho ? 'COMPRADO' : bloq ? '🔒' : M.fmtUsd(v.usd), null, !bloq && !hecho && s.usd >= v.usd, hecho ? 'hecho' : bloq ? 'bloq' : s.usd < v.usd ? 'caro' : '');
+        if (!bloq && !hecho) algo = true;
+      }
+      if (!algo) h += `<p class="sub" style="opacity:.8">Comprá lujos con los dólares de tu bolsillo. Juntá más y subí de cargo para desbloquear los grandes.</p>`;
     } else {
       const sig = M.CARGOS[s.cargo + 1];
       h += `<p class="sub">TU CARRERA POLÍTICA</p>`;
@@ -191,6 +201,7 @@
     if (k === 'prog') ok = M.programa(s, v);
     if (k === 'noqui') ok = M.noqui(s, +v) > 0;
     if (k === 'min') ok = M.ministerio(s, v);
+    if (k === 'vip') ok = M.vip(s, v);
     if (k === 'ceros') ok = M.quitarCeros(s);
     if (k === 'ascender') { ok = M.ascender(s); if (ok) { sBueno(); aviso(`¡Ahora sos ${M.CARGOS[s.cargo].n}!`); } }
     if (ok && k !== 'ascender') sCompra(); else if (!ok) sNo();

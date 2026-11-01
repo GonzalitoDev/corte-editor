@@ -45,6 +45,20 @@
     { id: 'propaganda', n: 'Ministerio de la Propaganda Alegre', d: 'Las operaciones de prensa duran mucho más.', costo: 4e8, cargo: 6 },
     { id: 'cripto', n: 'Secretaría de Innovación Blockchain', d: 'GonzaCoin tiene más chances de irse a la Luna.', costo: 1e11, cargo: 7 },
     { id: 'patria', n: 'Ministerio de la Patria Financiera', d: 'Todas las imprentas producen el doble (otra vez).', costo: 4e12, cargo: 8 },
+    { id: 'trolls', n: 'Granja de Trolls Oficiales', d: 'La prensa y las cadenas suben un 50 % más la aprobación.', costo: 3e7, cargo: 4 },
+    { id: 'lealtad', n: 'Ministerio de Lealtades', d: 'La aprobación sube un poco más cada mes.', costo: 8e9, cargo: 6 },
+  ];
+  // mejoras VIP: lujos que te comprás con tus DÓLARES del bolsillo. Son fuertes y permanentes (por carrera).
+  M.VIP = [
+    { id: 'auto0km', n: 'Auto 0km importado', d: 'Toda la producción rinde un 15 % más.', usd: 40, cargo: 0 },
+    { id: 'rolex', n: 'Reloj de lujo', d: 'Tus clics en la maquinita valen el triple.', usd: 180, cargo: 1 },
+    { id: 'yate', n: 'Yate en el río', d: '+8 puntos de «retorno» a tu bolsillo (más dólares).', usd: 900, cargo: 2 },
+    { id: 'mansion', n: 'Mansión en un country', d: 'La aprobación sube sola un poco cada mes.', usd: 3500, cargo: 3 },
+    { id: 'offshore', n: 'Cuenta en el exterior', d: 'Comprás dólares un 25 % más baratos.', usd: 2e4, cargo: 4 },
+    { id: 'barra', n: 'Barra brava propia', d: 'La inflación enoja mucho menos a la gente.', usd: 1.5e5, cargo: 5 },
+    { id: 'jet', n: 'Jet privado', d: 'Toda la producción se duplica.', usd: 2e6, cargo: 6 },
+    { id: 'estatua', n: 'Estatua tuya (en vida)', d: 'Tus contactos rinden un 50 % más.', usd: 3e7, cargo: 7 },
+    { id: 'isla', n: 'Isla privada', d: 'Toda la producción se vuelve a duplicar.', usd: 5e8, cargo: 8 },
   ];
   M.IMPUESTOS = ['Tasa al viento del sur', 'Impuesto al mate compartido', 'Contribución por mirar el río', 'Tasa a los domingos lindos', 'Impuesto a la sobremesa', 'Tasa por tener razón', 'Gravamen al asado de los sábados', 'Impuesto a las vacaciones imaginadas', 'Tasa por respirar fuerte', 'Impuesto al chiste repetido', 'Contribución solidaria al tío que opina', 'Tasa a la siesta prolongada', 'Impuesto al “te lo dije”', 'Tasa por hacer la cola bien', 'Gravamen al primer mate amargo', 'Contribución por el feriado puente', 'Impuesto a las ojeras del lunes', 'Tasa al optimismo injustificado'];
   M.RIVALES = [
@@ -59,20 +73,21 @@
       infl: 2, precios: 1, aprob: 62, cargo: 0, imp: {}, min: {}, noquis: 0, impuestos: 0, subsidios: 0,
       congelado: 0, prensa: 0, ultEvento: 0, evento: null, histInfl: [2], noticias: [], logros: {}, mandatos: 0,
       contactos: contactos || 0, fin: null, ceros: 0, prox: 25 + Math.random() * 20, mejorUsd: 0,
-      deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false,
+      deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false, vip: {},
     };
   };
 
   /* ───── números derivados ───── */
   const multCargo = s => Math.pow(2.4, s.cargo);
-  M.multProd = s => multCargo(s) * (1 + 0.03 * s.contactos) * (s.min.tinta ? 2 : 1) * (s.min.tinta2 ? 3 : 1) * (s.min.patria ? 2 : 1) * Math.pow(s.precios, 0.75);
+  const vip = (s, id) => s.vip && s.vip[id];
+  M.multProd = s => multCargo(s) * (1 + 0.03 * s.contactos * (vip(s, 'estatua') ? 1.5 : 1)) * (s.min.tinta ? 2 : 1) * (s.min.tinta2 ? 3 : 1) * (s.min.patria ? 2 : 1) * (vip(s, 'auto0km') ? 1.15 : 1) * (vip(s, 'jet') ? 2 : 1) * (vip(s, 'isla') ? 2 : 1) * Math.pow(s.precios, 0.75);
   M.prodBase = s => M.IMPRENTAS.reduce((a, g) => a + (s.imp[g.id] || 0) * g.prod, 0);
   M.porSeg = s => M.prodBase(s) * M.multProd(s) * (1 + s.impuestos * 0.06);
-  M.porClick = s => Math.max(1, (1 + M.prodBase(s) * 0.05) * multCargo(s) * (1 + 0.03 * s.contactos) * Math.pow(s.precios, 0.75));
+  M.porClick = s => Math.max(1, (1 + M.prodBase(s) * 0.05) * multCargo(s) * (1 + 0.03 * s.contactos) * (vip(s, 'rolex') ? 3 : 1) * Math.pow(s.precios, 0.75));
   M.costo = (s, g) => Math.ceil(g.costo * Math.pow(1.15, s.imp[g.id] || 0) * s.precios);
   M.costoMin = (s, m) => Math.ceil(m.costo * s.precios);
-  M.retorno = s => Math.min(0.3, 0.02 + s.noquis * 0.0025 + (s.min.secretos ? 0.06 : 0));   // parte que va a tu bolsillo
-  M.dolar = s => 100 * s.precios * (s.min.celeste ? 0.7 : 1);
+  M.retorno = s => Math.min(0.35, 0.02 + s.noquis * 0.0025 + (s.min.secretos ? 0.06 : 0) + (vip(s, 'yate') ? 0.08 : 0));   // parte que va a tu bolsillo
+  M.dolar = s => 100 * s.precios * (s.min.celeste ? 0.7 : 1) * (vip(s, 'offshore') ? 0.75 : 1);
   M.costoNoqui = s => Math.ceil(80 * Math.pow(1.1, s.noquis) * s.precios);
   M.costoPlan = s => Math.ceil((40 + M.porSeg(s) * 25) * 1);
   M.costoPrensa = s => Math.ceil((60 + M.porSeg(s) * 18));
@@ -142,7 +157,7 @@
     }
     // aprobación
     const ip = M.inflPercibida(s);
-    let d = -Math.max(0, ip - 1.5) * 0.2 - s.noquis * 0.006 + s.subsidios * 0.55 + (s.min.felicidad ? 0.6 : 0) + s.prensa * 0.12 + (Math.random() - .5) * 0.6;
+    let d = -Math.max(0, ip - 1.5) * 0.2 * (vip(s, 'barra') ? 0.5 : 1) - s.noquis * 0.006 + s.subsidios * 0.55 + (s.min.felicidad ? 0.6 : 0) + (s.min.lealtad ? 0.4 : 0) + (vip(s, 'mansion') ? 0.5 : 0) + s.prensa * 0.12 + (Math.random() - .5) * 0.6;
     if (s.aprob < 30) d += 0.3; // la gente se acostumbra
     s.aprob = Math.max(0, Math.min(100, s.aprob + d));
     if (ip > 15 && Math.random() < 0.25) noticia(s, ['Las etiquetas de precios ya se venden con lápiz y goma.', 'Un kiosco cambió los precios tres veces mientras un cliente elegía un alfajor.', 'Los billetes se pesan en vez de contarse.', 'Récord: el changuito cuesta más que el auto del año pasado.'][Math.floor(Math.random() * 4)], 'malo');
@@ -187,11 +202,11 @@
     if (tipo === 'cripto' && s.cripto) return false;
     s.caja -= c;
     if (tipo === 'plan') { s.aprob = Math.min(100, s.aprob + 9); s.impresoMes += c * 4; noticia(s, 'Lanzaste el «Plan Platita»: bono para todos. La gente sonríe; los precios también.', 'bueno'); }
-    if (tipo === 'prensa') { s.prensa = Math.min(60, s.prensa + (s.min.relato ? 20 : 10)); s.aprob = Math.min(100, s.aprob + (s.min.relato ? 8 : 4)); noticia(s, ['Los canales amigos dicen que la inflación es «una sensación».', 'Un panel de expertos explica que los precios en realidad bajaron.', 'Encuesta propia: 9 de cada 10 están chochos.'][Math.floor(Math.random() * 3)]); if (Math.random() < 0.12) { s.aprob -= 8; noticia(s, 'Se filtró que pagaste la nota: escándalo en las redes.', 'malo'); } }
+    if (tipo === 'prensa') { s.prensa = Math.min(60, s.prensa + (s.min.relato ? 20 : 10)); s.aprob = Math.min(100, s.aprob + (s.min.relato ? 8 : 4) * (s.min.trolls ? 1.5 : 1)); noticia(s, ['Los canales amigos dicen que la inflación es «una sensación».', 'Un panel de expertos explica que los precios en realidad bajaron.', 'Encuesta propia: 9 de cada 10 están chochos.'][Math.floor(Math.random() * 3)]); if (Math.random() < 0.12) { s.aprob -= 8; noticia(s, 'Se filtró que pagaste la nota: escándalo en las redes.', 'malo'); } }
     if (tipo === 'congelar') { s.congelado = 6; noticia(s, 'Precios congelados por 6 meses. Las góndolas, misteriosamente vacías.', 'bueno'); }
     if (tipo === 'subsidio') { s.subsidios++; s.aprob = Math.min(100, s.aprob + 2); noticia(s, ['Subsidio a la luz: la boleta llega en blanco.', 'Subsidio al colectivo: viaja hasta el perro.', 'Subsidio al gas: hasta los asados salen más baratos.'][s.subsidios % 3], 'bueno'); }
     if (tipo === 'impuesto') { const n = M.IMPUESTOS[s.impuestos % M.IMPUESTOS.length]; s.impuestos++; s.aprob = Math.max(0, s.aprob - 4); s.infl = Math.max(0.3, s.infl - 1.5); noticia(s, `Nuevo impuesto: «${n}». La recaudación sube y el humor baja.`, 'malo'); if (s.impuestos >= 10) M.logro(s, 'impuestazo'); }
-    if (tipo === 'cadena') { s.cadenas++; s.prensa = Math.min(80, s.prensa + (s.min.propaganda ? 22 : 14)); const sale = s.cadenas % 4 !== 0 || Math.random() < 0.5; if (sale) { s.aprob = Math.min(100, s.aprob + 11); noticia(s, 'Cadena nacional: hablaste 40 minutos sin parar. La aprobación sube (el rating no).', 'bueno'); } else { s.aprob = Math.max(0, s.aprob - 5); noticia(s, 'Otra cadena nacional… la gente se cansó de que le cortes la novela.', 'malo'); } M.logro(s, 'cadena'); }
+    if (tipo === 'cadena') { s.cadenas++; s.prensa = Math.min(80, s.prensa + (s.min.propaganda ? 22 : 14)); const sale = s.cadenas % 4 !== 0 || Math.random() < 0.5; if (sale) { s.aprob = Math.min(100, s.aprob + 11 * (s.min.trolls ? 1.5 : 1)); noticia(s, 'Cadena nacional: hablaste 40 minutos sin parar. La aprobación sube (el rating no).', 'bueno'); } else { s.aprob = Math.max(0, s.aprob - 5); noticia(s, 'Otra cadena nacional… la gente se cansó de que le cortes la novela.', 'malo'); } M.logro(s, 'cadena'); }
     if (tipo === 'deuda') { const monto = M.montoDeuda(s); s.caja += monto; s.deuda += monto; s.deudaCuota = Math.ceil(s.deuda * 0.03); s.aprob = Math.max(0, s.aprob - 4); noticia(s, `Pediste plata al Fondo: entraron $ ${M.fmt(monto)}. Ahora pagás una cuota todos los meses.`, 'malo'); M.logro(s, 'deuda'); }
     if (tipo === 'cripto') { s.cripto = { meses: 2 + Math.floor(Math.random() * 3) }; noticia(s, 'Lanzaste GonzaCoin, la cripto nacional. En unos meses se sabrá si fue una genialidad o un papelón.'); }
     return true;
@@ -201,6 +216,14 @@
     s.usd -= sig.usd; s.cargo++; s.aprob = Math.min(100, s.aprob + 5);
     noticia(s, `¡Asumiste como ${sig.n}! Jura con la mano en el bolsillo.`, 'bueno');
     if (s.cargo === M.CARGOS.length - 1) M.logro(s, 'procer');
+    return true;
+  };
+  M.vip = function (s, id) {
+    const v = M.VIP.find(x => x.id === id); if (!v || s.vip[id] || s.cargo < (v.cargo || 0) || s.fin) return false;
+    if (s.usd < v.usd) return false;
+    s.usd -= v.usd; s.vip[id] = true; noticia(s, `Te diste un lujo: ${v.n}. La oposición tomó nota.`, 'bueno'); M.logro(s, 'vip');
+    if (M.LOGROS[id]) M.logro(s, id);                 // logros de jet / isla
+    if (M.VIP.every(x => s.vip[x.id])) M.logro(s, 'vipTotal');
     return true;
   };
   M.quitarCeros = function (s) {
@@ -239,6 +262,8 @@
     if (s.evento) M.autoEvento(s);
     while (M.ascender(s)) { }                           // asciende todo lo que pueda
     if (s.cargo >= 4 && s.precios >= 1000) M.quitarCeros(s);
+    // lujos VIP con los dólares que sobran
+    { let mv = null; for (const v of M.VIP) if (!s.vip[v.id] && s.cargo >= (v.cargo || 0) && s.usd >= v.usd && (!mv || v.usd > mv.usd)) mv = v; if (mv) M.vip(s, mv.id); }
 
     // cuida la aprobación para no perder las elecciones
     const me = M.mesesEleccion(s);
@@ -328,6 +353,7 @@
     primero: 'Primer billete', mil: 'Mil pesos impresos', millon: 'Millonario (en pesos)', reelecto: 'Reelecto', hiper: 'Hiperinflación', ceros: 'Le sacaste los ceros',
     procer: 'Prócer en un billete', noquis100: 'Cien ñoquis', clicker: 'Mil clics en la maquinita',
     cadena: 'Cadena nacional', deuda: 'Fuiste al Fondo', cripto: 'GonzaCoin a la Luna', impuestazo: 'Diez impuestos nuevos', ejercito: 'Trescientos ñoquis', ricacho: 'Un palo verde (US$ 1 millón)',
+    vip: 'Primer lujo VIP', vipTotal: 'Vida de lujo completa', jet: 'Jet privado', isla: 'Isla privada',
   };
   M.logro = (s, id) => { if (s.logros[id]) return false; s.logros[id] = Date.now(); noticia(s, `🏆 Logro: ${M.LOGROS[id]}`, 'logro'); return true; };
   M.revisarLogros = s => {
