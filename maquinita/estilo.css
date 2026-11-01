@@ -15,6 +15,8 @@ button{font:inherit;color:inherit;cursor:pointer}
 .acciones a.dl:hover{background:var(--verde,#4fbf5a);color:#102a0a}
 .acciones button:active,.acciones a.dl:active{transform:translate(2px,2px);box-shadow:1px 1px 0 #120d22}
 .acciones button.off{opacity:.45}
+.acciones button.on{background:var(--verde,#4fbf5a);color:#102a0a;box-shadow:3px 3px 0 #173f1a;animation:pulso 1.4s steps(2) infinite}
+@keyframes pulso{50%{filter:brightness(1.18)}}
 
 .juego{display:grid;grid-template-columns:minmax(230px,280px) 1fr minmax(300px,380px);gap:16px;padding:16px;max-width:1400px;margin:0 auto}
 .col{display:flex;flex-direction:column;gap:12px;min-width:0}

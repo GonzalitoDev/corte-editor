@@ -59,7 +59,7 @@
       infl: 2, precios: 1, aprob: 62, cargo: 0, imp: {}, min: {}, noquis: 0, impuestos: 0, subsidios: 0,
       congelado: 0, prensa: 0, ultEvento: 0, evento: null, histInfl: [2], noticias: [], logros: {}, mandatos: 0,
       contactos: contactos || 0, fin: null, ceros: 0, prox: 25 + Math.random() * 20, mejorUsd: 0,
-      deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0,
+      deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false,
     };
   };
 
@@ -161,7 +161,7 @@
     noticia(s, motivo === 'juicio' ? 'Juicio político: te tuviste que ir en helicóptero.' : 'Perdiste las elecciones. Te vas a dar clases a una universidad del exterior.', 'malo');
   }
   M.contactosGanados = s => Math.floor(s.cargo * 3 + s.mandatos * 2 + Math.log10(s.usdTotal + 1) * 2);
-  M.renacer = s => { const c = s.contactos + (s.fin ? s.fin.contactos : M.contactosGanados(s)); const n = M.nuevo(c); n.logros = s.logros; n.mandatosTotales = (s.mandatosTotales || 0) + s.mandatos; noticia(n, `Volvés a la política con ${c} contactos: todo rinde un ${Math.round(c * 3)} % más.`, 'bueno'); return n; };
+  M.renacer = s => { const c = s.contactos + (s.fin ? s.fin.contactos : M.contactosGanados(s)); const n = M.nuevo(c); n.logros = s.logros; n.mandatosTotales = (s.mandatosTotales || 0) + s.mandatos; n.autoOn = s.autoOn; noticia(n, `Volvés a la política con ${c} contactos: todo rinde un ${Math.round(c * 3)} % más.`, 'bueno'); return n; };
 
   /* ───── acciones ───── */
   M.comprar = function (s, id) {
@@ -208,6 +208,55 @@
     const k = Math.pow(10, Math.floor(Math.log10(s.precios) / 3) * 3);
     s.precios /= k; s.caja /= k; s.ceros++; s.infl = Math.max(2, s.infl * 0.4); s.aprob = Math.min(100, s.aprob + 8);
     noticia(s, `Moneda nueva: le sacaste ${Math.round(Math.log10(k))} ceros. Billetes con próceres nuevos (vos).`, 'bueno'); M.logro(s, 'ceros'); return true;
+  };
+
+  /* ───── modo automático (AFK): el juego se juega solo ───── */
+  // elige la mejor opción de un evento probándolas sobre una copia del estado
+  M.autoEvento = function (s) {
+    if (!s.evento) return;
+    const e = M.EVENTOS.find(x => x.id === s.evento.id); if (!e) { s.evento = null; return; }
+    let best = e.def, bestScore = -Infinity;
+    for (let k = 0; k < e.op.length; k++) {
+      let clon; try { clon = JSON.parse(JSON.stringify(s)); } catch (err) { break; }
+      clon.evento = null;
+      try { e.op[k].f(clon); } catch (err) { continue; }
+      const ap = Math.max(0, Math.min(100, clon.aprob));
+      const score = (s.aprob < 50 ? ap * 4 : ap) + Math.log10(1 + Math.max(0, clon.caja)) + Math.log10(1 + Math.max(0, clon.usd)) * 2;
+      if (score > bestScore) { bestScore = score; best = k; }
+    }
+    M.elegir(s, best);
+  };
+
+  M.auto = function (s, dt) {
+    if (s.fin || !s.autoOn) return;
+    // imprime solo (unos 5 clics por segundo)
+    s._ac = (s._ac || 0) + dt;
+    while (s._ac >= 0.2) { s._ac -= 0.2; M.click(s); }
+    // toma decisiones cada ~0,8 s
+    s._at = (s._at || 0) + dt;
+    if (s._at < 0.8) return; s._at = 0;
+
+    if (s.evento) M.autoEvento(s);
+    while (M.ascender(s)) { }                           // asciende todo lo que pueda
+    if (s.cargo >= 4 && s.precios >= 1000) M.quitarCeros(s);
+
+    // cuida la aprobación para no perder las elecciones
+    const me = M.mesesEleccion(s);
+    if (s.aprob < 42 || (me <= 10 && s.aprob < 50)) {
+      if (!(s.subsidios < 6 && M.programa(s, 'subsidio'))) { if (!M.programa(s, 'plan')) M.programa(s, 'prensa'); }
+    }
+    const reserva = M.costoPlan(s) * (s.aprob < 55 ? 2 : 0.5);   // guarda más si la aprobación flojea
+
+    // ministerios: siempre convienen
+    for (const m of M.MINISTERIOS) if (!s.min[m.id] && s.cargo >= m.cargo) { const c = M.costoMin(s, m); if (s.caja - c >= reserva) M.ministerio(s, m.id); }
+    // imprentas: compra la de mejor rendimiento por peso que pueda pagar
+    for (let k = 0; k < 8; k++) {
+      let mejor = null, mejorVal = 0;
+      for (const g of M.IMPRENTAS) { if (s.cargo < g.cargo) continue; const c = M.costo(s, g); const val = g.prod / c; if (s.caja - c >= reserva && val > mejorVal) { mejor = g; mejorVal = val; } }
+      if (!mejor) break; M.comprar(s, mejor.id);
+    }
+    // ñoquis baratos: suben el «retorno» a dólares
+    if (M.costoNoqui(s) < M.porSeg(s) * 3 && s.caja - M.costoNoqui(s) >= reserva) M.noqui(s, 1);
   };
 
   /* ───── eventos al azar ───── */

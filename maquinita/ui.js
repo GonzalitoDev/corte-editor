@@ -229,6 +229,7 @@
     $('#finD').textContent = s.fin.motivo === 'juicio' ? 'La aprobación llegó a cero. Te fuiste en helicóptero desde la terraza.' : `Sacaste ${Math.round(s.aprob)} % y necesitabas 40 %. Te vas a dar conferencias al exterior.`;
     $('#finStats').innerHTML = `<li><span>Cargo alcanzado</span><span>${M.CARGOS[s.fin.cargo].n}</span></li><li><span>Duración</span><span>${Math.floor(s.fin.mes / 12)} años y ${s.fin.mes % 12} meses</span></li><li><span>Mandatos ganados</span><span>${s.fin.mandatos}</span></li><li><span>Dólares acumulados</span><span>${M.fmtUsd(s.fin.usd)}</span></li><li><span>Contactos que ganás</span><span>+${s.fin.contactos}</span></li>`;
     $('#mFin').hidden = false;
+    if (s.autoOn) setTimeout(() => { if (s.fin) $('#bRenacer').click(); }, 2800);
   }
   $('#bRenacer').onclick = () => { s = M.renacer(s); finMostrado = false; $('#mFin').hidden = true; guardar(); pintarTienda(true); sBueno(); };
 
@@ -238,6 +239,7 @@
   $$('[data-cerrar]').forEach(b => b.onclick = () => b.closest('.modal').hidden = true);
   $('#bSonido').onclick = () => { sonido = !sonido; $('#bSonido').classList.toggle('off', !sonido); try { localStorage.setItem('maquinita:sonido', sonido ? 'si' : 'no'); } catch (e) { } };
   $('#bSonido').classList.toggle('off', !sonido);
+  $('#bAuto').onclick = () => { s.autoOn = !s.autoOn; $('#bAuto').classList.toggle('on', !!s.autoOn); guardar(); sCompra(); aviso(s.autoOn ? '🤖 Modo automático activado: el juego se juega solo. Dejá la PC prendida y volvé cuando quieras.' : 'Modo automático desactivado.', 4500); };
   $('#bExportar').onclick = async () => { const cod = btoa(unescape(encodeURIComponent(M.serializar(s)))); try { await navigator.clipboard.writeText(cod); aviso('Código copiado: pegalo en otro navegador para seguir ahí.'); } catch (e) { prompt('Copiá este código:', cod); } };
   $('#bImportar').onclick = () => { const cod = prompt('Pegá el código de tu partida:'); if (!cod) return; try { const n = M.cargar(decodeURIComponent(escape(atob(cod.trim())))); if (!n) throw 0; s = n; finMostrado = false; guardar(); pintarTienda(true); $('#mMenu').hidden = true; aviso('Partida cargada.'); } catch (e) { aviso('Ese código no es válido.'); } };
   $('#bRetirarse').onclick = () => { if (!confirm(`¿Retirarte ahora? Ganás ${M.contactosGanados(s)} contactos y empezás de nuevo.`)) return; s = M.renacer(s); finMostrado = false; guardar(); pintarTienda(true); $('#mMenu').hidden = true; };
@@ -256,12 +258,13 @@
     let dt = (t - ultimo) / 1000; ultimo = t; if (dt > 1) dt = 1; acc += dt;
     // la lógica avanza en pasos de 0,1 s; si la pestaña estuvo dormida, se pone al día (hasta 1 s por cuadro)
     while (acc >= 0.1) { acc -= 0.1; M.paso(s, 0.1); }
+    if (s.autoOn) M.auto(s, dt);
     M.revisarLogros(s);
     dibujarEscena(); tablero(); eventos(); noticias(); fin();
-    if (frame % 15 === 0) pintarTienda(false);
+    if (frame % 15 === 0) { pintarTienda(false); $('#bAuto').classList.toggle('on', !!s.autoOn); }
   }
   // pestaña en segundo plano: el tiempo sigue corriendo con setInterval (los navegadores frenan requestAnimationFrame)
-  setInterval(() => { if (document.hidden) { M.paso(s, 1); } }, 1000);
+  setInterval(() => { if (document.hidden) { M.paso(s, 1); if (s.autoOn) M.auto(s, 1); if (s.fin && s.autoOn) $('#bRenacer').click(); } }, 1000);
 
   /* ───── arranque ───── */
   if (!nueva && s.guardado) {
