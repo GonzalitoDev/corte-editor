@@ -363,4 +363,20 @@
     const g = M.porSeg(s) * seg * 0.4; const ret = g * M.retorno(s); s.caja += g - ret; s.usd += ret / M.dolar(s); s.usdTotal += ret / M.dolar(s); s.impresoTotal += g;
     return g;
   };
+
+  // ponerse al día tras suspender/cerrar la PC: simula de golpe el tiempo que pasó.
+  // con el modo automático, el bot juega ese rato (compra, asciende, gana elecciones y vuelve a empezar).
+  M.avanzar = function (s, seg, auto) {
+    if (!auto) return M.offline(s, seg);           // sin auto: solo la plata offline, no te morís estando afuera
+    seg = Math.min(seg, 12 * 3600);                // tope: 12 horas por recuperación
+    if (seg < 2) return 0;
+    const paso = 2;                                // simula en pasos de 2 segundos
+    let total = 0, prev = s.impresoTotal;
+    for (let acc = 0; acc < seg; acc += paso) {
+      if (s.fin) { Object.assign(s, M.renacer(s)); prev = 0; }   // si se le terminó la carrera, arranca otra
+      M.paso(s, paso); M.auto(s, paso);
+      total += Math.max(0, s.impresoTotal - prev); prev = s.impresoTotal;
+    }
+    return total;
+  };
 })();

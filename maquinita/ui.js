@@ -252,24 +252,41 @@
   addEventListener('pagehide', guardar);
 
   /* ───── bucle ───── */
-  let ultimo = performance.now(), acc = 0;
+  let ultimo = performance.now(), acc = 0, ultimoReal = Date.now();
+  // al volver de una suspensión / pestaña dormida mucho rato, se pone al día de una
+  function ponerseAlDia() {
+    const ahora = Date.now(), gap = (ahora - ultimoReal) / 1000; ultimoReal = ahora;
+    if (gap <= 3 || s.fin && !s.autoOn) return 0;
+    const g = M.avanzar(s, gap, !!s.autoOn);
+    if (g > 0) { pintarTienda(true); const min = Math.round(gap / 60); aviso(`Pasaron ${min >= 60 ? Math.floor(min / 60) + ' h ' + (min % 60) + ' min' : min + ' min'}: la maquinita imprimió $ ${M.fmt(g)}${s.autoOn ? ' y el bot siguió jugando' : ''}.`, 7000); }
+    return g;
+  }
   function bucle(t) {
     requestAnimationFrame(bucle);
     let dt = (t - ultimo) / 1000; ultimo = t; if (dt > 1) dt = 1; acc += dt;
     // la lógica avanza en pasos de 0,1 s; si la pestaña estuvo dormida, se pone al día (hasta 1 s por cuadro)
     while (acc >= 0.1) { acc -= 0.1; M.paso(s, 0.1); }
     if (s.autoOn) M.auto(s, dt);
+    ultimoReal = Date.now();
     M.revisarLogros(s);
     dibujarEscena(); tablero(); eventos(); noticias(); fin();
     if (frame % 15 === 0) { pintarTienda(false); $('#bAuto').classList.toggle('on', !!s.autoOn); }
   }
-  // pestaña en segundo plano: el tiempo sigue corriendo con setInterval (los navegadores frenan requestAnimationFrame)
-  setInterval(() => { if (document.hidden) { M.paso(s, 1); if (s.autoOn) M.auto(s, 1); if (s.fin && s.autoOn) $('#bRenacer').click(); } }, 1000);
+  // cada segundo: si hubo un hueco grande (PC suspendida/cerrada) se recupera; si no, avanza el segundo en segundo plano
+  setInterval(() => {
+    const gap = (Date.now() - ultimoReal) / 1000;
+    if (gap > 3) { ponerseAlDia(); if (s.fin && s.autoOn) $('#bRenacer').click(); }
+    else { ultimoReal = Date.now(); if (document.hidden) { M.paso(s, 1); if (s.autoOn) M.auto(s, 1); if (s.fin && s.autoOn) $('#bRenacer').click(); } }
+  }, 1000);
+  // al despertar la pestaña, ponerse al día ya mismo
+  addEventListener('visibilitychange', () => { if (!document.hidden) ponerseAlDia(); });
 
   /* ───── arranque ───── */
   if (!nueva && s.guardado) {
-    const ganado = M.offline(s, (Date.now() - s.guardado) / 1000);
-    if (ganado > 0) setTimeout(() => aviso(`Mientras no estabas, la maquinita imprimió $ ${M.fmt(ganado)}.`, 6000), 600);
+    const seg = (Date.now() - s.guardado) / 1000;
+    const ganado = M.avanzar(s, seg, !!s.autoOn);
+    ultimoReal = Date.now();
+    if (ganado > 0) setTimeout(() => aviso(`Mientras no estabas, la maquinita imprimió $ ${M.fmt(ganado)}${s.autoOn ? ' (en automático)' : ''}.`, 6000), 600);
   }
   if (nueva) { $('#mAyuda').hidden = false; M.noticia(s, 'Asumiste como Puntero barrial. Tenés una maquinita y muchas ganas.'); }
   pintarTienda(true);
