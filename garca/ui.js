@@ -43,8 +43,11 @@
     $("plata").textContent = M.money(s.plata);
     // ingreso pasivo
     let ing = 0; for (const id in s.socios) { const d = M.socioPorId(id); if (d) ing += d.ingreso * s.socios[id]; }
-    ing *= M.multRep(s);
-    $("ingreso").textContent = ing > 0 ? M.money(ing) + "/s de los socios" : "sin ingreso pasivo todavía";
+    let opIng = 0; for (const id in (s.operadores || {})) { const d = M.operPorId(id); if (d) opIng += d.ingreso * s.operadores[id]; }
+    if (s.herramientas.callcenter) opIng *= 1.35;
+    if (s.herramientas.web) opIng *= 1.15;
+    ing = (ing + opIng) * M.multRep(s);
+    $("ingreso").textContent = ing > 0 ? M.money(ing) + "/s automático" : "sin ingreso pasivo todavía";
     // calor
     const cal = Math.round(s.calor);
     $("calorB").style.width = cal + "%";
@@ -266,6 +269,7 @@
   function pintarTienda(tab) {
     tab = tab || tabActual;
     if (tab === "herr") pintarHerr();
+    else if (tab === "oper") pintarOperadores();
     else if (tab === "socios") pintarSocios();
     else if (tab === "logros") pintarLogros();
     else if (tab === "carrera") pintarCarrera();
@@ -301,6 +305,23 @@
         else aviso("No te alcanza.");
       }));
   }
+  function pintarOperadores() {
+    let html = '<div class="sub">ASISTENTES DE LLAMADAS · estafan solos por vos (⚠️ generan calor)</div>';
+    html += M.OPERADORES.map((o) => {
+      const q = s.operadores[o.id] || 0; const costo = M.costoOperador(s, o.id);
+      const puede = s.plata >= costo;
+      return `<button class="item ${!puede ? "caro" : ""}" data-o="${o.id}" ${!puede ? "disabled" : ""}>
+        <span class="em">${o.emoji}</span><span class="n">${o.n} ${q ? "×" + q : ""}</span>
+        <span class="c">${M.money(costo)}</span>
+        <span class="d">${o.desc}<br>+${M.money(o.ingreso)}/s · 🔥 +${o.calor}/s de calor</span></button>`;
+    }).join("");
+    $("tab-oper").innerHTML = html;
+    $("tab-oper").querySelectorAll(".item[data-o]").forEach((b) =>
+      b.addEventListener("click", () => {
+        if (M.comprarOperador(s, b.dataset.o)) { aviso("Operador contratado 📞"); M.chequearLogros(s).forEach((l) => noti("🏆 Logro: " + l.n, "logro")); pintarTablero(); pintarOperadores(); guardar(); }
+        else aviso("No te alcanza.");
+      }));
+  }
   function pintarLogros() {
     $("tab-logros").innerHTML = '<div class="logros">' + M.LOGROS.map((l) =>
       `<span class="${s.logros[l.id] ? "ok" : ""}">${s.logros[l.id] ? "🏆 " : "🔒 "}${l.n}</span>`).join("") + "</div>";
@@ -328,7 +349,7 @@
     b.addEventListener("click", () => {
       document.querySelectorAll(".tabs button").forEach((x) => x.classList.remove("on"));
       b.classList.add("on");
-      ["herr", "socios", "logros", "carrera"].forEach((t) => $("tab-" + t).hidden = t !== b.dataset.tab);
+      ["herr", "oper", "socios", "logros", "carrera"].forEach((t) => $("tab-" + t).hidden = t !== b.dataset.tab);
       tabActual = b.dataset.tab; pintarTienda(tabActual);
     }));
 
@@ -377,9 +398,17 @@
   function refrescarTodo() { pintarTablero(); pintarTelefono(); pintarTienda(tabActual); pintarNoticias(); }
 
   // ---- bucle pasivo ----
-  let acum = 0;
+  let acum = 0, narrAcum = 0;
   setInterval(() => {
     const r = M.paso(s, 1);
+    if (r.allanado) { noti("🚔 ¡Te allanaron el call center! Perdiste parte de la plata.", "malo"); aviso("🚔 ¡Allanamiento! Bajá el calor."); }
+    // narración de las auto-estafas de los operadores
+    const nop = M.totalOperadores(s);
+    if (nop > 0) {
+      narrAcum++;
+      const cada = Math.max(3, 8 - nop);
+      if (narrAcum >= cada) { narrAcum = 0; if (Math.random() < 0.7) noti(M.autoNarracion(s), "bueno"); }
+    }
     pintarTablero();
     if (modo !== "chat") pintarTienda(tabActual); // actualiza precios alcanzables
     acum++; if (acum % 5 === 0) guardar();

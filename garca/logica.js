@@ -293,6 +293,35 @@
     return round(def.base * Math.pow(1.6, tengo));
   };
 
+  // ---- operadores / asistentes de llamadas (estafan solos en segundo plano) ----
+  // Dan ingreso automático SIN que juegues, pero cada uno genera calor (están
+  // estafando todo el tiempo, y eso atrae a la cana). Se compran varios.
+  G.OPERADORES = [
+    { id: "becario", n: "Becario con un teléfono", emoji: "🧑‍🎓", base: 20000, ingreso: 130, calor: 0.12, desc: "Un pibe lee el guión. Estafa poquito, calienta poco." },
+    { id: "operador", n: "Operador telefónico", emoji: "📞", base: 95000, ingreso: 720, calor: 0.3, desc: "Un profesional del verso. Llama todo el día por vos." },
+    { id: "calljr", n: "Mini call center", emoji: "☎️", base: 480000, ingreso: 3600, calor: 0.65, desc: "Una salita con varias líneas estafando en simultáneo." },
+    { id: "botvoz", n: "Bot de voz con IA", emoji: "🤖", base: 2.4e6, ingreso: 18000, calor: 0.8, desc: "Voz clonada que llama sola. Mucha plata, calor contenido." },
+    { id: "granja", n: "Granja de operadores", emoji: "🏭", base: 14e6, ingreso: 95000, calor: 1.8, desc: "Un galpón lleno de teléfonos. Estafa a escala industrial." },
+  ];
+  G.operPorId = (id) => G.OPERADORES.find((o) => o.id === id);
+  G.costoOperador = function (s, id) {
+    const def = G.operPorId(id);
+    const tengo = (s.operadores && s.operadores[id]) || 0;
+    return round(def.base * Math.pow(1.55, tengo));
+  };
+  G.comprarOperador = function (s, id) {
+    const costo = G.costoOperador(s, id);
+    if (s.plata < costo) return false;
+    s.plata -= costo; s.operadores[id] = (s.operadores[id] || 0) + 1; return true;
+  };
+  G.totalOperadores = function (s) { let t = 0; for (const k in (s.operadores || {})) t += s.operadores[k]; return t; };
+  // narración random de una auto-estafa (sin efecto en la plata; es sabor)
+  G.autoNarracion = function (s) {
+    const tipo = elegir(G.TIPOS);
+    const verso = elegir(G.VERSOS);
+    return "📞 Un operador le hizo «" + verso.n + "» a " + elegir(tipo.nombres) + " (" + tipo.etiqueta + ").";
+  };
+
   // ---- estado nuevo ----
   G.nuevo = function (reputacion) {
     return {
@@ -306,6 +335,7 @@
       reputacion: reputacion || 0,
       herramientas: {},
       socios: {},
+      operadores: {},
       logros: {},
       marcas: [],
       chat: null,
@@ -481,19 +511,34 @@
   // ---- paso del tiempo (ingreso pasivo de socios + enfriar calor) ----
   G.paso = function (s, dt) {
     dt = dt || 1;
-    let ingreso = 0, enfria = 0.6; // enfría solo de base
+    let ingreso = 0, enfria = 0.6, calorOp = 0; // enfría solo de base
     for (const id in s.socios) {
       const def = G.socioPorId(id); if (!def) continue;
       const q = s.socios[id];
       ingreso += def.ingreso * q;
       enfria += def.enfria * q;
     }
-    ingreso *= G.multRep(s);
+    // operadores: estafan solos (más ingreso, pero generan calor)
+    let opIngreso = 0;
+    for (const id in (s.operadores || {})) {
+      const def = G.operPorId(id); if (!def) continue;
+      const q = s.operadores[id];
+      opIngreso += def.ingreso * q;
+      calorOp += def.calor * q;
+    }
+    if (s.herramientas.callcenter) opIngreso *= 1.35;
+    if (s.herramientas.web) opIngreso *= 1.15;
+    if (s.herramientas.chip) calorOp *= 0.7;  // menos calor por estafa
+    ingreso = (ingreso + opIngreso) * G.multRep(s);
     if (s.herramientas.vpn) enfria *= 2;
     if (ingreso) { const g = ingreso * dt; s.plata += g; s.plataTotal += g; }
-    s.calor = clamp(s.calor - enfria * dt, 0, 100);
+    // calor neto: enfriamiento menos el que generan los operadores
+    s.calor = clamp(s.calor - (enfria - calorOp) * dt, 0, 100);
     s.rango = G.rangoDe(s.plataTotal);
-    return { ingreso };
+    // si los operadores te prendieron fuego, te allanan (hasta estando AFK)
+    let allanado = false;
+    if (s.calor >= 100) { G.allanar(s); allanado = true; }
+    return { ingreso, allanado, opIngreso };
   };
 
   // ---- comprar ----
@@ -537,6 +582,7 @@
     { id: "procer", n: "Prócer del verso", test: (s) => s.rango >= 7 },
     { id: "retiro", n: "Te retiraste rico", test: (s) => s.reputacion >= 5 },
     { id: "banco", n: "Dueño del banco", test: (s) => (s.socios.banco || 0) >= 1 },
+    { id: "operadores", n: "Montaste tu call center", test: (s) => G.totalOperadores(s) >= 8 },
   ];
   G.chequearLogros = function (s) {
     const nuevos = [];
@@ -589,6 +635,7 @@
       if (!s.marcas) s.marcas = [];
       if (!s.herramientas) s.herramientas = {};
       if (!s.socios) s.socios = {};
+      if (!s.operadores) s.operadores = {};
       if (!s.logros) s.logros = {};
       s.chat = null; // no se guarda un chat a medias
       s.rango = G.rangoDe(s.plataTotal);
