@@ -1,0 +1,10 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 32 32">
+  <rect width="32" height="32" rx="8" fill="#5ee08a"/>
+  <path d="M9 4h14v24H9z" fill="#0e1512" opacity="0"/>
+  <!-- antifaz de chanta -->
+  <path d="M5 13c0-1.5 1.2-2.5 3-2.5h16c1.8 0 3 1 3 2.5 0 2.2-2.2 4-4.8 4-1.9 0-3.1-.9-3.6-2.2-.3-.7-1.9-.7-2.2 0-.5 1.3-1.7 2.2-3.6 2.2C6.2 17 5 15.2 5 13z" fill="#0e1512"/>
+  <circle cx="10.5" cy="13.2" r="1.3" fill="#5ee08a"/>
+  <circle cx="21.5" cy="13.2" r="1.3" fill="#5ee08a"/>
+  <!-- signo peso -->
+  <path d="M16 19v8M13.4 21.3c0-1 1-1.6 2.6-1.6s2.6.7 2.6 1.6-1 1.4-2.6 1.6-2.6.7-2.6 1.7 1 1.6 2.6 1.6 2.6-.6 2.6-1.6" fill="none" stroke="#0e1512" stroke-width="1.5" stroke-linecap="round"/>
+</svg>

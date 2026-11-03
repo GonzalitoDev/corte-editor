@@ -1,0 +1,92 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>El Garca · Taller</title>
+<meta name="description" content="El Garca: juego satírico en pixel art donde estafás a personajes ficticios por chat. Elegí el verso, ganate su confianza, cobrá… y esquivá la cana. Todo inventado.">
+<meta name="theme-color" content="#0e1512">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header class="top">
+  <a class="volver" href="../" title="Volver al Taller">◀ Taller</a>
+  <h1>EL GARCA</h1>
+  <span class="beta" title="Este juego todavía está en desarrollo">EN DESARROLLO</span>
+  <div class="acciones"><button id="bAyuda" title="Cómo se juega">?</button><button id="bMenu" title="Opciones">☰</button></div>
+</header>
+
+<main class="juego">
+  <!-- tablero -->
+  <section class="col tablero">
+    <div class="caja-p"><small id="rangoLbl">Tu carrera</small><div class="rango" id="rango">Ratero de barrio</div></div>
+    <div class="dato grande"><small>PLATA SUCIA</small><b id="plata">$ 0</b><span id="ingreso">$ 0/s de los socios</span></div>
+    <div class="dato cana" id="datoCana"><small>LA CANA (CALOR)</small><div class="barra"><i id="calorB"></i><span id="calorTxt">0 %</span></div><span id="calorHint">Tranqui, nadie te busca.</span></div>
+    <div class="fila"><div class="dato chico"><small>ESTAFAS</small><b id="estafas">0</b></div><div class="dato chico"><small>REPUTACIÓN</small><b id="rep">0</b></div></div>
+    <button id="bLavar" class="lavar">💵 Lavar plata (enfría la cana)</button>
+    <ul id="noticias" class="noticias"></ul>
+  </section>
+
+  <!-- teléfono -->
+  <section class="col centro">
+    <div class="telefono">
+      <div class="phone-top"><b id="phoneTitulo">📱 WhatsGarca</b><span id="phoneSub">Elegí a quién engañar</span></div>
+      <div class="phone-body" id="phoneBody"></div>
+      <div class="phone-foot" id="phoneFoot"></div>
+    </div>
+  </section>
+
+  <!-- tienda -->
+  <section class="col tienda">
+    <nav class="tabs"><button data-tab="herr" class="on">Herramientas</button><button data-tab="socios">Socios</button><button data-tab="logros">Logros</button><button data-tab="carrera">Carrera</button></nav>
+    <div class="panel" id="tab-herr"></div>
+    <div class="panel" id="tab-socios" hidden></div>
+    <div class="panel" id="tab-logros" hidden></div>
+    <div class="panel" id="tab-carrera" hidden></div>
+  </section>
+</main>
+
+<!-- evento -->
+<div class="modal" id="mEvento" hidden>
+  <div class="ventana evento">
+    <h2 id="evT"></h2><p id="evD"></p>
+    <div class="ops" id="evOps"></div>
+  </div>
+</div>
+<!-- fin / allanamiento / retiro -->
+<div class="modal" id="mFin" hidden>
+  <div class="ventana">
+    <h2 id="finT"></h2><p id="finD"></p>
+    <ul class="stats" id="finStats"></ul>
+    <button class="pri" id="bFinOk">SEGUIR</button>
+  </div>
+</div>
+<!-- ayuda -->
+<div class="modal" id="mAyuda" hidden>
+  <div class="ventana">
+    <h2>CÓMO SE JUEGA</h2>
+    <p>Sos un <b>garca</b> arrancando desde abajo. En el teléfono (📱 WhatsGarca) tenés una lista de <b>víctimas ficticias</b>. Elegí una, elegí un <b>verso</b> (el cuento del tío, el falso premio, la inversión milagrosa…) y empezá a chatear.</p>
+    <p>En cada mensaje elegís qué responder. Las respuestas suben la <b>confianza</b> de la víctima, pero si te ponés muy zarpado le sube la <b>sospecha</b>. Cuando estés listo, apretá <b>Cobrar</b>: cuanta más confianza y menos sospecha, más chances de que te transfiera (y más plata sacás).</p>
+    <p>Cada estafa sube <b>la cana</b> (el calor 🔥). Si llega a 100 %, te allanan y perdés plata. Bajala <b>lavando plata</b>, con <b>socios</b> (campana, fiscal amigo) y <b>herramientas</b> (VPN, celu con mil chips).</p>
+    <p>Con la plata comprás <b>herramientas</b> y <b>socios</b> que te hacen mejor garca y te dan ingreso pasivo. Subís de <b>rango</b> según todo lo que robaste, hasta llegar a <b>Prócer del verso</b>.</p>
+    <p class="nota">⚠️ Es una sátira: todos los personajes, marcas y situaciones son <b>inventados</b>. Es un jueguito de clics, no sirve ni enseña a estafar a nadie de verdad. Tu partida se guarda sola en este navegador.</p>
+    <button class="pri" data-cerrar>¡A VERSEAR!</button>
+  </div>
+</div>
+<!-- menú -->
+<div class="modal" id="mMenu" hidden>
+  <div class="ventana">
+    <h2>OPCIONES</h2>
+    <p class="nota">Tu partida se guarda sola cada pocos segundos en este navegador.</p>
+    <div class="col-bot"><button id="bExportar">Copiar código de partida</button><button id="bImportar">Pegar código de partida</button><button id="bRetirarse">Retirarme del bajo mundo (empezar de nuevo con reputación)</button><button id="bBorrar" class="peligro">Borrar todo</button><button class="pri" data-cerrar>Seguir</button></div>
+  </div>
+</div>
+<div id="aviso" class="aviso" hidden></div>
+
+<script src="logica.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
