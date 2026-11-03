@@ -27,6 +27,18 @@ body{font-size:15px}
 .brand .btn{background:var(--fg);color:var(--bg);border:none;font-weight:700}
 .brand .btn:hover{opacity:.9}
 html{scroll-behavior:smooth}
+.bhead{display:flex;gap:8px;align-items:center;flex-wrap:wrap;justify-content:flex-end}
+.btn.ghost{background:transparent;color:var(--fg);border:1px solid var(--line);font-weight:600}
+.btn.ghost:hover{border-color:var(--fg)}
+.info-modal{position:fixed;inset:0;background:rgba(8,9,12,.74);display:grid;place-items:center;padding:20px;z-index:1000}
+.info-modal[hidden]{display:none}
+.info-card{max-width:560px;width:100%;background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:28px 26px;position:relative;max-height:calc(100vh - 40px);overflow:auto}
+.info-card h2{font-family:var(--f-display);font-weight:800;font-size:clamp(22px,4.5vw,28px);letter-spacing:-.02em;margin:0 0 14px}
+.info-card p{color:#d7dbe2;line-height:1.6;margin:0 0 12px;font-size:16px}
+.info-card p b{color:var(--fg)}
+.info-card .firma{color:var(--muted);font-size:14px;margin-top:4px}
+.info-card .x{position:absolute;top:14px;right:14px;width:34px;height:34px;border-radius:9px;background:color-mix(in srgb,var(--fg) 8%,transparent);border:1px solid var(--line);color:var(--fg);font-size:16px;line-height:1;cursor:pointer}
+.info-card .x:hover{border-color:var(--fg)}
 .apps{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px}
 .app{--a:#e8a33d;position:relative;display:grid;grid-template-columns:auto 1fr;gap:16px;align-items:start;padding:20px;border-radius:14px;background:var(--panel);border:1px solid var(--line);text-decoration:none;color:inherit;overflow:hidden;transition:border-color .2s,transform .2s}
 .app::before{content:"";position:absolute;inset:0 0 auto;height:3px;background:var(--a)}
@@ -59,7 +71,7 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
 <div class="wrap">
   <header class="brand">
     <b><i></i>Taller</b>
-    <a class="btn" href="#apps">Ver todo ▾</a>
+    <div class="bhead"><button class="btn ghost" id="bQue" type="button">¿Qué es esto?</button><a class="btn" href="#apps">Ver todo ▾</a></div>
   </header>
 
   <section class="hero">
@@ -182,6 +194,26 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
 
   <footer><span>Taller · hecho por GonzalitoDev</span><span>Funciona mejor en Chrome o Edge actualizados.</span></footer>
 </div>
+
+<div class="info-modal" id="mQue" hidden>
+  <div class="info-card">
+    <button class="x" id="bQueX" type="button" aria-label="Cerrar">✕</button>
+    <h2>¿Qué es el Taller?</h2>
+    <p>Soy Gonza, un pibe que programa. El Taller es donde fui juntando todo lo que hago: un puñado de <b>herramientas</b> para editar video, fotos, PDF, audio y vectores, y un montón de <b>juegos</b>, todo en un mismo lugar.</p>
+    <p>Es <b>gratis</b> y funciona entero dentro del navegador. No te pide cuenta, no tiene marca de agua y <b>tus archivos no se suben a ningún lado</b>: se procesan en tu propia compu. Si cerrás y volvés, cada app se acuerda de lo que estabas haciendo.</p>
+    <p>No vendo nada ni te lleno de publicidad. Lo hago porque me gusta y porque me parece que estas cosas tendrían que ser gratis. Elegí una herramienta o un juego de la lista y a usarlo, no hay mucha más ciencia.</p>
+    <p class="firma">Si algo no anda o se te ocurre una idea, escribime. — Gonza</p>
+  </div>
+</div>
+
+<script>
+(function(){var m=document.getElementById('mQue');if(!m)return;
+function abrir(){m.hidden=false}function cerrar(){m.hidden=true}
+document.getElementById('bQue').addEventListener('click',abrir);
+document.getElementById('bQueX').addEventListener('click',cerrar);
+m.addEventListener('click',function(e){if(e.target===m)cerrar()});
+document.addEventListener('keydown',function(e){if(e.key==='Escape')cerrar()});})();
+</script>
 <script src="asistente/widget.js" data-sitio="taller" defer></script>
 </body>
 </html>
