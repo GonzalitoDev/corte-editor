@@ -1,0 +1,111 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>La Garita · Taller</title>
+<meta name="description" content="La Garita: juego de inspección de documentos en pixel art. Sos inspector de frontera de la República de Tramitania: revisá papeles, cazá contradicciones, sellá aprobado o denegado y mantené a tu familia. Todo ficticio.">
+<meta name="theme-color" content="#171a18">
+<link rel="icon" href="icon.svg">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=VT323&display=swap">
+<link rel="stylesheet" href="estilo.css">
+</head>
+<body>
+<header class="top">
+  <a class="volver" href="../" title="Volver al Taller">◀ Taller</a>
+  <h1>LA GARITA</h1>
+  <span class="beta" title="Este juego todavía está en desarrollo">EN DESARROLLO</span>
+  <span class="jornada" id="jornada">Día 1</span>
+  <div class="acciones"><button id="bReglas2" title="Reglamento de hoy">📋</button><button id="bAyuda" title="Cómo se juega">?</button><button id="bMenu" title="Opciones">☰</button></div>
+</header>
+
+<main class="mesa">
+  <!-- la garita -->
+  <section class="col garita">
+    <div class="marco">
+      <div class="persona"><div class="cara" id="cara">—</div><div class="quien" id="quien">Puesto cerrado</div></div>
+      <div class="globo" id="globo"><span class="vacia">Abrí la garita para empezar la jornada.</span></div>
+    </div>
+    <div class="contador"><span id="progreso">Día 1 · persona 0/0</span><span id="jornal">Hoy: $ 0</span></div>
+    <div class="feedback" id="feedback" hidden></div>
+  </section>
+
+  <!-- documentos -->
+  <section class="col docs">
+    <div class="docsHead"><b>DOCUMENTOS</b><button id="bReglamento">📋 Reglamento</button><span id="hoyFecha"></span></div>
+    <div class="bandeja" id="bandeja"><div class="sinpapeles">Todavía no hay nadie en la ventanilla.</div></div>
+    <div class="sellos">
+      <button id="bAprobar" class="sello ok" disabled>✔ APROBAR</button>
+      <button id="bDenegar" class="sello no" disabled>✘ DENEGAR</button>
+      <button id="bDetener" class="sello det" hidden>⛓ DETENER</button>
+      <button id="bSiguiente" class="sello sig" hidden>Siguiente ▶</button>
+    </div>
+  </section>
+</main>
+
+<!-- boletín del día -->
+<div class="modal" id="mBoletin" hidden>
+  <div class="ventana">
+    <div class="sello-boletin">MINISTERIO DE ADMISIONES</div>
+    <h2 id="boT">Día 1</h2>
+    <ul class="reglas" id="boReglas"></ul>
+    <button class="pri" id="bAbrir">ABRIR LA GARITA</button>
+  </div>
+</div>
+<!-- reglamento -->
+<div class="modal" id="mReglamento" hidden>
+  <div class="ventana">
+    <h2>REGLAMENTO DE HOY</h2>
+    <ul class="reglas" id="regLista"></ul>
+    <button class="pri" data-cerrar>Entendido</button>
+  </div>
+</div>
+<!-- noche -->
+<div class="modal" id="mNoche" hidden>
+  <div class="ventana">
+    <h2 id="nocheT">Fin del día</h2>
+    <ul class="ledger" id="nocheLedger"></ul>
+    <p class="nota">¿En qué gastás esta noche?</p>
+    <div class="compra" id="nocheCompra"></div>
+    <div class="restante" id="nocheRestante"></div>
+    <div class="familia" id="nocheFamilia"></div>
+    <button class="pri" id="bDormir">DORMIR ▶</button>
+  </div>
+</div>
+<!-- final -->
+<div class="modal" id="mFinal" hidden>
+  <div class="ventana">
+    <div class="final-grande" id="finalT"></div>
+    <p id="finalD"></p>
+    <ul class="ledger" id="finalStats"></ul>
+    <button class="pri" id="bReiniciar">JUGAR DE NUEVO</button>
+  </div>
+</div>
+<!-- ayuda -->
+<div class="modal" id="mAyuda" hidden>
+  <div class="ventana">
+    <h2>CÓMO SE JUEGA</h2>
+    <p>Sos <b>inspector de frontera</b> de la República de <b>Tramitania</b>. Cada persona que llega a tu ventanilla te entrega sus <b>documentos</b>. Tu laburo: dejar pasar a los que están en regla y rechazar a los demás.</p>
+    <p>Cada día, el <b>Ministerio</b> te manda un <b>reglamento</b> (apretá 📋 para verlo). Revisá los papeles contra esas reglas: que no estén <b>vencidos</b> (comparalos con la fecha de HOY), que los <b>nombres coincidan</b> entre documentos, que el <b>sexo</b> del pasaporte sea el de la persona, que el <b>país</b> tenga permitida la entrada, que no falte ningún documento obligatorio.</p>
+    <p>Tocá cada documento para abrirlo. Después sellá <b>✔ APROBAR</b> o <b>✘ DENEGAR</b> (y <b>⛓ DETENER</b> si es un buscado). Si te equivocás, el primer error del día es un aviso; los siguientes te <b>descuentan plata</b>.</p>
+    <p>Cobrás por persona atendida. A la noche pagás <b>alquiler, comida, calefacción</b> y <b>medicina</b> para tu <b>familia</b>. Si no llegás, la pasan mal… y en Tramitania el invierno no perdona.</p>
+    <p>A veces alguien te ofrece una <b>coima</b> para que lo dejes pasar, o aparecen <b>los del sótano</b>. Lo que hagas cambia tu final. </p>
+    <p class="nota">⚠️ Todo es ficción: Tramitania, sus vecinos y sus personajes son inventados. Tu partida se guarda sola en este navegador.</p>
+    <button class="pri" data-cerrar>A SELLAR</button>
+  </div>
+</div>
+<!-- menú -->
+<div class="modal" id="mMenu" hidden>
+  <div class="ventana">
+    <h2>OPCIONES</h2>
+    <p class="nota">Tu partida se guarda sola.</p>
+    <div class="col-bot"><button id="bReiniciar2" class="peligro">Reiniciar la partida</button><button class="pri" data-cerrar>Seguir</button></div>
+  </div>
+</div>
+<div id="aviso" class="aviso" hidden></div>
+
+<script src="logica.js"></script>
+<script src="ui.js"></script>
+</body>
+</html>
