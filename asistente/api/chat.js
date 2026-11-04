@@ -13,7 +13,11 @@ const MODELOS = (process.env.ASISTENTE_MODELOS || 'google/gemma-4-31b-it:free,go
   .split(',').map(s => s.trim()).filter(Boolean).slice(0, 4);
 const ORIGENES = (process.env.ASISTENTE_ORIGENES || '').split(',').map(s => s.trim().replace(/\/+$/, '')).filter(Boolean);
 const LIMITE = Math.max(1, +process.env.ASISTENTE_LIMITE || 20), VENTANA = 10 * 60 * 1000;
+const LIMITE_GLOBAL = Math.max(50, +process.env.ASISTENTE_LIMITE_GLOBAL || 600); // tope por instancia/ventana: cortacircuito ante floods
+const MAX_BODY = 24 * 1024;  // 24 KB de payload máximo
+const MAX_TOTAL = 6000;      // caracteres totales de la charla que le mandamos a la IA
 const golpes = new Map(); // ip → marcas de tiempo (por instancia; frena el abuso básico)
+let globales = [];        // marcas de tiempo globales (por instancia)
 
 function origenOk(origin) {
   if (!ORIGENES.length || !origin) return true;
@@ -32,17 +36,30 @@ export async function POST(req) {
   // las páginas del propio proyecto (como /jarvis/) siempre pueden usarlo
   let propio = false; try { propio = !!origin && new URL(origin).host === (req.headers.get('x-forwarded-host') || req.headers.get('host') || new URL(req.url).host); } catch (e) { }
   if (!propio && !origenOk(origin)) return json(403, { error: 'Este sitio no tiene permiso para usar el asistente.' }, origin);
-  // límite por visitante
-  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon', now = Date.now();
+
+  // payload no gigante (antes de leer el cuerpo)
+  if ((+req.headers.get('content-length') || 0) > MAX_BODY) return json(413, { error: 'Tu mensaje es demasiado largo.' }, origin);
+
+  const now = Date.now();
+  // cortacircuito global por instancia: frena floods aunque vengan de muchas IP
+  globales = globales.filter(t => now - t < VENTANA);
+  if (globales.length >= LIMITE_GLOBAL) return json(429, { error: 'El asistente está recibiendo demasiado tráfico ahora mismo. Probá en un rato.' }, origin);
+
+  // límite por visitante (ventana + ráfaga corta)
+  const ip = (req.headers.get('x-forwarded-for') || '').split(',')[0].trim() || 'anon';
   const lista = (golpes.get(ip) || []).filter(t => now - t < VENTANA);
   if (lista.length >= LIMITE) return json(429, { error: 'Mandaste muchos mensajes seguidos. Esperá unos minutos y seguimos.' }, origin);
-  lista.push(now); golpes.set(ip, lista); if (golpes.size > 5000) golpes.clear();
+  if (lista.filter(t => now - t < 20000).length >= 6) return json(429, { error: 'Pará un toque: mandaste varios mensajes muy seguidos.' }, origin);
+  lista.push(now); golpes.set(ip, lista); globales.push(now); if (golpes.size > 5000) golpes.clear();
 
   let body; try { body = await req.json(); } catch (e) { return json(400, { error: 'Pedido inválido.' }, origin); }
+  if (!body || typeof body !== 'object') return json(400, { error: 'Pedido inválido.' }, origin);
   const sitio = SITIOS[body && body.sitio] ? body.sitio : 'general';
   const mensajes = (Array.isArray(body && body.mensajes) ? body.mensajes : [])
     .filter(m => m && (m.role === 'user' || m.role === 'assistant') && typeof m.content === 'string' && m.content.trim())
     .slice(-10).map(m => ({ role: m.role, content: m.content.slice(0, 1500) }));
+  // acotar el tamaño total de la charla (tope de tokens / costo), conservando lo más reciente
+  while (mensajes.length > 1 && mensajes.reduce((a, m) => a + m.content.length, 0) > MAX_TOTAL) mensajes.shift();
   if (!mensajes.length || mensajes[mensajes.length - 1].role !== 'user') return json(400, { error: 'Falta tu pregunta.' }, origin);
 
   const key = process.env.OPENROUTER_API_KEY;
