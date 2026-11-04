@@ -56,6 +56,12 @@ html{scroll-behavior:smooth}
 .pillars div{display:grid;gap:4px}
 .pillars b{font-family:var(--f-display);font-weight:600;font-size:16px}
 .pillars span{color:var(--muted);font-size:13px;line-height:1.5}
+.gratis{margin-top:40px;padding-top:28px;border-top:1px solid var(--line)}
+.gratis h2.sec{font-family:var(--f-display);font-weight:800;font-size:22px;letter-spacing:-.02em;margin:0 0 14px}
+.gratis ul{list-style:none;margin:0;padding:0;display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px 18px}
+.gratis li{position:relative;padding-left:26px;color:#d7dbe2;line-height:1.5}
+.gratis li::before{content:"✓";position:absolute;left:0;top:1px;color:#36c2b4;font-weight:700}
+@media (max-width:620px){.gratis ul{grid-template-columns:1fr}}
 footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-content:space-between;gap:12px;flex-wrap:wrap}
 .apps>.app:last-child:nth-child(odd){grid-column:1/-1}
 .dev{margin-top:40px}
@@ -75,9 +81,9 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
   </header>
 
   <section class="hero">
-    <h1>Tus herramientas creativas <em>y tus juegos</em>, gratis y en el navegador.</h1>
-    <p>Editá video, fotos, ilustraciones, audio y PDF sin cuentas, sin suscripciones y sin subir tus archivos a ningún servidor: todo se procesa en tu compu. ¿Un rato libre? Date una vuelta por los juegos.</p>
-    <div class="chips"><span>Gratis</span><span>Sin cuenta</span><span>Sin marca de agua</span><span>En tu navegador</span></div>
+    <h1>Herramientas y juegos, <em>todo gratis</em>.</h1>
+    <p>Editás video, fotos, PDF y audio desde el navegador. No te pide cuenta, no tiene marca de agua y no sube tus archivos a ningún lado: se hace todo en tu compu. Y si te aburrís, hay juegos.</p>
+    <div class="chips"><span>Gratis</span><span>Sin cuenta</span><span>Sin marca de agua</span><span>Nada se sube</span></div>
   </section>
 
   <main class="apps" id="apps">
@@ -186,10 +192,21 @@ footer{margin-top:44px;color:var(--muted);font-size:13px;display:flex;justify-co
   </section>
 
   <section class="pillars">
-    <div><b>Gratis de verdad</b><span>Sin planes pagos, sin límites de exportación y sin marcas de agua.</span></div>
-    <div><b>Privado</b><span>Tus archivos se quedan en tu computadora. Nada se sube a un servidor.</span></div>
-    <div><b>Se guarda solo</b><span>Cada app recuerda tu trabajo en el navegador para que sigas después.</span></div>
-    <div><b>Sin instalar nada</b><span>Entrás y usás, desde la compu o el celular. No ocupa espacio.</span></div>
+    <div><b>Gratis</b><span>No pagás nada. No hay planes, ni límites para exportar, ni marca de agua.</span></div>
+    <div><b>Queda en tu compu</b><span>Los archivos no se suben a ningún servidor. Se procesan en tu máquina y listo.</span></div>
+    <div><b>Sigue donde dejaste</b><span>Cada app se acuerda de lo último que estabas haciendo.</span></div>
+    <div><b>Nada que instalar</b><span>Entrás y lo usás, en la compu o en el celular.</span></div>
+  </section>
+
+  <section class="gratis">
+    <h2 class="sec">Todo esto, sin pagar un peso</h2>
+    <ul>
+      <li>Todas las apps y todos los juegos</li>
+      <li>Versiones para Windows, Linux y Android</li>
+      <li>Juego online con amigos, en servidores propios</li>
+      <li>Sin anuncios y sin límites de uso</li>
+      <li>Las actualizaciones también son gratis</li>
+    </ul>
   </section>
 
   <footer><span>Taller · hecho por GonzalitoDev</span><span>Funciona mejor en Chrome o Edge actualizados.</span></footer>
