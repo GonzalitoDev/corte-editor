@@ -1,0 +1,4 @@
+User-agent: *
+Allow: /
+
+Sitemap: https://taller-multiverse-nine.vercel.app/sitemap.xml

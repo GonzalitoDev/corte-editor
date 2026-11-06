@@ -1,0 +1,20 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
+  <url><loc>https://taller-multiverse-nine.vercel.app/</loc><changefreq>weekly</changefreq><priority>1.0</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/nexus/</loc><changefreq>weekly</changefreq><priority>0.9</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/corte/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/lienzo/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/trazo/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/folio/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/onda/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/gonzacraft/</loc><changefreq>monthly</changefreq><priority>0.8</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/gonzasky/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/arena/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/gonzaops/</loc><changefreq>monthly</changefreq><priority>0.7</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/jarvis/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/maquinita/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/lupa/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/ctf/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/garca/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/garita/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+</urlset>
