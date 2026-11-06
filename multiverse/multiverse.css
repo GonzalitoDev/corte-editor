@@ -197,3 +197,19 @@ img,svg{max-width:100%}
   .neb,.logo .orb{animation:none}
   .xpbar i,.mbar i,.portal,.btn{transition:none}
 }
+
+/* ===== Apoyá el proyecto ===== */
+.nbtn.apoyar{color:#ff8db3}
+.nbtn.apoyar:hover{color:#ff5b8a;border-color:rgba(255,91,138,.5)}
+.apoyo-intro{color:var(--mut);line-height:1.65;font-size:14.5px;margin:0 0 18px}
+.apoyo-btns{display:flex;flex-direction:column;gap:11px}
+.apoyo-btn{display:flex;align-items:center;gap:13px;width:100%;text-align:left;
+  padding:14px 16px;border-radius:15px;text-decoration:none;
+  border:1px solid var(--line2);background:rgba(255,255,255,.035);color:var(--ink);
+  font-family:var(--f);transition:transform .15s ease,border-color .15s ease,background .15s ease,box-shadow .15s ease}
+.apoyo-btn:hover{transform:translateY(-2px);border-color:var(--c,var(--cyan));
+  background:rgba(255,255,255,.06);box-shadow:0 10px 26px -14px var(--c,var(--cyan))}
+.apoyo-btn .em{font-size:22px;line-height:1;filter:drop-shadow(0 2px 6px rgba(0,0,0,.35))}
+.apoyo-btn .tx{display:flex;flex-direction:column;gap:2px}
+.apoyo-btn .tx b{font-weight:700;font-size:15px}
+.apoyo-btn .tx small{color:var(--mut);font-size:12.5px;font-weight:500}

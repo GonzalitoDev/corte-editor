@@ -8,6 +8,15 @@
   var AVATARES = ["🧑‍🚀", "👾", "🛸", "🤖", "🌌", "⭐", "🪐", "🌠", "🧙", "🦾", "👽", "🐉"];
   var KEY = "tm:save";
 
+  /* ===== Apoyo al proyecto =====
+     Cambiá SOLO estas dos líneas por tus links reales y el panel ya funciona.
+     Si dejás una vacía (o con el texto de ejemplo), ese botón no se muestra. */
+  var APOYO = {
+    cafecito: "https://cafecito.app/TU_USUARIO",   // ← tu usuario de cafecito.app (cobra en pesos)
+    mercadopago: "PEGA_TU_LINK_DE_MERCADO_PAGO"    // ← tu link de cobro o alias de Mercado Pago
+  };
+  function linkOk(u) { return !!u && u.indexOf("TU_USUARIO") < 0 && u.indexOf("PEGA_TU_LINK") < 0; }
+
   // ---------- almacenamiento seguro ----------
   function nuevo() {
     return { v: 1, nombre: "Viajero", avatar: "🧑‍🚀", xp: 0, visitados: {}, aperturas: {}, favoritos: [], logros: {}, misionesCobradas: {}, notis: [], notisLeidas: 0, creado: Date.now(), ultimoDia: "", dias: 0 };
@@ -240,6 +249,35 @@
     abrirDrawer("Notificaciones", body);
     S.notisLeidas = S.notis.length; save(); actualizarPip();
   }
+  function vistaApoyar() {
+    var btns = "";
+    if (linkOk(APOYO.cafecito))
+      btns += '<a class="apoyo-btn" style="--c:#8b5cf6" href="' + esc(APOYO.cafecito) + '" target="_blank" rel="noopener"><span class="em">☕</span><span class="tx"><b>Invitame un cafecito</b><small>Con tarjeta o Mercado Pago, en pesos</small></span></a>';
+    if (linkOk(APOYO.mercadopago))
+      btns += '<a class="apoyo-btn" style="--c:#22d3ee" href="' + esc(APOYO.mercadopago) + '" target="_blank" rel="noopener"><span class="em">💸</span><span class="tx"><b>Donar con Mercado Pago</b><small>Lo que quieras, de una</small></span></a>';
+    // Compartir siempre está: es gratis y también ayuda.
+    btns += '<button class="apoyo-btn" id="apoyoCompartir" style="--c:#e879f9"><span class="em">📣</span><span class="tx"><b>Compartir el taller</b><small>Pasáselo a alguien a quien le sirva</small></span></button>';
+
+    var hayDonar = linkOk(APOYO.cafecito) || linkOk(APOYO.mercadopago);
+    var intro = hayDonar
+      ? 'Todo esto lo hago yo solo y lo mantengo gratis: sin cuentas, sin publicidad y sin vender los datos de nadie. Si algo de acá te sirve o te divierte, podés tirarme una mano para bancar los servidores y seguir sumando cosas. Con lo que sea ya me das una mano enorme. Y si no es el momento, compartirlo también suma un montón.'
+      : 'Todo esto lo hago yo solo y lo mantengo gratis: sin cuentas, sin publicidad y sin vender los datos de nadie. Por ahora la mejor forma de dar una mano es compartirlo con alguien a quien le pueda servir. ¡Gracias por pasar!';
+
+    var body = '<p class="apoyo-intro">' + intro + '</p><div class="apoyo-btns">' + btns + '</div>';
+    abrirDrawer("Apoyá el proyecto", body, function () {
+      var cb = $("#apoyoCompartir");
+      if (cb) cb.addEventListener("click", function () {
+        var url = location.origin + location.pathname;
+        var datos = { title: "Taller Multiverse", text: "Un multiverso de apps y juegos gratis en el navegador. Mirá:", url: url };
+        if (navigator.share) { navigator.share(datos).catch(function () {}); }
+        else if (navigator.clipboard) {
+          navigator.clipboard.writeText(url).then(function () { toast("🔗", "Link copiado", "Pegalo donde quieras."); })
+            .catch(function () { toast("🔗", "Compartí este link", url); });
+        } else { toast("🔗", "Compartí este link", url); }
+      });
+    });
+  }
+
   function hace(t) {
     var s = Math.floor((Date.now() - t) / 1000);
     if (s < 60) return "hace un momento"; if (s < 3600) return "hace " + Math.floor(s / 60) + " min";
@@ -296,6 +334,8 @@
     $("#navMisiones").addEventListener("click", vistaMisiones);
     $("#navLogros").addEventListener("click", vistaLogros);
     $("#navNotis").addEventListener("click", vistaNotis);
+    var na = $("#navApoyar"); if (na) na.addEventListener("click", vistaApoyar);
+    var fa = $("#footApoyar"); if (fa) fa.addEventListener("click", function (e) { e.preventDefault(); vistaApoyar(); });
     $("#heroPerfil").addEventListener("click", vistaPerfil);
     $("#heroExplorar").addEventListener("click", function () { var g = $("#galaxias"); if (g) g.scrollIntoView({ behavior: "smooth" }); });
     $("#drawerX").addEventListener("click", cerrarDrawer);
