@@ -1,7 +1,7 @@
 {
   "redirects": [
     {
-      "source": "/:dir(corte|lienzo|trazo|folio|onda|gonzacraft|gonzasky|arena|asistente|jarvis|gonzaops|maquinita|lupa|ctf|garca|garita)",
+      "source": "/:dir(corte|lienzo|trazo|folio|onda|gonzacraft|gonzasky|arena|asistente|jarvis|gonzaops|maquinita|lupa|ctf|garca|garita|clasico)",
       "destination": "/:dir/",
       "permanent": true
     },
