@@ -375,11 +375,25 @@
   });
   window.addEventListener("keyup", function (e) { keys[e.key.toLowerCase()] = false; });
 
-  // mouse look (pointer lock)
-  canvas.addEventListener("click", function () { if (!pausado && !cualquierOverlay() && !esTactil) canvas.requestPointerLock && canvas.requestPointerLock(); });
-  document.addEventListener("mousemove", function (e) {
-    if (document.pointerLockElement === canvas) { cam.yaw -= e.movementX * 0.0022; cam.pitch = clamp(cam.pitch + e.movementY * 0.0022, -0.5, 0.95); }
+  // MIRAR: arrastrar con el mouse (desktop) o con el dedo en la mitad derecha (táctil).
+  // Sin pointer lock: funciona siempre y es más intuitivo.
+  var mirado = false;
+  var look = { id: null, lx: 0, ly: 0 };
+  canvas.addEventListener("pointerdown", function (e) {
+    if (pausado || cualquierOverlay()) return;
+    if (esTactil && e.clientX < window.innerWidth * 0.46) return; // esa zona es el joystick de movimiento
+    look.id = e.pointerId; look.lx = e.clientX; look.ly = e.clientY;
+    try { canvas.setPointerCapture(e.pointerId); } catch (x) {}
   });
+  window.addEventListener("pointermove", function (e) {
+    if (e.pointerId !== look.id) return;
+    mirado = true;
+    cam.yaw -= (e.clientX - look.lx) * 0.004;
+    cam.pitch = clamp(cam.pitch + (e.clientY - look.ly) * 0.004, -0.5, 0.95);
+    look.lx = e.clientX; look.ly = e.clientY;
+  });
+  function finLook(e) { if (e.pointerId === look.id) look.id = null; }
+  window.addEventListener("pointerup", finLook); window.addEventListener("pointercancel", finLook);
 
   // táctil
   var touchMove = { x: 0, y: 0 };
@@ -390,11 +404,7 @@
     stick.addEventListener("pointermove", function (e) { if (e.pointerId !== id || !ori) return; var dx = e.clientX - ori.x, dy = e.clientY - ori.y; var d = Math.min(60, Math.hypot(dx, dy)); var a = Math.atan2(dy, dx); nub.style.left = (ori.x + Math.cos(a) * d) + "px"; nub.style.top = (ori.y + Math.sin(a) * d) + "px"; touchMove.x = Math.cos(a) * (d / 60); touchMove.y = Math.sin(a) * (d / 60); });
     function end(e) { if (e.pointerId !== id) return; id = null; ori = null; base.style.display = nub.style.display = "none"; touchMove.x = touchMove.y = 0; }
     stick.addEventListener("pointerup", end); stick.addEventListener("pointercancel", end);
-    // cámara con arrastre en la mitad derecha
-    var look = { id: null, lx: 0, ly: 0 };
-    canvas.addEventListener("pointerdown", function (e) { if (e.clientX > window.innerWidth / 2) { look.id = e.pointerId; look.lx = e.clientX; look.ly = e.clientY; } });
-    canvas.addEventListener("pointermove", function (e) { if (e.pointerId === look.id) { cam.yaw -= (e.clientX - look.lx) * 0.005; cam.pitch = clamp(cam.pitch + (e.clientY - look.ly) * 0.005, -0.5, 0.95); look.lx = e.clientX; look.ly = e.clientY; } });
-    canvas.addEventListener("pointerup", function (e) { if (e.pointerId === look.id) look.id = null; });
+    // (la cámara táctil la maneja el handler universal de arrastre de arriba)
     $("tJump").addEventListener("pointerdown", function () { keys[" "] = true; setTimeout(function () { keys[" "] = false; }, 120); });
     $("tRun").addEventListener("pointerdown", function () { keys.shift = true; }); $("tRun").addEventListener("pointerup", function () { keys.shift = false; });
     $("tAct").addEventListener("pointerdown", interactuar);
@@ -671,11 +681,11 @@
 
   // aviso para activar el mouse (desktop) + hook de depuración
   var _hint = document.createElement("div");
-  _hint.innerHTML = "🖱️ Hacé clic para mirar con el mouse · WASD para moverte · E para interactuar";
+  _hint.innerHTML = (esTactil ? "👆 Arrastrá a la derecha para mirar · joystick para moverte · E para interactuar" : "🖱️ Arrastrá con el mouse para mirar · WASD para moverte · E para interactuar");
   _hint.style.cssText = "position:fixed;left:50%;bottom:24%;transform:translateX(-50%);z-index:7;padding:10px 18px;border-radius:12px;background:rgba(8,12,26,.78);border:1px solid rgba(130,160,255,.35);font:600 13px system-ui,sans-serif;color:#eaf0ff;pointer-events:none;display:none;text-align:center;max-width:90vw";
   document.body.appendChild(_hint);
-  function _toggleHint() { var show = !esTactil && mundoListo && document.pointerLockElement !== canvas && !pausado && !cualquierOverlay(); _hint.style.display = show ? "block" : "none"; }
-  document.addEventListener("pointerlockchange", _toggleHint); setInterval(_toggleHint, 400);
+  function _toggleHint() { var show = mundoListo && !mirado && !pausado && !cualquierOverlay(); _hint.style.display = show ? "block" : "none"; }
+  setInterval(_toggleHint, 400);
   try { window.NX = { get cam() { return cam; }, get player() { return player; }, scene: scene, engine: engine }; } catch (e) {}
 
   scene.registerBeforeRender(update);
