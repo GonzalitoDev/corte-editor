@@ -1,0 +1,217 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover,user-scalable=no">
+<title>Nexus World · Taller</title>
+<meta name="description" content="Nexus World: videojuego 3D de mundo abierto dentro del Taller. Un único universo continuo con ciudad, bosques, montañas y lagos. Babylon.js.">
+<meta name="theme-color" content="#05060e">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='9' fill='%23070a1a'/%3E%3Cpath d='M9 23V9l14 14V9' fill='none' stroke='%2322d3ee' stroke-width='2.4' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E">
+<style>
+  :root{--cyan:#22d3ee;--blue:#2f6bff;--violet:#8b5cf6;--ink:#eaf0ff;--mut:#9fb0d8;--ok:#5ee08a;--rojo:#ff5d6c;--oro:#ffd23f;--f:system-ui,'Segoe UI',Roboto,sans-serif;--mono:ui-monospace,'JetBrains Mono',Menlo,monospace}
+  *{box-sizing:border-box;margin:0;padding:0;-webkit-tap-highlight-color:transparent}
+  html,body{height:100%;overflow:hidden;background:#05060e;color:var(--ink);font-family:var(--f);overscroll-behavior:none}
+  #c{position:fixed;inset:0;width:100%;height:100%;display:block;touch-action:none;outline:none}
+  .hud{position:fixed;inset:0;pointer-events:none;z-index:5;user-select:none}
+  .hud *{pointer-events:none}
+  .panel-bg{background:rgba(8,12,26,.6);border:1px solid rgba(130,160,255,.22);border-radius:12px;backdrop-filter:blur(8px)}
+
+  /* barras vida/energía */
+  .barras{position:absolute;top:14px;left:14px;display:flex;flex-direction:column;gap:8px;width:210px}
+  .bar{height:14px;border-radius:7px;background:#0a0f26;border:1px solid rgba(130,160,255,.25);overflow:hidden;position:relative}
+  .bar i{display:block;height:100%;transition:width .18s}
+  .bar.vida i{background:linear-gradient(90deg,#ff5d6c,#ff9f45)}
+  .bar.ene i{background:linear-gradient(90deg,#22d3ee,#2f6bff)}
+  .bar span{position:absolute;inset:0;font:700 10px/14px var(--mono);text-align:center;color:#fff;text-shadow:0 1px 2px #000;letter-spacing:.05em}
+
+  /* top derecha */
+  .top-der{position:absolute;top:14px;right:14px;display:flex;flex-direction:column;align-items:flex-end;gap:8px}
+  .chip{padding:7px 12px;font:700 13px var(--mono);display:flex;align-items:center;gap:8px}
+  .chip .k{color:var(--mut);font-weight:500;font-size:11px}
+  #reloj b{color:var(--cyan)} #dinero b{color:var(--oro)} #nivel b{color:var(--violet)}
+
+  /* misión */
+  .mision{position:absolute;left:14px;bottom:14px;max-width:min(360px,70vw);padding:12px 14px}
+  .mision .et{font:700 10px var(--mono);letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
+  .mision h3{font-size:15px;margin:4px 0 2px}
+  .mision p{font-size:13px;color:var(--mut);line-height:1.35}
+  .mision .obj{margin-top:6px;font-size:13px;color:var(--ink);display:flex;align-items:center;gap:7px}
+  .mision .obj::before{content:"";width:8px;height:8px;border-radius:50%;background:var(--oro);box-shadow:0 0 8px var(--oro);flex:none}
+
+  /* prompt interacción */
+  .prompt{position:absolute;left:50%;bottom:28%;transform:translateX(-50%);padding:9px 16px;font:600 14px var(--f);display:none;align-items:center;gap:9px}
+  .prompt.on{display:flex}
+  .prompt .key{font:800 13px var(--mono);background:var(--cyan);color:#04091c;border-radius:6px;padding:2px 8px}
+
+  /* minimapa */
+  .mini{position:absolute;right:14px;bottom:14px;width:170px;height:170px;border-radius:14px;overflow:hidden}
+  .mini canvas{display:block;width:100%;height:100%}
+
+  /* crosshair 1ra persona */
+  #cross{position:absolute;left:50%;top:50%;width:6px;height:6px;margin:-3px 0 0 -3px;border-radius:50%;background:#fff;opacity:.0;transition:opacity .2s;box-shadow:0 0 6px #000}
+  #cross.on{opacity:.8}
+
+  /* banner (avisos) */
+  #banner{position:absolute;left:50%;top:84px;transform:translateX(-50%);padding:10px 18px;font:600 14px var(--f);opacity:0;transition:opacity .35s;text-align:center;max-width:90vw}
+  #banner.on{opacity:1}
+  #banner b{color:var(--oro)}
+
+  /* carga */
+  #cargando{position:fixed;inset:0;z-index:20;background:radial-gradient(120% 90% at 50% 20%,#101a44,#05060e);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:18px;text-align:center;padding:24px}
+  #cargando h1{font:800 30px var(--f);letter-spacing:.14em;background:linear-gradient(120deg,#22d3ee,#8b5cf6 55%,#2f6bff);-webkit-background-clip:text;background-clip:text;color:transparent}
+  #cargando .sub{color:var(--mut);max-width:40ch;font-size:14px;line-height:1.5}
+  #cargando .cbar{width:min(320px,80vw);height:8px;border-radius:5px;background:#0a0f26;border:1px solid rgba(130,160,255,.25);overflow:hidden}
+  #cargando .cbar i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#8b5cf6);transition:width .3s}
+  #cargando .pista{color:var(--mut);font:12px var(--mono)}
+  #cargando .err{color:var(--rojo);font-size:13px;max-width:44ch}
+
+  /* menú / paneles con interacción */
+  .overlay{position:fixed;inset:0;z-index:15;background:rgba(5,7,16,.78);backdrop-filter:blur(6px);display:none;align-items:center;justify-content:center;padding:20px}
+  .overlay.on{display:flex}
+  .card{width:min(460px,100%);max-height:calc(100vh - 40px);overflow:auto;background:linear-gradient(180deg,#0b1026,#070a18);border:1px solid rgba(130,160,255,.3);border-radius:18px;padding:22px}
+  .card h2{font:800 20px var(--f);letter-spacing:.06em;margin-bottom:14px}
+  .card h2 small{display:block;font:500 12px var(--mono);color:var(--mut);letter-spacing:.1em;margin-top:4px}
+  .menu-btn{display:flex;width:100%;align-items:center;justify-content:space-between;gap:10px;padding:13px 15px;margin-bottom:9px;border-radius:11px;border:1px solid rgba(130,160,255,.22);background:rgba(16,22,48,.5);color:var(--ink);font:600 15px var(--f);cursor:pointer}
+  .menu-btn:hover{border-color:var(--cyan)}
+  .menu-btn.pri{background:linear-gradient(120deg,#22d3ee,#8b5cf6 55%,#2f6bff);color:#04091c;border:none;font-weight:800}
+  .menu-btn .k{font:700 11px var(--mono);color:var(--mut)}
+  .menu-btn.pri .k{color:#04091c}
+  .fila{display:flex;gap:8px;flex-wrap:wrap;margin:8px 0 2px}
+  .seg{display:flex;border:1px solid rgba(130,160,255,.25);border-radius:10px;overflow:hidden}
+  .seg button{flex:1;padding:9px 12px;background:none;border:none;color:var(--mut);font:600 13px var(--f);cursor:pointer}
+  .seg button.on{background:var(--cyan);color:#04091c;font-weight:800}
+  .lab{font:600 11px var(--mono);letter-spacing:.08em;text-transform:uppercase;color:var(--mut);margin:12px 0 6px;display:block}
+  .colores{display:flex;gap:8px;flex-wrap:wrap}
+  .colores button{width:34px;height:34px;border-radius:9px;border:2px solid transparent;cursor:pointer}
+  .colores button.on{border-color:#fff;box-shadow:0 0 10px #fff6}
+  .inv-grid{display:grid;grid-template-columns:1fr 1fr;gap:9px;margin-top:4px}
+  .inv-it{padding:11px 13px;border-radius:11px;border:1px solid rgba(130,160,255,.2);background:rgba(16,22,48,.5);font-size:14px;display:flex;align-items:center;gap:9px}
+  .inv-it .q{margin-left:auto;font:700 12px var(--mono);color:var(--cyan)}
+  .vacio{color:var(--mut);font-size:14px;text-align:center;padding:20px}
+  .controles{font-size:13.5px;color:var(--mut);line-height:1.9}
+  .controles b{color:var(--ink);font-family:var(--mono);background:rgba(130,160,255,.14);padding:1px 7px;border-radius:5px}
+  .overlay .card, .overlay .card *{pointer-events:auto}
+
+  /* táctil */
+  #touch{position:fixed;inset:0;z-index:8;display:none}
+  #touch.on{display:block}
+  #stick{position:absolute;left:0;bottom:0;width:44vw;height:40vh;touch-action:none}
+  #stick .base{position:absolute;width:120px;height:120px;border-radius:50%;border:2px solid rgba(130,160,255,.4);background:rgba(10,15,38,.4);transform:translate(-50%,-50%);display:none}
+  #stick .nub{position:absolute;width:56px;height:56px;border-radius:50%;background:rgba(34,211,238,.6);transform:translate(-50%,-50%);display:none}
+  .tbtn{position:absolute;width:62px;height:62px;border-radius:50%;background:rgba(16,22,48,.6);border:1px solid rgba(130,160,255,.35);color:#eaf0ff;font:700 12px var(--mono);display:grid;place-items:center;pointer-events:auto;touch-action:none}
+  #tJump{right:18px;bottom:30vh}#tRun{right:92px;bottom:20vh}#tAct{right:18px;bottom:16vh}
+  .mini,.barras,.top-der,.mision{z-index:6}
+  a.volver{position:absolute;left:50%;bottom:4px;transform:translateX(-50%);font:600 11px var(--mono);color:var(--mut);text-decoration:none;pointer-events:auto;opacity:.5}
+</style>
+</head>
+<body>
+<canvas id="c" tabindex="0"></canvas>
+
+<div class="hud" id="hud" hidden>
+  <div class="barras">
+    <div class="bar vida"><i id="barVida" style="width:100%"></i><span id="txtVida">100</span></div>
+    <div class="bar ene"><i id="barEne" style="width:100%"></i><span id="txtEne">100</span></div>
+  </div>
+  <div class="top-der">
+    <div class="chip panel-bg" id="reloj"><span class="k">HORA</span><b id="txtReloj">08:00</b> <span id="txtClima">☀</span></div>
+    <div class="chip panel-bg" id="dinero"><span class="k">$</span><b id="txtDinero">0</b></div>
+    <div class="chip panel-bg" id="nivel"><span class="k">NV</span><b id="txtNivel">1</b> <span class="k" id="txtXp">0/100 XP</span></div>
+  </div>
+  <div class="mision panel-bg" id="mision">
+    <div class="et">Misión</div><h3 id="misTit">—</h3><div class="obj" id="misObj">—</div>
+  </div>
+  <div class="prompt panel-bg" id="prompt"><span class="key" id="promptKey">E</span><span id="promptTxt">Interactuar</span></div>
+  <div class="mini panel-bg"><canvas id="mini" width="170" height="170"></canvas></div>
+  <div id="cross"></div>
+  <div class="panel-bg" id="banner"></div>
+  <a class="volver" href="../">◀ Taller Multiverse</a>
+</div>
+
+<!-- táctil -->
+<div id="touch">
+  <div id="stick"><div class="base" id="stickBase"></div><div class="nub" id="stickNub"></div></div>
+  <div class="tbtn" id="tRun">CORRER</div>
+  <div class="tbtn" id="tJump">SALTAR</div>
+  <div class="tbtn" id="tAct">E</div>
+</div>
+
+<!-- menú pausa -->
+<div class="overlay" id="menu">
+  <div class="card">
+    <h2>NEXUS WORLD <small>PAUSA</small></h2>
+    <button class="menu-btn pri" id="mReanudar">Reanudar <span class="k">ESC</span></button>
+    <button class="menu-btn" id="mPersonalizar">Personalizar personaje</button>
+    <button class="menu-btn" id="mInventario">Inventario <span class="k">I</span></button>
+    <button class="menu-btn" id="mControles">Controles</button>
+    <button class="menu-btn" id="mGuardar">Guardar progreso</button>
+    <a class="menu-btn" href="../" style="text-decoration:none">Salir al Multiverso</a>
+  </div>
+</div>
+
+<!-- personalización -->
+<div class="overlay" id="perso">
+  <div class="card">
+    <h2>Personaje</h2>
+    <span class="lab">Sexo</span>
+    <div class="seg" id="segSexo"><button data-s="M" class="on">Masculino</button><button data-s="F">Femenino</button></div>
+    <span class="lab">Piel</span><div class="colores" id="colPiel"></div>
+    <span class="lab">Cabello</span><div class="colores" id="colPelo"></div>
+    <span class="lab">Ropa</span><div class="colores" id="colRopa"></div>
+    <button class="menu-btn pri" id="persoOk" style="margin-top:16px">Listo</button>
+  </div>
+</div>
+
+<!-- inventario -->
+<div class="overlay" id="inv">
+  <div class="card">
+    <h2>Inventario</h2>
+    <div class="inv-grid" id="invGrid"></div>
+    <button class="menu-btn" id="invCerrar" style="margin-top:14px">Cerrar <span class="k">I</span></button>
+  </div>
+</div>
+
+<!-- controles -->
+<div class="overlay" id="ctrl">
+  <div class="card">
+    <h2>Controles</h2>
+    <div class="controles">
+      <b>WASD</b> moverse · <b>Mouse</b> cámara · <b>Shift</b> correr · <b>Espacio</b> saltar<br>
+      <b>C</b> agacharse · <b>V</b> 1ra/3ra persona · <b>E</b> interactuar / subir o bajar del vehículo<br>
+      <b>I</b> inventario · <b>M</b> mapa · <b>F</b> linterna · <b>Esc</b> pausa<br>
+      En el vehículo: <b>W/S</b> acelerar/frenar · <b>A/D</b> girar
+    </div>
+    <button class="menu-btn" id="ctrlCerrar" style="margin-top:16px">Entendido</button>
+  </div>
+</div>
+
+<!-- diálogo NPC -->
+<div class="overlay" id="dlg">
+  <div class="card">
+    <h2 id="dlgNom">Habitante</h2>
+    <p id="dlgTxt" style="color:var(--mut);font-size:14.5px;line-height:1.5;margin-bottom:14px"></p>
+    <button class="menu-btn pri" id="dlgOk">Aceptar misión</button>
+    <button class="menu-btn" id="dlgNo">Ahora no</button>
+  </div>
+</div>
+
+<!-- mapa grande -->
+<div class="overlay" id="mapa">
+  <div class="card" style="width:min(560px,100%)">
+    <h2>Mapa de NEXUS WORLD</h2>
+    <canvas id="mapaBig" width="520" height="420" style="width:100%;border-radius:12px;border:1px solid rgba(130,160,255,.25)"></canvas>
+    <button class="menu-btn" id="mapaCerrar" style="margin-top:14px">Cerrar <span class="k">M</span></button>
+  </div>
+</div>
+
+<div id="cargando">
+  <h1>NEXUS WORLD</h1>
+  <p class="sub">Un único universo abierto dentro del Taller. Generando ciudad, bosques, montañas y habitantes…</p>
+  <div class="cbar"><i id="cargaBar"></i></div>
+  <p class="pista" id="cargaPista">Cargando motor 3D…</p>
+  <p class="err" id="cargaErr"></p>
+</div>
+
+<script src="vendor/babylon.js"></script>
+<script src="nexus.js"></script>
+</body>
+</html>

@@ -2,6 +2,11 @@
    Cada dimensión abre su proyecto ORIGINAL en su URL de siempre: acá no se
    reemplaza ni se toca ninguna app. Solo se las lista como mundos. */
 window.TM_DIMS = [
+  // ── NEXUS WORLD (mundo abierto 3D) ──
+  { id: "nexus", nombre: "Nexus World", tipo: "Mundo abierto 3D", cat: "nexus", color: "#22d3ee", ruta: "nexus/", beta: true,
+    desc: "Videojuego 3D de mundo abierto con Babylon.js: un único universo continuo con ciudad, bosques, montañas y lago. Personaje, vehículos, NPCs, misiones, día/noche y guardado.",
+    icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="7"/><ellipse cx="12" cy="12" rx="11" ry="4"/><path d="M12 5v14"/></svg>' },
+
   // ── Constelación Creación (editores) ──
   { id: "corte", nombre: "Corte", tipo: "Editor de video", cat: "creacion", color: "#e8a33d", ruta: "corte/",
     desc: "Editor de video multipista con transiciones, efectos, subtítulos automáticos y música libre.",
@@ -60,6 +65,7 @@ window.TM_DIMS = [
 ];
 
 window.TM_GALAXIES = [
+  { cat: "nexus", nombre: "Mundo Abierto", sub: "NEXUS WORLD: un único universo 3D continuo para explorar.", color: "#22d3ee" },
   { cat: "creacion", nombre: "Creación", sub: "Las forjas: donde se crea video, imagen, sonido y forma.", color: "#8b5cf6" },
   { cat: "arcade", nombre: "Arcade", sub: "Los mundos jugables: construí, volá, competí.", color: "#22d3ee" },
   { cat: "sistema", nombre: "Sistema", sub: "El núcleo: asistentes y sistemas que te dan una mano.", color: "#3b82f6" },
