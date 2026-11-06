@@ -42,7 +42,7 @@
 
   var scene = new B.Scene(engine);
   scene.clearColor = new B.Color4(0.52, 0.66, 0.86, 1);
-  scene.collisionsEnabled = true;
+  scene.collisionsEnabled = true; scene.skipPointerMovePicking = true;
   scene.ambientColor = new B.Color3(.35, .4, .5);
   scene.fogMode = B.Scene.FOGMODE_EXP2; scene.fogDensity = 0.0012; scene.fogColor = new B.Color3(.6, .72, .88);
   scene.autoClearDepthAndStencil = true;
@@ -51,9 +51,9 @@
   var hemi = new B.HemisphericLight("hemi", V3(0, 1, 0), scene); hemi.intensity = 0.8; hemi.groundColor = new B.Color3(.25, .28, .33);
   var sun = new B.DirectionalLight("sun", V3(-0.5, -1, -0.4), scene); sun.position = V3(200, 400, 200); sun.intensity = 1.6;
   var shadow = null;
-  try { shadow = new B.ShadowGenerator(1024, sun); shadow.useBlurExponentialShadowMap = true; shadow.blurScale = 2; shadow.setDarkness(0.4); } catch (e) {}
+  try { shadow = null; } catch (e) {}
 
-  var glow = null; try { glow = new B.GlowLayer("glow", scene, { blurKernelSize: 24 }); glow.intensity = 0.55; } catch (e) {}
+  var glow = null; try { glow = null; } catch (e) {}
 
   // cámara (la manejamos nosotros)
   var camera = new B.UniversalCamera("cam", V3(0, 5, -10), scene);
@@ -140,7 +140,7 @@
         e.position = V3(bx + rnd(-6, 6), h / 2, bz + rnd(-6, 6));
         e.material = matsEdif[nbuild % matsEdif.length];
         e.checkCollisions = true; e.isPickable = true; e.freezeWorldMatrix();
-        if (shadow && h > 60) { shadow.addShadowCaster(e); }
+        
         colisionables.push(e); nbuild++;
       }
     }
@@ -233,6 +233,7 @@
     var bD = miembro(.17, .72, .2, (fem ? .42 : .48), 1.5, mRopa);
     var pI = miembro(.2, .72, .22, -.17, .72, mPant);
     var pD = miembro(.2, .72, .22, .17, .72, mPant);
+    root.getChildMeshes().forEach(function (m) { m.isPickable = false; }); // la cámara nunca choca con el cuerpo
     return { root: root, cabeza: cabeza, bI: bI, bD: bD, pI: pI, pD: pD, mRopa: mRopa, mPiel: mPiel, mPelo: mPelo, peloM: peloM, torso: torso, fem: fem, phase: 0 };
   }
   function animarPiernas(h, vel, dt) {
@@ -270,7 +271,7 @@
     root.position = V3(x, 0, z);
     var col = B.MeshBuilder.CreateBox("vcolid", tipo === "moto" ? { width: 1, height: 1.4, depth: 2.4 } : { width: 2.1, height: 1.6, depth: 4.4 }, scene);
     col.isVisible = false; col.position = V3(x, .9, z); col.checkCollisions = true; col.ellipsoid = new B.Vector3(tipo === "moto" ? .6 : 1.1, .8, tipo === "moto" ? 1.3 : 2.3);
-    var v = { tipo: tipo, root: root, col: col, ruedas: ruedas, speed: 0, heading: 0 };
+    root.getChildMeshes().forEach(function(m){m.isPickable=false;}); col.isPickable=false; var v = { tipo: tipo, root: root, col: col, ruedas: ruedas, speed: 0, heading: 0 };
     vehiculos.push(v); return v;
   }
 
@@ -287,7 +288,7 @@
     // dar misiones a 3 NPCs (contactos)
     [[npcs[0], 0, V3(12, 0, 20)], [npcs[1], 1, world.industrial.add(V3(-30, 0, 30))], [npcs[2], 3, V3(620, 0, -350)]].forEach(function (g) {
       var npc = g[0]; npc.giver = true; npc.mision = g[1]; npc.pos = g[2]; npc.h.root.position = g[2].clone(); npc.objetivo = g[2].clone(); npc.vel = 0;
-      var m = B.MeshBuilder.CreatePolyhedron("mk", { type: 1, size: .5 }, scene); var mm = new B.StandardMaterial("mm", scene); mm.emissiveColor = hex("#ffd23f"); mm.disableLighting = true; m.material = mm; m.position = V3(0, 2.6, 0); m.parent = npc.h.root; npc.marca = m;
+      var m = B.MeshBuilder.CreatePolyhedron("mk", { type: 1, size: .5 }, scene); var mm = new B.StandardMaterial("mm", scene); mm.emissiveColor = hex("#ffd23f"); mm.disableLighting = true; m.material = mm; m.position = V3(0, 2.6, 0); m.parent = npc.h.root; m.isPickable=false; npc.marca = m;
     });
   }
 
@@ -296,12 +297,12 @@
   function crearPickups() {
     for (var i = 0; i < 3; i++) { // paquetes (misión 1)
       var p = B.MeshBuilder.CreateBox("pk" + i, { size: 1 }, scene); var mp = new B.StandardMaterial("mp", scene); mp.diffuseColor = hex("#c8903a"); mp.emissiveColor = hex("#3a2a0a"); p.material = mp;
-      p.position = V3(rnd(-350, 350), 1, rnd(-350, 350)); pickups.push({ mesh: p, tipo: "paquete", valor: 1 });
+      p.position = V3(rnd(-350, 350), 1, rnd(-350, 350)); p.isPickable = false; pickups.push({ mesh: p, tipo: "paquete", valor: 1 });
     }
     for (var j = 0; j < 14; j++) { // dinero
       var d = B.MeshBuilder.CreateCylinder("cn" + j, { height: .1, diameter: .9, tessellation: 16 }, scene); d.rotation.x = Math.PI / 2;
       var mdc = new B.StandardMaterial("mdc", scene); mdc.emissiveColor = hex("#ffd23f"); mdc.disableLighting = true; d.material = mdc;
-      d.position = V3(rnd(-420, 420), 1, rnd(-420, 420)); pickups.push({ mesh: d, tipo: "dinero", valor: ri(20, 80) });
+      d.position = V3(rnd(-420, 420), 1, rnd(-420, 420)); d.isPickable = false; pickups.push({ mesh: d, tipo: "dinero", valor: ri(20, 80) });
     }
   }
 
@@ -377,7 +378,7 @@
   // mouse look (pointer lock)
   canvas.addEventListener("click", function () { if (!pausado && !cualquierOverlay() && !esTactil) canvas.requestPointerLock && canvas.requestPointerLock(); });
   document.addEventListener("mousemove", function (e) {
-    if (document.pointerLockElement === canvas) { cam.yaw -= e.movementX * 0.0022; cam.pitch = clamp(cam.pitch + e.movementY * 0.0022, -0.9, 1.1); }
+    if (document.pointerLockElement === canvas) { cam.yaw -= e.movementX * 0.0022; cam.pitch = clamp(cam.pitch + e.movementY * 0.0022, -0.5, 0.95); }
   });
 
   // táctil
@@ -392,7 +393,7 @@
     // cámara con arrastre en la mitad derecha
     var look = { id: null, lx: 0, ly: 0 };
     canvas.addEventListener("pointerdown", function (e) { if (e.clientX > window.innerWidth / 2) { look.id = e.pointerId; look.lx = e.clientX; look.ly = e.clientY; } });
-    canvas.addEventListener("pointermove", function (e) { if (e.pointerId === look.id) { cam.yaw -= (e.clientX - look.lx) * 0.005; cam.pitch = clamp(cam.pitch + (e.clientY - look.ly) * 0.005, -0.9, 1.1); look.lx = e.clientX; look.ly = e.clientY; } });
+    canvas.addEventListener("pointermove", function (e) { if (e.pointerId === look.id) { cam.yaw -= (e.clientX - look.lx) * 0.005; cam.pitch = clamp(cam.pitch + (e.clientY - look.ly) * 0.005, -0.5, 0.95); look.lx = e.clientX; look.ly = e.clientY; } });
     canvas.addEventListener("pointerup", function (e) { if (e.pointerId === look.id) look.id = null; });
     $("tJump").addEventListener("pointerdown", function () { keys[" "] = true; setTimeout(function () { keys[" "] = false; }, 120); });
     $("tRun").addEventListener("pointerdown", function () { keys.shift = true; }); $("tRun").addEventListener("pointerup", function () { keys.shift = false; });
@@ -534,13 +535,15 @@
     } else {
       player.h.cabeza.visibility = 1; player.h.peloM.visibility = 1;
       var dist = player.enVehiculo ? 11 : 7;
-      // colisión de cámara con edificios
-      var from = head; var dirCam = look.scale(-1);
-      var ray = new B.Ray(from, dirCam, dist);
-      var hit = scene.pickWithRay(ray, function (m) { return m.isPickable && m.checkCollisions; });
-      if (hit && hit.hit && hit.distance < dist) dist = Math.max(1.5, hit.distance * 0.85);
-      camera.position.copyFrom(head.add(dirCam.scale(dist)));
-      camera.setTarget(head.add(look.scale(2)));
+      // colisión de cámara: solo contra geometría del mundo (edificios/montañas), nunca el personaje
+      var dirCam = look.scale(-1);
+      var ray = new B.Ray(head, dirCam, dist);
+      var hit = scene.pickWithRay(ray, function (m) { return m.isPickable; });
+      if (hit && hit.hit && hit.distance < dist) dist = Math.max(2.8, hit.distance * 0.85);
+      var pos = head.add(dirCam.scale(dist));
+      if (pos.y < 0.6) pos.y = 0.6; // que no se meta bajo el piso
+      camera.position.copyFrom(pos);
+      camera.setTarget(head.subtract(V3(0, 0.6, 0)));
     }
     torch.position.copyFrom(camera.position); torch.direction = look;
   }
@@ -651,7 +654,7 @@
     construirJugador();
     // colisionador del jugador
     colPlayer = B.MeshBuilder.CreateBox("colp", { width: .7, height: 1.8, depth: .7 }, scene);
-    colPlayer.isVisible = false; colPlayer.checkCollisions = true; colPlayer.ellipsoid = new B.Vector3(.45, .9, .45); colPlayer.position = player.pos.clone();
+    colPlayer.isVisible = false; colPlayer.checkCollisions = true; colPlayer.ellipsoid = new B.Vector3(.45, .9, .45); colPlayer.position = player.pos.clone(); colPlayer.isPickable = false;
     prog(0.7, "Poblando la ciudad…");
     crearNPCs();
     vehiculos = [];
@@ -665,6 +668,15 @@
     prog(1, "¡Listo!");
     setTimeout(function () { var c = $("cargando"); c.style.transition = "opacity .5s"; c.style.opacity = 0; setTimeout(function () { c.remove(); }, 500); $("hud").hidden = false; banner("Bienvenido a <b>NEXUS WORLD</b>. Seguí el marcador dorado para tu primera misión."); }, 300);
   }
+
+  // aviso para activar el mouse (desktop) + hook de depuración
+  var _hint = document.createElement("div");
+  _hint.innerHTML = "🖱️ Hacé clic para mirar con el mouse · WASD para moverte · E para interactuar";
+  _hint.style.cssText = "position:fixed;left:50%;bottom:24%;transform:translateX(-50%);z-index:7;padding:10px 18px;border-radius:12px;background:rgba(8,12,26,.78);border:1px solid rgba(130,160,255,.35);font:600 13px system-ui,sans-serif;color:#eaf0ff;pointer-events:none;display:none;text-align:center;max-width:90vw";
+  document.body.appendChild(_hint);
+  function _toggleHint() { var show = !esTactil && mundoListo && document.pointerLockElement !== canvas && !pausado && !cualquierOverlay(); _hint.style.display = show ? "block" : "none"; }
+  document.addEventListener("pointerlockchange", _toggleHint); setInterval(_toggleHint, 400);
+  try { window.NX = { get cam() { return cam; }, get player() { return player; }, scene: scene, engine: engine }; } catch (e) {}
 
   scene.registerBeforeRender(update);
   engine.runRenderLoop(function () { try { scene.render(); } catch (e) {} });
