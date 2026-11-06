@@ -319,11 +319,53 @@
     if (reduce) paso(); else raf = requestAnimationFrame(paso);
   }
 
+  // ---------- portada: contadores + destacados ----------
+  function renderStats() {
+    var cont = $("#stats"); if (!cont) return;
+    var total = DIMS.length;
+    var edit = DIMS.filter(function (d) { return d.cat === "creacion"; }).length;
+    var juegos = DIMS.filter(function (d) { return d.cat === "arcade"; }).length +
+      ["maquinita", "garca", "garita", "nexus"].filter(function (id) { return dim(id); }).length;
+    var items = [[total, "apps y juegos"], [edit, "editores"], [juegos, "juegos"], ["100%", "gratis"]];
+    cont.innerHTML = items.map(function (it) {
+      return '<div class="st"><b data-count="' + it[0] + '">' + (typeof it[0] === "number" ? "0" : it[0]) + '</b><span>' + it[1] + '</span></div>';
+    }).join("");
+    var reduce = window.matchMedia && matchMedia("(prefers-reduced-motion:reduce)").matches;
+    Array.prototype.forEach.call(cont.querySelectorAll("b[data-count]"), function (b) {
+      var raw = b.getAttribute("data-count");
+      if (!/^\d+$/.test(raw)) { b.textContent = raw; return; }
+      var to = parseInt(raw, 10);
+      if (reduce) { b.textContent = to; return; }
+      var start = null, dur = 950;
+      function f(ts) { if (!start) start = ts; var p = Math.min(1, (ts - start) / dur); b.textContent = Math.round(p * to); if (p < 1) requestAnimationFrame(f); }
+      requestAnimationFrame(f);
+    });
+  }
+
+  function renderDestacados() {
+    var cont = $("#destacados"); if (!cont) return;
+    var picks = ["nexus", "corte", "arena", "garca"];
+    var cards = picks.map(function (id) {
+      var d = dim(id); if (!d) return "";
+      var ext = d.externo ? ' target="_blank" rel="noopener"' : "";
+      return '<a class="feat" data-portal="' + id + '" href="' + d.ruta + '"' + ext + ' style="--c:' + d.color + '">' +
+        '<span class="fic">' + d.icon + '</span>' +
+        '<div class="ft"><b>' + esc(d.nombre) + '</b><span>' + esc(d.tipo) + '</span></div>' +
+        '<span class="fgo">Abrir ' + flechaSVG() + '</span></a>';
+    }).join("");
+    cont.innerHTML = '<div class="dhd"><h2>Empezá por acá</h2><span>Si es tu primera vez, arrancá por estas.</span></div><div class="frow">' + cards + '</div>';
+    Array.prototype.forEach.call(cont.querySelectorAll(".feat"), function (a) {
+      a.addEventListener("click", function () { registrarVisita(a.getAttribute("data-portal")); });
+    });
+  }
+
   // ---------- init ----------
   function init() {
     scrim = $("#scrim"); drawer = $("#drawer");
     diaNuevo();
     render("");
+    renderStats();
+    renderDestacados();
     renderPlayer(); actualizarPip();
     revisar(); // por si ya cumplió algo (p.ej. logro de días)
 

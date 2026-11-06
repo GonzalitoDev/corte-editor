@@ -213,3 +213,28 @@ img,svg{max-width:100%}
 .apoyo-btn .tx{display:flex;flex-direction:column;gap:2px}
 .apoyo-btn .tx b{font-weight:700;font-size:15px}
 .apoyo-btn .tx small{color:var(--mut);font-size:12.5px;font-weight:500}
+
+/* ===== portada: confianza + contadores + destacados ===== */
+.trust{display:flex;flex-wrap:wrap;gap:8px 18px;margin:16px 0 0;color:var(--mut);font-size:13.5px;font-weight:600}
+.trust span{display:inline-flex;align-items:center;gap:6px;white-space:nowrap}
+.stats{display:flex;flex-wrap:wrap;gap:16px 30px;margin:24px 0 2px}
+.st b{display:block;font-family:var(--f-disp);font-weight:800;font-size:30px;line-height:1;
+  background:var(--holo);-webkit-background-clip:text;background-clip:text;color:transparent}
+.st span{display:block;color:var(--mut);font-size:12.5px;font-weight:600;margin-top:5px;letter-spacing:.02em}
+#destacados{margin:36px 0 8px}
+.dhd{display:flex;align-items:baseline;gap:12px;flex-wrap:wrap;margin:0 0 14px}
+.dhd h2{font-family:var(--f-disp);font-weight:800;font-size:19px;margin:0;letter-spacing:.05em}
+.dhd span{color:var(--mut);font-size:13.5px}
+.frow{display:grid;grid-template-columns:repeat(auto-fit,minmax(210px,1fr));gap:12px}
+.feat{display:flex;align-items:center;gap:13px;padding:14px;border-radius:16px;
+  border:1px solid var(--line2);background:linear-gradient(180deg,rgba(255,255,255,.055),rgba(255,255,255,.02));
+  transition:transform .15s ease,border-color .15s ease,box-shadow .15s ease}
+.feat:hover{transform:translateY(-3px);border-color:var(--c);box-shadow:0 14px 30px -16px var(--c)}
+.feat .fic{flex:0 0 auto;width:46px;height:46px;display:grid;place-items:center;border-radius:13px;color:var(--c);
+  border:1px solid color-mix(in srgb,var(--c) 42%,transparent);background:color-mix(in srgb,var(--c) 14%,transparent)}
+.feat .fic svg{width:25px;height:25px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+.feat .ft{flex:1;min-width:0}
+.feat .ft b{display:block;font-weight:700;font-size:15px;color:var(--ink)}
+.feat .ft span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.feat .fgo{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;color:var(--c);font-weight:700;font-size:12.5px;white-space:nowrap}
+.feat .fgo svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
