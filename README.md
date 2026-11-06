@@ -1,5 +1,9 @@
 # Taller
 
+![Taller Multiverse](media/youtube-banner.png)
+
+**Web:** [taller-multiverse-nine.vercel.app](https://taller-multiverse-nine.vercel.app/) ? **Video:** [media/taller-multiverse-promo.mp4](media/taller-multiverse-promo.mp4) ? **Kit para compartir:** [promo/](promo/)
+
 Suite de apps creativas que funcionan en el navegador. Gratis, sin marca de agua, sin cuenta y sin subir tus archivos a ningún servidor: todo se procesa en tu computadora.
 
 | App | Para qué sirve | Carpeta |
