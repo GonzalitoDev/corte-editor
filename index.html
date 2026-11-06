@@ -89,7 +89,8 @@ html.cargando, html.cargando body{overflow:hidden}
       <span>✓ Sin registro</span><span>✓ Sin descargas</span><span>✓ Sin anuncios</span><span>✓ Sin marca de agua</span>
     </div>
     <div class="cta">
-      <button class="btn pri" id="heroExplorar">Explorar dimensiones ▸</button>
+      <button class="btn pri" id="heroExplorar">Explorar dimensiones ▾</button>
+      <button class="btn" id="heroVideo">Ver video</button>
       <button class="btn" id="heroPerfil">Mi perfil</button>
     </div>
     <div class="stats" id="stats"></div>
@@ -114,6 +115,18 @@ html.cargando, html.cargando body{overflow:hidden}
 </aside>
 
 <div id="toasts" aria-live="polite"></div>
+
+<div class="video-modal" id="videoModal" hidden>
+  <div class="video-backdrop" data-close="video"></div>
+  <div class="video-box" role="dialog" aria-modal="true" aria-label="Video de Taller Multiverse">
+    <button class="video-x" id="videoClose" type="button" aria-label="Cerrar video">×</button>
+    <video id="videoPlayer" controls playsinline preload="none" poster="media/taller-multiverse-promo-poster.jpg" aria-label="Video promocional de Taller Multiverse">
+      <source src="media/taller-multiverse-promo.mp4" type="video/mp4">
+      Tu navegador no soporta video HTML5.
+    </video>
+    <div class="video-caption">El taller en 21 segundos. Sin cuenta, sin subir archivos.</div>
+  </div>
+</div>
 
 <script src="multiverse/data.js"></script>
 <script src="multiverse/multiverse.js"></script>
@@ -174,6 +187,40 @@ html.cargando, html.cargando body{overflow:hidden}
   });
   if (document.readyState === "complete") { pct(88); terminar(); }
   setTimeout(terminar, 6000);
+})();
+</script>
+<script>
+(function () {
+  var modal = document.getElementById("videoModal");
+  var player = document.getElementById("videoPlayer");
+  var open = document.getElementById("heroVideo");
+  var close = document.getElementById("videoClose");
+  if (!modal || !player || !open || !close) return;
+
+  function show() {
+    modal.hidden = false;
+    document.body.classList.add("video-open");
+    player.currentTime = 0;
+    var intent = player.play();
+    if (intent && intent.catch) intent.catch(function () {});
+    close.focus();
+  }
+
+  function hide() {
+    player.pause();
+    modal.hidden = true;
+    document.body.classList.remove("video-open");
+    open.focus();
+  }
+
+  open.addEventListener("click", show);
+  close.addEventListener("click", hide);
+  modal.addEventListener("click", function (event) {
+    if (event.target.getAttribute("data-close") === "video") hide();
+  });
+  document.addEventListener("keydown", function (event) {
+    if (event.key === "Escape" && !modal.hidden) hide();
+  });
 })();
 </script>
 </body>

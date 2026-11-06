@@ -238,3 +238,17 @@ img,svg{max-width:100%}
 .feat .ft span{display:block;color:var(--mut);font-size:12.5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .feat .fgo{flex:0 0 auto;display:inline-flex;align-items:center;gap:5px;color:var(--c);font-weight:700;font-size:12.5px;white-space:nowrap}
 .feat .fgo svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2.4;stroke-linecap:round;stroke-linejoin:round}
+
+
+/* ===== video promocional ===== */
+.video-modal{position:fixed;inset:0;z-index:120;display:grid;place-items:center;padding:20px;background:rgba(3,5,14,.86);backdrop-filter:blur(10px)}
+.video-modal[hidden]{display:none}
+.video-backdrop{position:absolute;inset:0}
+.video-box{position:relative;width:min(560px,92vw);max-height:92vh;padding:10px;border:1px solid var(--line2);border-radius:18px;
+  background:linear-gradient(180deg,#0b1026,#070a18);box-shadow:0 30px 90px rgba(0,0,0,.65)}
+.video-box video{display:block;width:auto;height:auto;max-width:100%;max-height:78vh;margin:0 auto;border-radius:12px;background:#000}
+.video-x{position:absolute;top:-14px;right:-14px;z-index:2;width:38px;height:38px;border-radius:10px;border:1px solid var(--line2);
+  background:#0b1026;color:var(--ink);font-size:22px;line-height:1;cursor:pointer}
+.video-caption{padding:9px 6px 3px;color:var(--mut);font-size:12px;text-align:center}
+body.video-open{overflow:hidden}
+@media(max-width:620px){.video-box{width:94vw;padding:6px}.video-x{top:-10px;right:-6px}.video-caption{font-size:11px}}
