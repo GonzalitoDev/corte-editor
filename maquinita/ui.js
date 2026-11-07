@@ -237,11 +237,45 @@
     const panel = $('#tab-provincias'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
   }
 
+  /* ───── Etapa 4: panel de Ministerios ───── */
+  let firmaMin = '';
+  function renderMinisterios(forzar) {
+    const mi = M.ministerios(s), f = M.fmt;
+    const firma = ['mi', Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), Math.round(s.aprob), s.mes, mi.gestion, mi.presupuesto, JSON.stringify(s.minist)].join('|');
+    if (!forzar && firma === firmaMin) return; firmaMin = firma;
+    let rows = '';
+    for (const c of mi.lista) {
+      const cInv = M.costoCartInv(s, c.nivel), cDec = M.costoCartDec(s);
+      const col = c.val >= 65 ? '#4fbf5a' : c.val >= 45 ? '#ffd23f' : '#e04848';
+      const topeNivel = c.nivel >= 10;
+      const invBtn = `<button class="item mini ${s.caja < cInv || topeNivel ? 'caro' : ''}" data-id="cart:${c.id}:inv" ${s.caja < cInv || topeNivel ? 'disabled' : ''}><span class="n">${topeNivel ? 'Nivel máx.' : '+ Presupuesto'}</span><span class="c">${topeNivel ? 'nivel 10' : '$ ' + f(cInv)}</span></button>`;
+      const decDisp = c.nivel >= 1 && c.espera === 0;
+      const decSub = c.nivel < 1 ? 'asigná presupuesto' : c.espera > 0 ? `en ${c.espera} ${c.espera === 1 ? 'mes' : 'meses'}` : '$ ' + f(cDec);
+      const decBtn = `<button class="item mini ${!decDisp || s.caja < cDec ? 'caro' : ''}" data-id="cart:${c.id}:dec" ${decDisp && s.caja >= cDec ? '' : 'disabled'} title="${esc(c.decD)}"><span class="n">${esc(c.decN)}</span><span class="c">${decSub}</span></button>`;
+      rows += `<div class="prov">
+        <div class="phead"><span class="ph-n">${c.ic} ${esc(c.n)} <small>${esc(c.ind)}</small></span><span class="ph-g">presup. nivel ${c.nivel}/10</span></div>
+        <div class="pap">${vbar(c.val, col)}<b style="color:${col}">${c.val}</b></div>
+        <div class="pacc" style="grid-template-columns:1fr 1.4fr">${invBtn}${decBtn}</div>
+      </div>`;
+    }
+    const h = `
+    <p class="sub">GABINETE NACIONAL · ${mi.total} MINISTERIOS</p>
+    <div class="congreso">
+      <div class="cbar">${vbar(mi.gestion, mi.gestion >= 60 ? '#4fbf5a' : mi.gestion >= 45 ? '#ffd23f' : '#e04848')}<span>Índice de gestión ${mi.gestion}</span></div>
+      <p class="cgob">Presupuesto total asignado: <b>${mi.presupuesto}</b> niveles. Cada cartera mejora con presupuesto y tiene una decisión propia (una cada ${M.DEC_COOLDOWN} meses).</p>
+    </div>
+    <p class="sub">CARTERAS</p>
+    ${rows}
+    <p class="sub" style="opacity:.7;font-size:9px;margin-top:8px">Etapa 4: asignar presupuesto sube el indicador de cada ministerio (y un poco la aprobación); las decisiones tienen efecto real sobre aprobación, caja o inflación. Es una capa nueva: el Gabinete clásico (relato, tinta, etc.) sigue igual.</p>`;
+    const panel = $('#tab-ministerios'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
+  }
+
   let firmaTienda = '';
   function pintarTienda(forzar) {
     if (tab === 'economia') { renderEconomia(); return; }
     if (tab === 'politica') { renderPolitica(); return; }
     if (tab === 'provincias') { renderProvincias(forzar); return; }
+    if (tab === 'ministerios') { renderMinisterios(forzar); return; }
     // solo se redibuja si cambió algo que se ve
     const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda, Object.keys(s.vip).length].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;
@@ -308,6 +342,7 @@
     const parts = b.dataset.id.split(':'), k = parts[0], v = parts[1]; let ok = false;
     if (k === 'imp') ok = M.comprar(s, v);
     if (k === 'prov') ok = M.accionProv(s, v, parts[2]);
+    if (k === 'cart') ok = parts[2] === 'inv' ? M.invertirCartera(s, v) : M.decisionCartera(s, v);
     if (k === 'prog') ok = M.programa(s, v);
     if (k === 'noqui') ok = M.noqui(s, +v) > 0;
     if (k === 'min') ok = M.ministerio(s, v);

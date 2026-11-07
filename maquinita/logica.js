@@ -113,6 +113,7 @@
       deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false, vip: {},
       partido: M.nombrePartido(), actos: 0, debates: 0, debateMes: -1,  // Etapa 2: política
       prov: {},  // Etapa 3: estado dinámico por provincia (lo que vos invertís)
+      minist: {},  // Etapa 4: presupuesto y decisiones por cartera ministerial
     };
   };
 
@@ -395,6 +396,7 @@
     vip: 'Primer lujo VIP', vipTotal: 'Vida de lujo completa', jet: 'Jet privado', isla: 'Isla privada',
     campania: 'Diez actos de campaña', debatidor: 'Cinco debates presidenciales',
     federal: 'Un gobernador aliado', obrero: 'Primera obra pública',
+    gestion: 'Un ministerio en nivel 5', gabinetazo: 'Todo el gabinete con presupuesto', decisor: 'Primera decisión ministerial',
   };
   M.logro = (s, id) => { if (s.logros[id]) return false; s.logros[id] = Date.now(); noticia(s, `🏆 Logro: ${M.LOGROS[id]}`, 'logro'); return true; };
   M.revisarLogros = s => {
@@ -569,6 +571,64 @@
       return true;
     }
     return false;
+  };
+
+  /* ───── Etapa 4: ministerios (carteras con presupuesto y decisiones propias) ─────
+     Capa nueva, aparte de los "ministerios" que ya existían en el Gabinete (que son mejoras
+     pasivas y NO se tocan). Cada cartera tiene un indicador derivado (0-100) que mejora con el
+     presupuesto que le asignás y sigue a la macro nacional, más una decisión propia con efecto
+     inmediato sobre la aprobación / caja / inflación (nada de esto altera el bucle del juego). */
+  M.CARTERAS = [
+    { id: 'eco', n: 'Economía', ic: '💵', ind: 'Gestión económica', calc: (s, n, m) => 40 + n * 5 - Math.max(0, m.im - 5) * 2 + m.fiscal * 0.8, dec: { n: 'Plan de estabilización', d: 'Baja la inflación de golpe, pero el ajuste te cuesta imagen.', k: s => { s.infl = Math.max(0.3, s.infl * 0.6); s.aprob -= 5; } } },
+    { id: 'seg', n: 'Seguridad', ic: '🚔', ind: 'Seguridad', calc: (s, n, m) => 45 + n * 5 - Math.max(0, m.pobreza - 25) * 0.6, dec: { n: 'Operativo de saturación', d: 'Más patrullas en la calle: sube la aprobación un tiempo.', k: s => { s.aprob += 5; } } },
+    { id: 'def', n: 'Defensa', ic: '🎖️', ind: 'Poder militar', calc: (s, n, m) => 35 + n * 6, dec: { n: 'Desfile militar', d: 'Aviones, tanques y banda. Queda bien en la foto.', k: s => { s.aprob += 3; } } },
+    { id: 'sal', n: 'Salud', ic: '🏥', ind: 'Salud pública', calc: (s, n, m) => 42 + n * 5 - Math.max(0, m.pobreza - 25) * 0.4, dec: { n: 'Campaña de vacunación', d: 'Operativo sanitario nacional: la gente lo valora.', k: s => { s.aprob += 6; } } },
+    { id: 'edu', n: 'Educación', ic: '📚', ind: 'Nivel educativo', calc: (s, n, m) => 44 + n * 5, dec: { n: 'Netbooks para todos', d: 'Una compu por alumno. Caro, pero muy popular.', k: s => { s.aprob += 6; s.impresoMes += M.porSeg(s) * 40; } } },
+    { id: 'inf', n: 'Infraestructura', ic: '🏗️', ind: 'Infraestructura', calc: (s, n, m) => 38 + n * 6, dec: { n: 'Plan nacional de rutas', d: 'Asfalto por todo el país. Obra y votos.', k: s => { s.aprob += 5; } } },
+    { id: 'tra', n: 'Transporte', ic: '🚌', ind: 'Transporte', calc: (s, n, m) => 40 + n * 5 + s.subsidios * 1.2, dec: { n: 'Subsidio al boleto', d: 'El colectivo sale dos pesos. La gente feliz, la caja no.', k: s => { s.aprob += 4; s.impresoMes += M.porSeg(s) * 50; } } },
+    { id: 'ene', n: 'Energía', ic: '⚡', ind: 'Energía', calc: (s, n, m) => 40 + n * 6 - Math.max(0, m.im - 8) * 0.5, dec: { n: 'Tarifazo', d: 'Suben las tarifas: entra plata ya, pero bronca asegurada.', k: s => { s.caja += M.porSeg(s) * 120; s.aprob -= 6; } } },
+    { id: 'des', n: 'Desarrollo Social', ic: '🤝', ind: 'Contención social', calc: (s, n, m) => 40 + n * 5 + s.subsidios * 1.5 - Math.max(0, m.pobreza - 25) * 0.5, dec: { n: 'Plan social de emergencia', d: 'Ayuda directa a los que menos tienen: sube la aprobación e imprime.', k: s => { s.aprob += 7; s.impresoMes += M.porSeg(s) * 60; } } },
+    { id: 'rrss', n: 'Relaciones Exteriores', ic: '🌎', ind: 'Imagen internacional', calc: (s, n, m) => 40 + n * 6 - (m.riesgo > 2000 ? 15 : 0), dec: { n: 'Gira internacional', d: 'Buscás inversiones afuera: entra plata, pero te critican por viajar.', k: s => { s.caja += M.porSeg(s) * 100; s.aprob -= 2; } } },
+    { id: 'jus', n: 'Justicia', ic: '⚖️', ind: 'Independencia judicial', calc: (s, n, m) => 36 + n * 5, dec: { n: 'Reforma judicial', d: 'Acomodás un par de jueces amigos: menos escándalos, más polémica.', k: s => { s.aprob -= 4; s.prensa = Math.min(80, s.prensa + 8); } } },
+    { id: 'trab', n: 'Trabajo', ic: '👷', ind: 'Empleo', calc: (s, n, m) => 42 + n * 5 - m.desempleo * 0.6, dec: { n: 'Paritarias generosas', d: 'Aumento para todos los gremios: contentos, pero empuja precios.', k: s => { s.aprob += 5; s.impresoMes += M.porSeg(s) * 50; s.infl += 0.6; } } },
+    { id: 'prod', n: 'Producción', ic: '🏭', ind: 'Producción', calc: (s, n, m) => 40 + n * 6 + m.crecimiento * 0.8, dec: { n: 'Incentivo a la industria', d: 'Créditos blandos para fábricas: más actividad a cambio de un costo.', k: s => { s.caja = Math.max(0, s.caja - M.porSeg(s) * 30); s.aprob += 3; } } },
+  ];
+  M.DEC_COOLDOWN = 6;   // meses entre decisiones de una misma cartera
+  M.ministerios = function (s) {
+    const mac = M.macro(s); if (!s.minist) s.minist = {};
+    let sum = 0, totPres = 0;
+    const lista = M.CARTERAS.map(c => {
+      const d = s.minist[c.id]; const nivel = d ? d.nivel : 0;
+      const val = Math.max(3, Math.min(100, Math.round(c.calc(s, nivel, mac))));
+      const decMes = d && d.decMes != null ? d.decMes : -99;
+      sum += val; totPres += nivel;
+      return { id: c.id, n: c.n, ic: c.ic, ind: c.ind, nivel, val, decN: c.dec.n, decD: c.dec.d, espera: Math.max(0, M.DEC_COOLDOWN - (s.mes - decMes)) };
+    });
+    return { lista, gestion: Math.round(sum / M.CARTERAS.length), presupuesto: totPres, total: M.CARTERAS.length };
+  };
+  M.costoCartInv = (s, nivel) => Math.ceil((500 + M.porSeg(s) * 110) * Math.pow(1.6, nivel));
+  M.costoCartDec = s => Math.ceil(300 + M.porSeg(s) * 60);
+  M.invertirCartera = function (s, id) {
+    if (s.fin) return false; const c = M.CARTERAS.find(x => x.id === id); if (!c) return false;
+    if (!s.minist) s.minist = {}; const d = s.minist[id] || (s.minist[id] = { nivel: 0, decMes: -99 });
+    if (d.nivel >= 10) return false;
+    const cost = M.costoCartInv(s, d.nivel); if (s.caja < cost) return false; s.caja -= cost;
+    d.nivel++; s.aprob = Math.min(100, s.aprob + 0.8);
+    noticia(s, `Reforzaste el presupuesto del Ministerio de ${c.n} (nivel ${d.nivel}).`, 'bueno');
+    if (d.nivel >= 5) M.logro(s, 'gestion');
+    if (M.CARTERAS.every(x => s.minist[x.id] && s.minist[x.id].nivel >= 1)) M.logro(s, 'gabinetazo');
+    return true;
+  };
+  M.decisionCartera = function (s, id) {
+    if (s.fin) return false; const c = M.CARTERAS.find(x => x.id === id); if (!c) return false;
+    if (!s.minist) s.minist = {}; const d = s.minist[id] || (s.minist[id] = { nivel: 0, decMes: -99 });
+    if (d.nivel < 1) return false;                                   // hay que asignarle presupuesto primero
+    if (s.mes - (d.decMes != null ? d.decMes : -99) < M.DEC_COOLDOWN) return false;   // en cooldown
+    const cost = M.costoCartDec(s); if (s.caja < cost) return false; s.caja -= cost;
+    d.decMes = s.mes; c.dec.k(s); s.caja = Math.max(0, s.caja); s.aprob = Math.max(0, Math.min(100, s.aprob));
+    noticia(s, `${c.ic} Ministerio de ${c.n}: ${c.dec.n}.`, '');
+    M.logro(s, 'decisor');
+    return true;
   };
 
   // ponerse al día tras suspender/cerrar la PC: simula de golpe el tiempo que pasó.
