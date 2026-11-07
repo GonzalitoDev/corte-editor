@@ -131,8 +131,46 @@
   function item(id, n, d, costo, k, ok, extra) {
     return `<button class="item ${extra || ''}" data-id="${id}" ${ok ? '' : 'disabled'}><span class="n">${n}</span><span class="c">${costo}</span><span class="d">${d}</span>${k != null ? `<span class="k">${k}</span>` : ''}</button>`;
   }
+  /* ───── Etapa 1: tablero económico (pestaña Economía) ───── */
+  const BLOQUES = '▁▂▃▄▅▆▇█';
+  function spark(arr) { if (!arr || !arr.length) return ''; const a = arr.slice(-28); const mx = Math.max.apply(null, a) || 1, mn = Math.min.apply(null, a); return a.map(v => BLOQUES[Math.max(0, Math.min(7, Math.round((v - mn) / ((mx - mn) || 1) * 7)))]).join(''); }
+  function ecoTile(lbl, val, sub, color) { return `<div class="ecoTile"><small>${lbl}</small><b style="color:${color || '#ece9ff'}">${val}</b>${sub ? `<span>${sub}</span>` : ''}</div>`; }
+  function ecoCol(v, verde, amar, inv) { if (inv) return v <= verde ? '#4fbf5a' : v <= amar ? '#ffd23f' : '#e04848'; return v >= verde ? '#4fbf5a' : v >= amar ? '#ffd23f' : '#e04848'; }
+  function renderEconomia() {
+    const m = M.macro(s), f = M.fmt, pct = x => x.toFixed(1).replace('.', ',') + ' %';
+    let diag;
+    if (m.ia > 400) diag = 'Hiperinflación: la gente no llega a fin de día.';
+    else if (m.fiscal < -8) diag = 'Déficit fiscal enorme: gastás mucho más de lo que recaudás.';
+    else if (m.riesgo > 2500) diag = 'Riesgo país por las nubes: nadie te presta un peso.';
+    else if (m.pobreza > 45) diag = 'La pobreza trepó fuerte. Hace falta aire para la gente.';
+    else if (m.crecimiento < 0) diag = 'Recesión: la economía se achica.';
+    else if (m.fiscal > 0 && m.ia < 40) diag = 'Economía ordenada: superávit y precios bajo control. Raro, pero pasa.';
+    else diag = 'Economía tirando: ni festejo ni crisis. Depende de tu próxima jugada.';
+    const h = `
+    <p class="sub">TABLERO ECONÓMICO · EN VIVO</p>
+    <div class="ecoDiag">${diag}</div>
+    <div class="ecoGrid">
+      ${ecoTile('INFLACIÓN ANUAL', pct(m.ia), 'mensual ' + pct(m.im) + ' <span style="color:#e04848">' + spark(s.histInfl) + '</span>', ecoCol(m.ia, 30, 150, true))}
+      ${ecoTile('DÓLAR', '$ ' + f(m.dolar), 'oficial $ ' + f(100 * s.precios), '#4fbf5a')}
+      ${ecoTile('RIESGO PAÍS', m.riesgo + ' pb', m.riesgo > 2000 ? 'impagable' : m.riesgo < 800 ? 'bajo' : 'alto', ecoCol(m.riesgo, 800, 2000, true))}
+      ${ecoTile('RESERVAS BCRA', 'US$ ' + m.reservas.toFixed(1) + ' mM', '', ecoCol(m.reservas, 30, 10, false))}
+      ${ecoTile('CRECIMIENTO', (m.crecimiento >= 0 ? '+' : '') + pct(m.crecimiento), 'PBI', ecoCol(m.crecimiento, 0.01, -3, false))}
+      ${ecoTile('RESULTADO FISCAL', (m.fiscal >= 0 ? '+' : '') + m.fiscal.toFixed(1) + ' %', m.fiscal >= 0 ? 'superávit' : 'déficit', ecoCol(m.fiscal, 0.01, -6, false))}
+      ${ecoTile('RECAUDACIÓN', m.recaudacion.toFixed(0) + ' % PBI', s.impuestos + ' impuestos', '#ffd23f')}
+      ${ecoTile('DESEMPLEO', pct(m.desempleo), '', ecoCol(m.desempleo, 8, 14, true))}
+      ${ecoTile('POBREZA', pct(m.pobreza), '', ecoCol(m.pobreza, 30, 45, true))}
+      ${ecoTile('SALARIO MEDIO', '$ ' + f(m.salario), 'poder de compra ' + m.salarioReal.toFixed(0), ecoCol(m.salarioReal, 95, 70, false))}
+      ${ecoTile('JUBILACIÓN', '$ ' + f(m.jubilacion), '', '#cfc8ee')}
+      ${ecoTile('BALANZA COMERCIAL', (m.balanza >= 0 ? '+' : '−') + 'US$ ' + Math.abs(m.balanza).toFixed(1) + ' mM', 'expo ' + m.expo.toFixed(0) + ' · impo ' + m.impo.toFixed(0), ecoCol(m.balanza, 0.01, -3, false))}
+      ${ecoTile('DEUDA EXTERNA', 'US$ ' + f(m.deudaUsd), s.deuda > 0 ? 'con cuota mensual' : 'sin deuda al Fondo', s.deuda > 0 ? '#e04848' : '#4fbf5a')}
+    </div>
+    <p class="sub" style="opacity:.7;font-size:9px;margin-top:8px">Etapa 1: los indicadores se mueven con tus decisiones (imprimir, impuestos, subsidios, deuda…). En las próximas etapas influyen más fuerte en la partida y se suman provincias, ministerios y elecciones.</p>`;
+    const panel = $('#tab-economia'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
+  }
+
   let firmaTienda = '';
   function pintarTienda(forzar) {
+    if (tab === 'economia') { renderEconomia(); return; }
     // solo se redibuja si cambió algo que se ve
     const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda, Object.keys(s.vip).length].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;

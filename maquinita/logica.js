@@ -390,6 +390,35 @@
     return g;
   };
 
+  /* ───── Etapa 1: economía argentina avanzada (indicadores derivados y conectados) ─────
+     Son de SOLO LECTURA: se calculan a partir del estado real (inflación, precios, impuestos,
+     subsidios, deuda, aprobación, cargo, actividad). Reflejan tus decisiones en vivo, sin tocar
+     ninguna mecánica existente. */
+  M.macro = function (s) {
+    const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+    const im = s.infl;                                   // inflación mensual (%)
+    const ia = (Math.pow(1 + im / 100, 12) - 1) * 100;   // inflación anual (%)
+    const dolar = M.dolar(s);
+    const act = M.porSeg(s) + 1;                          // proxy del tamaño de la economía
+    const pbi = Math.max(1, (Math.log10(act + 10)) * (1 + s.cargo * 0.4) * (1 - cl(im * 0.012, 0, 0.5)));
+    const crecimiento = cl(3.6 - im * 0.28 + s.subsidios * 0.15 - s.impuestos * 0.22 + (s.aprob - 50) * 0.03, -14, 9);
+    const recaudacion = cl(20 + s.impuestos * 2.4 + pbi * 0.4, 10, 58);     // % del PBI
+    const gasto = cl(24 + s.subsidios * 1.9 + s.noquis * 0.02 + (s.deuda > 0 ? 4 : 0), 15, 75);
+    const fiscal = recaudacion - gasto;                  // + superávit · − déficit (% PBI)
+    const riesgo = Math.round(cl(480 + im * 62 + (s.deuda > 0 ? 850 : 0) + Math.max(0, 60 - s.aprob) * 22 - crecimiento * 25, 180, 7500));
+    const reservas = cl(42 + crecimiento * 2.5 - ia * 0.05 - (s.deuda > 0 ? 12 : 0) - Math.max(0, im - 8) * 1.2 + Math.max(0, fiscal), 0.3, 130);
+    const desempleo = cl(6.5 + s.impuestos * 0.7 + Math.max(0, im - 5) * 0.3 - crecimiento * 0.5, 3, 38);
+    const salarioReal = cl(100 - ia * 0.11 - desempleo * 0.4 + s.subsidios * 1.4, 28, 135);  // índice de poder de compra (100 = base)
+    const pobreza = cl(24 + Math.max(0, ia - 30) * 0.07 + desempleo * 0.7 - s.subsidios * 0.6 - (salarioReal - 100) * 0.2, 5, 72);
+    const salario = Math.round(350000 * s.precios * (salarioReal / 100));
+    const jubilacion = Math.round(salario * 0.52);
+    const brecha = dolar / (100 * s.precios);            // dólar vs "oficial"
+    const expo = cl(5 + Math.log10(act) * 1.2 + (brecha - 1) * 3, 2, 32);   // US$ mil millones / mes aprox
+    const impo = cl(6 + Math.log10(act) * 1.1 - (brecha - 1) * 2 + crecimiento * 0.4, 2, 32);
+    const deudaUsd = s.deuda / dolar + Math.pow(10, Math.max(0, s.cargo - 2)) * 0.8;
+    return { im, ia, dolar, pbi, crecimiento, recaudacion, gasto, fiscal, riesgo, reservas, desempleo, salarioReal, pobreza, salario, jubilacion, expo, impo, balanza: expo - impo, deudaUsd };
+  };
+
   // ponerse al día tras suspender/cerrar la PC: simula de golpe el tiempo que pasó.
   // con el modo automático, el bot juega ese rato (compra, asciende, gana elecciones y vuelve a empezar).
   M.avanzar = function (s, seg, auto) {

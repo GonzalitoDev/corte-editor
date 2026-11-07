@@ -103,3 +103,11 @@ button.pri{font:12px var(--px);background:var(--oro);color:#2a1a00;border:3px so
   .dato b{font-size:12px}.dato.grande b{font-size:14px}
   .noticias{max-height:200px}
 }
+
+/* ===== Etapa 1: tablero económico (pestaña Economía) ===== */
+.ecoGrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(118px,1fr));gap:7px;margin-top:8px}
+.ecoTile{background:#211a3c;border:2px solid #392f5e;border-radius:6px;padding:7px 8px}
+.ecoTile small{display:block;color:#9a8fc4;font-size:8px;letter-spacing:.06em;line-height:1.3}
+.ecoTile b{display:block;font-family:'VT323',monospace;font-size:23px;margin-top:2px;line-height:.95}
+.ecoTile span{display:block;color:#8a80b0;font-size:12px;font-family:'VT323',monospace;line-height:1.1;margin-top:1px}
+.ecoDiag{background:#1a1430;border:2px solid #4a3f7e;border-radius:6px;padding:9px 10px;margin-top:8px;font-family:'VT323',monospace;font-size:17px;color:#cfc8ee;line-height:1.2}
