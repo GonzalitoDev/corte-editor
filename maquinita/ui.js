@@ -207,10 +207,41 @@
     const panel = $('#tab-politica'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
   }
 
+  /* ───── Etapa 3: panel de Provincias ───── */
+  let firmaProv = '';
+  function renderProvincias(forzar) {
+    const pv = M.provincias(s), f = M.fmt;
+    const firma = ['pv', Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), Math.round(s.aprob), s.mes, pv.federal, pv.aliados, pv.obrasTot, JSON.stringify(s.prov)].join('|');
+    if (!forzar && firma === firmaProv) return; firmaProv = firma;
+    let rows = '';
+    for (const p of pv.lista) {
+      const cT = M.costoProvTransf(s, p), cN = M.costoProvNego(s, p), cO = M.costoProvObra(s, p);
+      const apCol = p.apoyo >= 60 ? '#4fbf5a' : p.apoyo >= 40 ? '#ffd23f' : '#e04848';
+      const btn = (acc, lbl, c) => `<button class="item mini ${s.caja < c ? 'caro' : ''}" data-id="prov:${p.id}:${acc}" ${s.caja < c ? 'disabled' : ''}><span class="n">${lbl}</span><span class="c">$ ${f(c)}</span></button>`;
+      rows += `<div class="prov">
+        <div class="phead"><span class="ph-n">${esc(p.n)} <small>${p.reg} · ${p.pob} M hab.</small></span><span class="ph-g">gob. ${esc(p.gob)}</span></div>
+        <div class="pstat">aprob ${p.aprobProv}% · desempleo ${p.desempleo.toFixed(0)}% · pobreza ${p.pobreza.toFixed(0)}%${p.obras ? ` · ${p.obras} obra${p.obras === 1 ? '' : 's'}` : ''}</div>
+        <div class="pap">${vbar(p.apoyo, apCol)}<b style="color:${apCol}">${p.apoyo}%</b></div>
+        <div class="pacc">${btn('transferir', 'Transferir', cT)}${btn('nego', 'Negociar', cN)}${btn('obra', 'Obra', cO)}</div>
+      </div>`;
+    }
+    const h = `
+    <p class="sub">FEDERALISMO · ${pv.total} JURISDICCIONES</p>
+    <div class="congreso">
+      <div class="cbar">${vbar(pv.federal, '#4fbf5a')}<span>Apoyo federal ${pv.federal} %</span></div>
+      <p class="cgob"><b>${pv.aliados}</b> gobernador${pv.aliados === 1 ? '' : 'es'} aliado${pv.aliados === 1 ? '' : 's'} (apoyo ≥ 60 %) · <b>${pv.obrasTot}</b> obra${pv.obrasTot === 1 ? '' : 's'} inauguradas</p>
+    </div>
+    <p class="sub">PROVINCIAS</p>
+    ${rows}
+    <p class="sub" style="opacity:.7;font-size:9px;margin-top:8px">Etapa 3: transferir fondos y hacer obras suma aprobación nacional y apoyo del gobernador; negociar (rosca) sube mucho el apoyo pero te cuesta imagen. El desempleo y la pobreza de cada región siguen a la economía nacional.</p>`;
+    const panel = $('#tab-provincias'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
+  }
+
   let firmaTienda = '';
   function pintarTienda(forzar) {
     if (tab === 'economia') { renderEconomia(); return; }
     if (tab === 'politica') { renderPolitica(); return; }
+    if (tab === 'provincias') { renderProvincias(forzar); return; }
     // solo se redibuja si cambió algo que se ve
     const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda, Object.keys(s.vip).length].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;
@@ -274,8 +305,9 @@
   }
   document.addEventListener('click', e => {
     const b = e.target.closest('.item'); if (!b || b.disabled) return; ac();
-    const [k, v] = b.dataset.id.split(':'); let ok = false;
+    const parts = b.dataset.id.split(':'), k = parts[0], v = parts[1]; let ok = false;
     if (k === 'imp') ok = M.comprar(s, v);
+    if (k === 'prov') ok = M.accionProv(s, v, parts[2]);
     if (k === 'prog') ok = M.programa(s, v);
     if (k === 'noqui') ok = M.noqui(s, +v) > 0;
     if (k === 'min') ok = M.ministerio(s, v);

@@ -75,6 +75,34 @@
   ];
   M.NOMBRES_PARTIDO = ['Partido de la Maquinita', 'Frente Billete Feliz', 'Unión Imprenta Nacional', 'Movimiento Patria y Emisión', 'Frente de la Gente Contenta', 'Espacio Siempre Presente'];
   M.nombrePartido = () => M.NOMBRES_PARTIDO[Math.floor(Math.random() * M.NOMBRES_PARTIDO.length)];
+  // Etapa 3: las 23 provincias + CABA (datos ficticios: población en millones, gobernador inventado, apoyo inicial)
+  M.PROVINCIAS = [
+    { id: 'ba', n: 'Buenos Aires', reg: 'Centro', pob: 17.5, gob: 'Rubén Sosa', apoyo0: 44 },
+    { id: 'caba', n: 'CABA', reg: 'Centro', pob: 3.1, gob: 'Marta Vignola', apoyo0: 30 },
+    { id: 'cba', n: 'Córdoba', reg: 'Centro', pob: 3.9, gob: 'Nino Carranza', apoyo0: 28 },
+    { id: 'sfe', n: 'Santa Fe', reg: 'Centro', pob: 3.5, gob: 'Delia Juárez', apoyo0: 34 },
+    { id: 'er', n: 'Entre Ríos', reg: 'Centro', pob: 1.4, gob: 'Beto Almada', apoyo0: 40 },
+    { id: 'lp', n: 'La Pampa', reg: 'Centro', pob: 0.36, gob: 'Chino Leiva', apoyo0: 46 },
+    { id: 'mza', n: 'Mendoza', reg: 'Cuyo', pob: 2.0, gob: 'Tito Funes', apoyo0: 32 },
+    { id: 'sj', n: 'San Juan', reg: 'Cuyo', pob: 0.82, gob: 'Nelly Paz', apoyo0: 42 },
+    { id: 'sl', n: 'San Luis', reg: 'Cuyo', pob: 0.51, gob: 'Cacho Ponce', apoyo0: 38 },
+    { id: 'juj', n: 'Jujuy', reg: 'NOA', pob: 0.77, gob: 'Ramón Quispe', apoyo0: 36 },
+    { id: 'sal', n: 'Salta', reg: 'NOA', pob: 1.4, gob: 'Pocha Vega', apoyo0: 40 },
+    { id: 'tuc', n: 'Tucumán', reg: 'NOA', pob: 1.7, gob: 'Lito Argañaraz', apoyo0: 48 },
+    { id: 'cat', n: 'Catamarca', reg: 'NOA', pob: 0.42, gob: 'Nora Brizuela', apoyo0: 44 },
+    { id: 'lr', n: 'La Rioja', reg: 'NOA', pob: 0.39, gob: 'Juan de la Fuente', apoyo0: 50 },
+    { id: 'sde', n: 'Santiago del Estero', reg: 'NOA', pob: 1.0, gob: 'Coca Ibáñez', apoyo0: 52 },
+    { id: 'mis', n: 'Misiones', reg: 'NEA', pob: 1.3, gob: 'Walter Báez', apoyo0: 46 },
+    { id: 'ctes', n: 'Corrientes', reg: 'NEA', pob: 1.1, gob: 'Ñato Medina', apoyo0: 34 },
+    { id: 'cha', n: 'Chaco', reg: 'NEA', pob: 1.2, gob: 'Susana Ojeda', apoyo0: 42 },
+    { id: 'for', n: 'Formosa', reg: 'NEA', pob: 0.61, gob: 'Tincho Galeano', apoyo0: 54 },
+    { id: 'neu', n: 'Neuquén', reg: 'Patagonia', pob: 0.72, gob: 'Lucho Peña', apoyo0: 30 },
+    { id: 'rn', n: 'Río Negro', reg: 'Patagonia', pob: 0.75, gob: 'Any Ferrari', apoyo0: 32 },
+    { id: 'chu', n: 'Chubut', reg: 'Patagonia', pob: 0.62, gob: 'Toto Vera', apoyo0: 34 },
+    { id: 'scz', n: 'Santa Cruz', reg: 'Patagonia', pob: 0.37, gob: 'Gringa Soto', apoyo0: 40 },
+    { id: 'tdf', n: 'Tierra del Fuego', reg: 'Patagonia', pob: 0.19, gob: 'Fito Cárcamo', apoyo0: 36 },
+  ];
+  M.REGMOD = { Centro: 0.9, Cuyo: 1.0, NOA: 1.15, NEA: 1.2, Patagonia: 0.85 };  // modificador regional de desempleo/pobreza
 
   M.nuevo = function (contactos) {
     return {
@@ -84,6 +112,7 @@
       contactos: contactos || 0, fin: null, ceros: 0, prox: 25 + Math.random() * 20, mejorUsd: 0,
       deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false, vip: {},
       partido: M.nombrePartido(), actos: 0, debates: 0, debateMes: -1,  // Etapa 2: política
+      prov: {},  // Etapa 3: estado dinámico por provincia (lo que vos invertís)
     };
   };
 
@@ -365,6 +394,7 @@
     cadena: 'Cadena nacional', deuda: 'Fuiste al Fondo', cripto: 'GonzaCoin a la Luna', impuestazo: 'Diez impuestos nuevos', ejercito: 'Trescientos ñoquis', ricacho: 'Un palo verde (US$ 1 millón)',
     vip: 'Primer lujo VIP', vipTotal: 'Vida de lujo completa', jet: 'Jet privado', isla: 'Isla privada',
     campania: 'Diez actos de campaña', debatidor: 'Cinco debates presidenciales',
+    federal: 'Un gobernador aliado', obrero: 'Primera obra pública',
   };
   M.logro = (s, id) => { if (s.logros[id]) return false; s.logros[id] = Date.now(); noticia(s, `🏆 Logro: ${M.LOGROS[id]}`, 'logro'); return true; };
   M.revisarLogros = s => {
@@ -480,6 +510,65 @@
     else { s.aprob = Math.max(0, s.aprob - 6); noticia(s, 'Te fue flojo en el debate: te quedaste sin respuestas y se notó en vivo.', 'malo'); }
     if (s.debates >= 5) M.logro(s, 'debatidor');
     return true;
+  };
+
+  /* ───── Etapa 3: provincias y federalismo ─────
+     M.provincias es de SOLO LECTURA: arma la foto de las 24 jurisdicciones combinando sus datos
+     fijos, lo que vos invertiste (s.prov) y la macro nacional (desempleo/pobreza regionales).
+     Las acciones (transferir, negociar, obra) sí cambian la partida, pero son funciones nuevas:
+     mueven la aprobación nacional (que define las elecciones) y el apoyo de cada gobernador. */
+  M.provincias = function (s) {
+    const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+    const mac = M.macro(s);
+    if (!s.prov) s.prov = {};
+    let aliados = 0, sumApoyo = 0, sumPob = 0, obrasTot = 0;
+    const lista = M.PROVINCIAS.map(p => {
+      const d = s.prov[p.id];
+      const apoyo = cl(d ? d.apoyo : p.apoyo0, 0, 100);
+      const invApro = d ? Math.min(20, d.aprob || 0) : 0;
+      const obras = d ? (d.obras || 0) : 0;
+      const mod = M.REGMOD[p.reg] || 1;
+      const desempleo = cl(mac.desempleo * mod, 2, 45);
+      const pobreza = cl(mac.pobreza * mod, 4, 82);
+      const aprobProv = Math.round(cl(s.aprob * 0.6 + 18 + invApro - Math.max(0, mac.ia - 50) * 0.03, 3, 96));
+      if (apoyo >= 60) aliados++;
+      sumApoyo += apoyo * p.pob; sumPob += p.pob; obrasTot += obras;
+      return { id: p.id, n: p.n, reg: p.reg, pob: p.pob, gob: p.gob, apoyo: Math.round(apoyo), aprobProv, desempleo, pobreza, obras };
+    });
+    const federal = Math.round(sumApoyo / (sumPob || 1));
+    return { lista, aliados, federal, obrasTot, total: M.PROVINCIAS.length };
+  };
+  M.costoProvTransf = (s, p) => Math.ceil((150 + M.porSeg(s) * 22) * (1 + p.pob * 0.15));
+  M.costoProvNego = (s, p) => Math.ceil((80 + M.porSeg(s) * 9) * (1 + p.pob * 0.1));
+  M.costoProvObra = (s, p) => Math.ceil((400 + M.porSeg(s) * 60) * (1 + p.pob * 0.2));
+  M.accionProv = function (s, id, accion) {
+    if (s.fin) return false;
+    const p = M.PROVINCIAS.find(x => x.id === id); if (!p) return false;
+    if (!s.prov) s.prov = {};
+    const d = s.prov[id] || (s.prov[id] = { apoyo: p.apoyo0, aprob: 0, obras: 0 });
+    if (accion === 'transferir') {
+      const c = M.costoProvTransf(s, p); if (s.caja < c) return false; s.caja -= c;
+      d.apoyo = Math.min(100, d.apoyo + 8); d.aprob = Math.min(30, (d.aprob || 0) + 5); s.aprob = Math.min(100, s.aprob + 0.6);
+      noticia(s, `Girás fondos a ${p.n}: el gobernador ${p.gob} te lo agradece en cadena.`, 'bueno');
+      if (d.apoyo >= 60) M.logro(s, 'federal');
+      return true;
+    }
+    if (accion === 'nego') {
+      const c = M.costoProvNego(s, p); if (s.caja < c) return false; s.caja -= c;
+      d.apoyo = Math.min(100, d.apoyo + 14); s.aprob = Math.max(0, s.aprob - 0.8);   // rosca: te cuesta imagen
+      noticia(s, `Rosca con ${p.gob} (${p.n}): acordaron cargos y obras. Alguien filtró la foto.`, '');
+      if (d.apoyo >= 60) M.logro(s, 'federal');
+      return true;
+    }
+    if (accion === 'obra') {
+      const c = M.costoProvObra(s, p); if (s.caja < c) return false; s.caja -= c;
+      d.obras = (d.obras || 0) + 1; d.aprob = Math.min(30, (d.aprob || 0) + 9); d.apoyo = Math.min(100, d.apoyo + 4);
+      s.aprob = Math.min(100, s.aprob + 1.4); s.impresoMes += c * 0.5;
+      noticia(s, [`Inauguraste una ruta en ${p.n}: cortaste la cinta con casco.`, `Hospital nuevo en ${p.n}: foto con guardapolvo.`, `Escuela flamante en ${p.n}, con acto y bombos.`][d.obras % 3], 'bueno');
+      M.logro(s, 'obrero');
+      return true;
+    }
+    return false;
   };
 
   // ponerse al día tras suspender/cerrar la PC: simula de golpe el tiempo que pasó.
