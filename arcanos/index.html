@@ -1,0 +1,817 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="description" content="ARCANOS: juego de cartas por turnos gratis en el navegador. Duelá contra la IA o en local, armá tu mazo y abrí sobres. Sin cuenta.">
+<meta name="theme-color" content="#07060e">
+<title>ARCANOS — duelo de cartas</title>
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='8' fill='%2311091e'/%3E%3Cpath d='M16 5l8 5v8l-8 5-8-5V10z' fill='none' stroke='%23b06cff' stroke-width='2'/%3E%3Ccircle cx='16' cy='14' r='3' fill='%23ffb020'/%3E%3C/svg%3E">
+<style>
+:root{
+  --bg:#07060e; --bg2:#0e0a1e; --panel:rgba(22,16,40,.72); --panel2:rgba(30,22,54,.9);
+  --ink:#ece9ff; --mut:#9a93c4; --line:rgba(150,120,255,.18); --line2:rgba(150,120,255,.34);
+  --oro:#ffb020; --vio:#b06cff; --cyan:#2ee6c8;
+  --comun:#8aa0b4; --rara:#4aa3ff; --epica:#b06cff; --legendaria:#ffb020;
+  --fuego:#ff5a3c; --hielo:#3aa0ff; --natura:#55e08a; --sombra:#a06cff; --tecno:#2ee6c8;
+  --f: 'Segoe UI',system-ui,-apple-system,Roboto,sans-serif;
+}
+*{margin:0;box-sizing:border-box}
+html,body{height:100%}
+body{background:
+  radial-gradient(130% 90% at 50% -10%,#1a1030 0%,#0a0718 45%,#06040d 100%) fixed;
+  color:var(--ink);font-family:var(--f);overflow:hidden;-webkit-tap-highlight-color:transparent}
+button{font-family:inherit;color:inherit;cursor:pointer;background:none;border:none}
+.hidden{display:none!important}
+h1,h2,h3{font-weight:800;letter-spacing:.02em}
+.scrim{position:fixed;inset:0;background:rgba(4,3,10,.7);backdrop-filter:blur(3px);z-index:40;display:flex;align-items:center;justify-content:center;padding:18px}
+
+/* ====== pantallas ====== */
+.screen{position:fixed;inset:0;display:none;flex-direction:column;overflow:auto}
+.screen.on{display:flex}
+.wrap{max-width:1180px;margin:0 auto;width:100%;padding:18px}
+.topbar{display:flex;align-items:center;gap:12px;padding:12px 18px;border-bottom:1px solid var(--line);position:sticky;top:0;background:linear-gradient(var(--bg),rgba(8,6,16,.4));backdrop-filter:blur(10px);z-index:5}
+.topbar .back{font-size:14px;color:var(--mut);font-weight:700}
+.topbar .back:hover{color:var(--ink)}
+.topbar h2{font-size:18px;letter-spacing:.14em}
+.coins{margin-left:auto;display:flex;align-items:center;gap:7px;font-weight:800;color:var(--oro);font-size:15px}
+
+/* ====== menú ====== */
+#menu .inner{margin:auto;text-align:center;padding:30px}
+.logo{font-size:clamp(46px,11vw,96px);font-weight:900;letter-spacing:.14em;line-height:1;
+  background:linear-gradient(100deg,#2ee6c8,#b06cff 55%,#ffb020);-webkit-background-clip:text;background-clip:text;color:transparent;
+  filter:drop-shadow(0 8px 40px rgba(176,108,255,.4))}
+.tagline{color:var(--mut);margin-top:10px;letter-spacing:.3em;text-transform:uppercase;font-size:13px}
+.menu-btns{margin-top:34px;display:grid;grid-template-columns:repeat(2,minmax(150px,230px));gap:12px;justify-content:center}
+.mbtn{padding:16px 18px;border-radius:14px;border:1px solid var(--line2);background:var(--panel);
+  font-weight:800;font-size:15px;letter-spacing:.04em;display:flex;align-items:center;gap:11px;justify-content:center;
+  transition:transform .14s,border-color .14s,background .14s}
+.mbtn:hover{transform:translateY(-2px);border-color:var(--vio);background:var(--panel2)}
+.mbtn.pri{grid-column:1/3;background:linear-gradient(100deg,rgba(176,108,255,.25),rgba(46,230,200,.18));border-color:var(--vio);font-size:17px}
+.mbtn .em{font-size:20px}
+.menu-foot{margin-top:22px;color:var(--mut);font-size:12px}
+.menu-foot a{color:var(--mut)}
+
+/* ====== carta ====== */
+.card{position:relative;width:132px;height:190px;border-radius:13px;flex:0 0 auto;
+  background:linear-gradient(170deg,#1d1430,#120c22);border:2px solid var(--rc,#8aa0b4);
+  box-shadow:0 6px 18px -8px #000, inset 0 0 22px rgba(0,0,0,.4);
+  padding:7px;display:flex;flex-direction:column;cursor:pointer;user-select:none;
+  transition:transform .13s ease, box-shadow .13s ease}
+.card:hover{transform:translateY(-8px) rotateX(6deg);box-shadow:0 16px 30px -10px #000,0 0 22px -4px var(--rc)}
+.card .cost{position:absolute;top:-9px;left:-9px;width:30px;height:30px;border-radius:50%;background:radial-gradient(circle at 35% 30%,#7fb6ff,#2b5bd6);
+  border:2px solid #cfe2ff;display:grid;place-items:center;font-weight:900;font-size:16px;color:#fff;box-shadow:0 2px 8px #000}
+.card .art{height:82px;border-radius:9px;display:grid;place-items:center;font-size:44px;
+  background:radial-gradient(90% 90% at 50% 25%,var(--fc,#333) 0%,#0c0818 95%);border:1px solid rgba(255,255,255,.08)}
+.card .nm{font-weight:800;font-size:11.5px;margin-top:6px;text-align:center;line-height:1.12;min-height:26px;display:flex;align-items:center;justify-content:center}
+.card .tx{font-size:9.5px;color:#c7c0e8;text-align:center;line-height:1.2;flex:1;overflow:hidden;padding:2px}
+.card .stats{display:flex;justify-content:space-between;align-items:center;margin-top:2px}
+.card .atk,.card .vida{font-weight:900;font-size:15px;width:26px;height:24px;display:grid;place-items:center;border-radius:6px}
+.card .atk{color:#ffcf6b;background:rgba(255,160,40,.15)}
+.card .vida{color:#ff8a7a;background:rgba(255,80,60,.15)}
+.card .rar{position:absolute;bottom:4px;left:0;right:0;text-align:center;font-size:7px;letter-spacing:.2em;text-transform:uppercase;color:var(--rc);opacity:.8}
+.card.hech .art{height:104px}
+.card.mini{width:104px;height:150px}
+.card.mini .art{height:64px;font-size:34px}
+.card.mini .nm{font-size:10px;min-height:22px}
+.card.locked{filter:grayscale(1) brightness(.4)}
+.card.sel{outline:3px solid var(--oro);outline-offset:2px}
+.card.obj{outline:3px solid #ff6a6a;outline-offset:2px;cursor:crosshair}
+.card.dead{opacity:0;transform:scale(.6);transition:all .35s}
+
+/* ====== tablero ====== */
+#duel{background:
+  radial-gradient(120% 70% at 50% 0%,#241640 0%,#0b0718 55%),
+  radial-gradient(120% 70% at 50% 100%,#1a2a3a 0%,transparent 55%)}
+.arena{flex:1;display:flex;flex-direction:column;gap:6px;padding:8px;min-height:0}
+.hero{display:flex;align-items:center;gap:12px;padding:8px 14px;border-radius:12px;border:1px solid var(--line);background:var(--panel)}
+.hero .av{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;font-size:24px;background:radial-gradient(circle at 35% 30%,#3a2a60,#140d26);border:2px solid var(--line2)}
+.hero.obj{outline:3px solid #ff6a6a;cursor:crosshair}
+.hp{font-weight:900;color:#ff8a7a;font-size:20px;display:flex;align-items:center;gap:5px}
+.en{display:flex;gap:3px;flex-wrap:wrap;max-width:160px}
+.pip{width:13px;height:13px;border-radius:50%;background:#241a3e;border:1px solid #4a3a70}
+.pip.on{background:radial-gradient(circle at 35% 30%,#7fb6ff,#2b5bd6);border-color:#bcd6ff;box-shadow:0 0 6px #3a6bff}
+.entxt{font-weight:800;color:#9fc0ff;font-size:13px}
+.hname{font-weight:800;font-size:13px}
+.hmeta{color:var(--mut);font-size:11px}
+.board{flex:1;min-height:92px;display:flex;gap:7px;align-items:center;justify-content:center;flex-wrap:wrap;
+  border-radius:12px;border:1px dashed var(--line);padding:6px;transition:background .15s}
+.board.drop{background:rgba(176,108,255,.08);border-color:var(--vio)}
+.minion{width:94px;height:118px;border-radius:11px;background:linear-gradient(170deg,#211636,#140c24);
+  border:2px solid var(--rc,#8aa0b4);padding:5px;display:flex;flex-direction:column;position:relative;
+  transition:transform .12s, box-shadow .12s;cursor:pointer}
+.minion:hover{transform:translateY(-4px)}
+.minion.ready{box-shadow:0 0 0 2px rgba(85,224,138,.5),0 0 14px -2px #55e08a}
+.minion .art{height:52px;border-radius:7px;display:grid;place-items:center;font-size:30px;background:radial-gradient(80% 80% at 50% 25%,var(--fc),#0c0818)}
+.minion .nm{font-size:9.5px;font-weight:800;text-align:center;margin-top:3px;line-height:1.05;flex:1;display:flex;align-items:center;justify-content:center}
+.minion .kw{position:absolute;top:3px;right:3px;font-size:12px}
+.minion .atk,.minion .vida{position:absolute;bottom:-7px;width:24px;height:24px;border-radius:50%;display:grid;place-items:center;font-weight:900;font-size:13px;border:2px solid #000}
+.minion .atk{left:-6px;background:#f0a63a;color:#201200}
+.minion .vida{right:-6px;background:#e85a4a;color:#2a0600}
+.minion.sel{outline:3px solid var(--oro);outline-offset:2px}
+.minion.obj{outline:3px solid #ff6a6a;outline-offset:2px;cursor:crosshair}
+.minion.shield::after{content:"";position:absolute;inset:-2px;border-radius:11px;box-shadow:0 0 0 2px #9fd0ff, 0 0 12px #3aa0ff;pointer-events:none}
+.minion.dmg{animation:shake .3s}
+@keyframes shake{25%{transform:translateX(-4px)}75%{transform:translateX(4px)}}
+
+.hand{display:flex;gap:6px;justify-content:center;align-items:flex-end;min-height:150px;padding:4px;overflow-x:auto}
+.hand .card{width:112px;height:160px}
+.hand .card .art{height:66px;font-size:36px}
+.hand .card.no-mana{filter:brightness(.55)}
+.oppHand{display:flex;gap:4px;justify-content:center;padding:4px;min-height:34px}
+.oppCard{width:26px;height:36px;border-radius:5px;background:linear-gradient(160deg,#2a1d4a,#160e2c);border:1px solid var(--line2)}
+
+.duelbar{display:flex;align-items:center;gap:10px;padding:8px 12px;border-top:1px solid var(--line);background:var(--panel)}
+.endturn{padding:11px 20px;border-radius:12px;font-weight:900;letter-spacing:.06em;border:1px solid var(--line2);
+  background:linear-gradient(100deg,rgba(176,108,255,.3),rgba(46,230,200,.2))}
+.endturn:hover{border-color:var(--vio)}
+.endturn.wait{opacity:.5;pointer-events:none}
+.log{flex:1;font-size:12px;color:var(--mut);white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.turnlabel{font-weight:800;color:var(--cyan);font-size:13px}
+
+.toast{position:fixed;left:50%;top:16%;transform:translateX(-50%);z-index:60;background:var(--panel2);
+  border:1px solid var(--line2);padding:12px 22px;border-radius:12px;font-weight:800;opacity:0;transition:opacity .25s, transform .25s;pointer-events:none;text-align:center}
+.toast.on{opacity:1}
+.flash{position:fixed;inset:0;background:radial-gradient(circle,rgba(255,80,60,.25),transparent 60%);z-index:55;opacity:0;pointer-events:none;transition:opacity .2s}
+
+/* ====== grillas colección / mazo / tienda ====== */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(112px,1fr));gap:12px;padding:4px}
+.panelbox{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px;margin-bottom:14px}
+.filtros{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:12px}
+.chip{padding:7px 13px;border-radius:999px;border:1px solid var(--line2);font-size:12px;font-weight:700;color:var(--mut)}
+.chip.on{color:var(--ink);background:rgba(176,108,255,.2);border-color:var(--vio)}
+.deckbar{position:sticky;bottom:0;background:var(--panel2);border-top:1px solid var(--line2);padding:12px;display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+.deckcount{font-weight:800}
+.btn{padding:10px 16px;border-radius:11px;border:1px solid var(--line2);font-weight:800;background:var(--panel)}
+.btn:hover{border-color:var(--vio)}
+.btn.pri{background:linear-gradient(100deg,rgba(176,108,255,.3),rgba(46,230,200,.2));border-color:var(--vio)}
+.btn.danger{border-color:rgba(255,90,80,.5);color:#ff9a8a}
+.badge{position:absolute;top:4px;right:4px;background:#000a;border:1px solid var(--line2);border-radius:8px;font-size:10px;font-weight:800;padding:1px 6px}
+.cardslot{position:relative}
+.cardslot .rm{position:absolute;inset:0;background:rgba(255,60,60,.0);border-radius:13px}
+.ayuda p{color:#cfc8ee;line-height:1.7;margin:0 0 10px}
+.ayuda b{color:var(--oro)}
+.row{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+.sep{height:1px;background:var(--line);margin:14px 0}
+.result{text-align:center}
+.result .big{font-size:40px;font-weight:900;letter-spacing:.1em}
+.win{color:var(--natura)} .lose{color:var(--fuego)}
+
+@media(max-width:560px){
+  .card{width:112px;height:162px} .card .art{height:66px;font-size:36px}
+  .minion{width:78px;height:104px} .minion .art{height:42px;font-size:24px}
+  .hand .card{width:92px;height:134px} .hand .card .art{height:52px;font-size:28px}
+  .menu-btns{grid-template-columns:1fr 1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- ============ MENÚ ============ -->
+<section id="menu" class="screen on">
+  <div class="inner">
+    <div class="logo">ARCANOS</div>
+    <div class="tagline">Duelo de cartas</div>
+    <div class="menu-btns">
+      <button class="mbtn pri" data-go="ia"><span class="em">⚔️</span> Duelo contra la IA</button>
+      <button class="mbtn" data-go="local"><span class="em">👥</span> 2 jugadores</button>
+      <button class="mbtn" data-go="mazos"><span class="em">🃏</span> Mazos</button>
+      <button class="mbtn" data-go="coleccion"><span class="em">📖</span> Colección</button>
+      <button class="mbtn" data-go="tienda"><span class="em">🛒</span> Tienda</button>
+      <button class="mbtn" data-go="ayuda"><span class="em">❓</span> Cómo jugar</button>
+      <button class="mbtn" data-go="ajustes"><span class="em">⚙️</span> Ajustes</button>
+      <button class="mbtn" id="mute"><span class="em">🔊</span> Sonido</button>
+    </div>
+    <div class="menu-foot">Juego original, sin cuenta. Tu progreso se guarda en este navegador. · <a href="/">Volver al Taller</a></div>
+  </div>
+</section>
+
+<!-- ============ DUELO ============ -->
+<section id="duel" class="screen">
+  <div class="arena" id="arena"></div>
+  <div class="duelbar">
+    <span class="turnlabel" id="turnLabel"></span>
+    <span class="log" id="log"></span>
+    <button class="endturn" id="endTurn">Terminar turno ⏭</button>
+    <button class="back" id="salirDuelo" style="color:var(--mut);font-weight:700">Salir</button>
+  </div>
+</section>
+
+<!-- ============ COLECCIÓN ============ -->
+<section id="coleccion" class="screen">
+  <div class="topbar"><button class="back" data-go="menu">◀ Menú</button><h2>COLECCIÓN</h2><span class="coins">🪙 <span class="coinval"></span></span></div>
+  <div class="wrap">
+    <div class="filtros" id="colFiltros"></div>
+    <div class="grid" id="colGrid"></div>
+  </div>
+</section>
+
+<!-- ============ MAZOS ============ -->
+<section id="mazos" class="screen">
+  <div class="topbar"><button class="back" data-go="menu">◀ Menú</button><h2>EDITOR DE MAZO</h2><span class="coins">🪙 <span class="coinval"></span></span></div>
+  <div class="wrap">
+    <p style="color:var(--mut);font-size:13px;margin-bottom:10px">Tu mazo tiene <b style="color:var(--ink)">20 cartas</b> (máx. 2 copias de cada una). Tocá una carta para sumarla o sacarla. Se guarda solo.</p>
+    <div class="filtros" id="mazoFiltros"></div>
+    <div class="grid" id="mazoGrid"></div>
+  </div>
+  <div class="deckbar">
+    <span class="deckcount">Mazo: <b id="deckN">0</b>/20</span>
+    <button class="btn" id="autoDeck">Mazo automático</button>
+    <button class="btn danger" id="clearDeck">Vaciar</button>
+    <span style="flex:1"></span>
+    <button class="btn pri" data-go="menu">Listo</button>
+  </div>
+</section>
+
+<!-- ============ TIENDA ============ -->
+<section id="tienda" class="screen">
+  <div class="topbar"><button class="back" data-go="menu">◀ Menú</button><h2>TIENDA</h2><span class="coins">🪙 <span class="coinval"></span></span></div>
+  <div class="wrap">
+    <div class="panelbox row" style="justify-content:space-between">
+      <div><h3 style="font-size:17px">Recompensa diaria</h3><p style="color:var(--mut);font-size:13px;margin-top:4px">+50 🪙 una vez por día.</p></div>
+      <button class="btn pri" id="daily">Reclamar</button>
+    </div>
+    <div class="panelbox row" style="justify-content:space-between">
+      <div><h3 style="font-size:17px">Sobre de cartas</h3><p style="color:var(--mut);font-size:13px;margin-top:4px">3 cartas al azar (más chance de raras+). Cuesta <b style="color:var(--oro)">100 🪙</b>.</p></div>
+      <button class="btn pri" id="buyPack">Abrir sobre</button>
+    </div>
+    <p style="color:var(--mut);font-size:12px">Ganá monedas ganando duelos (+50) y reclamando la diaria.</p>
+  </div>
+</section>
+
+<!-- ============ AYUDA ============ -->
+<section id="ayuda" class="screen">
+  <div class="topbar"><button class="back" data-go="menu">◀ Menú</button><h2>CÓMO JUGAR</h2></div>
+  <div class="wrap ayuda">
+    <p>Cada duelista arranca con <b>30 de vida</b>. Gana el que deje al rival en 0.</p>
+    <p>Cada turno ganás <b>1 de energía</b> (hasta 10) y robás una carta. La energía se recarga completa al empezar tu turno.</p>
+    <p>Jugá cartas gastando energía: las <b>criaturas</b> van al campo, los <b>hechizos</b> hacen un efecto y se descartan.</p>
+    <p>Las criaturas <b>no pueden atacar el turno que entran</b> (salvo que tengan <b>Veloz</b>). En tu turno, tocá tu criatura y después al objetivo (una criatura enemiga o el héroe rival).</p>
+    <p>Palabras clave: <b>Veloz</b> (ataca apenas entra) · <b>Guardián</b> (hay que atacarlo antes que al héroe) · <b>Escudo</b> (aguanta el primer golpe) · <b>Grito</b> (efecto al entrar).</p>
+    <p>No hace falta cuenta: tu colección, mazo y monedas se guardan en este navegador.</p>
+  </div>
+</section>
+
+<!-- ============ AJUSTES ============ -->
+<section id="ajustes" class="screen">
+  <div class="topbar"><button class="back" data-go="menu">◀ Menú</button><h2>AJUSTES</h2></div>
+  <div class="wrap">
+    <div class="panelbox">
+      <h3 style="font-size:16px">Sonido</h3>
+      <div class="row" style="margin-top:8px"><button class="btn" id="mute2">Silenciar / activar</button><span id="muteState" style="color:var(--mut)"></span></div>
+    </div>
+    <div class="panelbox">
+      <h3 style="font-size:16px">Tu partida</h3>
+      <p style="color:var(--mut);font-size:13px;margin:8px 0">Se guarda sola en este navegador. Podés llevártela a otro lado con exportar/importar.</p>
+      <div class="row">
+        <button class="btn" id="exportar">Exportar partida (JSON)</button>
+        <button class="btn" id="importar">Importar partida</button>
+        <input type="file" id="fileIn" accept="application/json" class="hidden">
+      </div>
+    </div>
+    <div class="panelbox">
+      <h3 style="font-size:16px;color:#ff9a8a">Reiniciar progreso</h3>
+      <p style="color:var(--mut);font-size:13px;margin:8px 0">Borra todo (colección, mazo, monedas). No se puede deshacer.</p>
+      <button class="btn danger" id="reset">Reiniciar todo</button>
+    </div>
+    <div class="panelbox row" style="justify-content:space-around;text-align:center">
+      <div><div style="font-size:26px;font-weight:900;color:var(--natura)" id="stWin">0</div><div style="color:var(--mut);font-size:12px">Victorias</div></div>
+      <div><div style="font-size:26px;font-weight:900;color:var(--fuego)" id="stLose">0</div><div style="color:var(--mut);font-size:12px">Derrotas</div></div>
+      <div><div style="font-size:26px;font-weight:900;color:var(--oro)" id="stCards">0</div><div style="color:var(--mut);font-size:12px">Cartas</div></div>
+    </div>
+  </div>
+</section>
+
+<div class="toast" id="toast"></div>
+<div class="flash" id="flash"></div>
+<div id="overlay"></div>
+
+<script>
+"use strict";
+/* =======================================================================
+   ARCANOS — juego de cartas original. Sin dependencias, sin login.
+   ======================================================================= */
+const $=(s,r)=>(r||document).querySelector(s);
+const $$=(s,r)=>Array.prototype.slice.call((r||document).querySelectorAll(s));
+const rnd=(a,b)=>a+Math.random()*(b-a);
+const pick=a=>a[Math.floor(Math.random()*a.length)];
+const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+
+/* ---------- CARTAS (32 originales) ---------- */
+/* c=coste, a=ataque, v=vida; key=[palabras clave]; grito=[efectos] al entrar (criaturas);
+   ef=efecto (hechizos). Efectos: {t,v,obj}  t: dmg|cura|roba|buff|buffAll|destruir|dmgAll  */
+const CARTAS=[
+ {id:1,n:"Brasa Menor",t:"criatura",c:1,a:2,v:1,r:"comun",f:"fuego",i:"🔥",key:["veloz"],tx:"Veloz."},
+ {id:2,n:"Guardia de Hielo",t:"criatura",c:2,a:1,v:4,r:"comun",f:"hielo",i:"🛡️",key:["guardian"],tx:"Guardián."},
+ {id:3,n:"Lobo del Bosque",t:"criatura",c:2,a:3,v:2,r:"comun",f:"natura",i:"🐺",tx:"—"},
+ {id:4,n:"Acólito Sombrío",t:"criatura",c:1,a:1,v:2,r:"comun",f:"sombra",i:"🕯️",grito:[{t:"roba",v:1}],tx:"Grito: robás 1 carta."},
+ {id:5,n:"Dron Explorador",t:"criatura",c:1,a:1,v:1,r:"comun",f:"tecno",i:"🤖",key:["veloz"],tx:"Veloz."},
+ {id:6,n:"Soldado de Fuego",t:"criatura",c:2,a:2,v:3,r:"comun",f:"fuego",i:"🪖",tx:"—"},
+ {id:7,n:"Arquera Élfica",t:"criatura",c:2,a:2,v:2,r:"comun",f:"natura",i:"🏹",key:["veloz"],tx:"Veloz."},
+ {id:8,n:"Murciélago Vampiro",t:"criatura",c:2,a:2,v:2,r:"comun",f:"sombra",i:"🦇",grito:[{t:"dmg",v:1,obj:"heroEnem"},{t:"cura",v:1,obj:"heroProp"}],tx:"Grito: 1 al héroe rival y te curás 1."},
+ {id:9,n:"Espíritu del Bosque",t:"criatura",c:3,a:2,v:3,r:"comun",f:"natura",i:"🍃",grito:[{t:"cura",v:2,obj:"heroProp"}],tx:"Grito: curás 2 a tu héroe."},
+ {id:10,n:"Piromante",t:"criatura",c:3,a:3,v:3,r:"comun",f:"fuego",i:"🧙",grito:[{t:"dmg",v:1,obj:"enemRandom"}],tx:"Grito: 1 de daño a un enemigo al azar."},
+ {id:11,n:"Recluta de Acero",t:"criatura",c:1,a:1,v:2,r:"comun",f:"tecno",i:"⚙️",tx:"—"},
+ {id:12,n:"Yeti Antiguo",t:"criatura",c:4,a:4,v:5,r:"rara",f:"hielo",i:"🧊",tx:"—"},
+ {id:13,n:"Asesina Veloz",t:"criatura",c:3,a:4,v:2,r:"rara",f:"sombra",i:"🗡️",key:["veloz"],tx:"Veloz."},
+ {id:14,n:"Centinela de Acero",t:"criatura",c:3,a:2,v:5,r:"rara",f:"tecno",i:"🛰️",key:["guardian","escudo"],tx:"Guardián. Escudo."},
+ {id:15,n:"Hechicera de Fuego",t:"criatura",c:4,a:3,v:4,r:"rara",f:"fuego",i:"🔮",grito:[{t:"dmg",v:2,obj:"enemCritRandom"}],tx:"Grito: 2 a una criatura enemiga al azar."},
+ {id:16,n:"Druida Mayor",t:"criatura",c:4,a:3,v:4,r:"rara",f:"natura",i:"🌿",grito:[{t:"buffAll",v:1}],tx:"Grito: +1/+1 a tus otras criaturas."},
+ {id:17,n:"Coloso de Piedra",t:"criatura",c:5,a:5,v:7,r:"rara",f:"natura",i:"🗿",key:["guardian"],tx:"Guardián."},
+ {id:18,n:"Golem Rúnico",t:"criatura",c:5,a:5,v:5,r:"epica",f:"tecno",i:"🏯",key:["escudo"],tx:"Escudo."},
+ {id:19,n:"Reina Sombría",t:"criatura",c:5,a:4,v:4,r:"epica",f:"sombra",i:"👑",grito:[{t:"dmg",v:3,obj:"heroEnem"}],tx:"Grito: 3 de daño al héroe rival."},
+ {id:20,n:"Titán de Hielo",t:"criatura",c:6,a:5,v:8,r:"epica",f:"hielo",i:"❄️",key:["guardian"],tx:"Guardián."},
+ {id:21,n:"Dragón de Brasa",t:"criatura",c:6,a:6,v:6,r:"epica",f:"fuego",i:"🐉",key:["veloz"],tx:"Veloz."},
+ {id:22,n:"Avatar del Núcleo",t:"criatura",c:7,a:7,v:7,r:"legendaria",f:"tecno",i:"☢️",key:["escudo","veloz"],tx:"Escudo. Veloz."},
+ {id:23,n:"Fénix Eterno",t:"criatura",c:7,a:6,v:5,r:"legendaria",f:"fuego",i:"🦅",grito:[{t:"dmgAll",v:2,obj:"critEnem"}],tx:"Grito: 2 a todas las criaturas enemigas."},
+ {id:24,n:"Señor de las Sombras",t:"criatura",c:8,a:8,v:8,r:"legendaria",f:"sombra",i:"😈",grito:[{t:"roba",v:2}],tx:"Grito: robás 2 cartas."},
+ /* hechizos */
+ {id:25,n:"Rayo Arcano",t:"hechizo",c:1,r:"comun",f:"tecno",i:"⚡",ef:{t:"dmg",v:2,obj:"elige"},tx:"2 de daño a un objetivo."},
+ {id:26,n:"Bola de Fuego",t:"hechizo",c:3,r:"comun",f:"fuego",i:"💥",ef:{t:"dmg",v:4,obj:"eligeCrit"},tx:"4 de daño a una criatura."},
+ {id:27,n:"Curación",t:"hechizo",c:2,r:"comun",f:"natura",i:"💚",ef:{t:"cura",v:5,obj:"heroProp"},tx:"Curás 5 a tu héroe."},
+ {id:28,n:"Refuerzo",t:"hechizo",c:2,r:"comun",f:"natura",i:"💪",ef:{t:"buff",v:2,obj:"eligeAliada"},tx:"+2/+2 a una criatura aliada."},
+ {id:29,n:"Robo Arcano",t:"hechizo",c:3,r:"rara",f:"sombra",i:"📜",ef:{t:"roba",v:2,obj:"heroProp"},tx:"Robás 2 cartas."},
+ {id:30,n:"Ventisca",t:"hechizo",c:4,r:"rara",f:"hielo",i:"🌨️",ef:{t:"dmgAll",v:2,obj:"critEnem"},tx:"2 de daño a todas las criaturas enemigas."},
+ {id:31,n:"Meteoro",t:"hechizo",c:6,r:"epica",f:"fuego",i:"☄️",ef:{t:"dmg",v:6,obj:"eligeCrit"},tx:"6 de daño a una criatura."},
+ {id:32,n:"Juicio Arcano",t:"hechizo",c:5,r:"epica",f:"tecno",i:"🔆",ef:{t:"destruir",obj:"eligeCrit"},tx:"Destruí una criatura enemiga."},
+];
+const BYID={}; CARTAS.forEach(c=>BYID[c.id]=c);
+const RAREZA_LBL={comun:"Común",rara:"Rara",epica:"Épica",legendaria:"Legendaria"};
+const RAR_PESO={comun:60,rara:28,epica:9,legendaria:3};
+
+/* ---------- GUARDADO (localStorage) ---------- */
+const KEY="arcanos:save";
+function nuevo(){
+  const unlock=CARTAS.filter(c=>c.r==="comun"||c.r==="rara").map(c=>c.id);
+  const s={v:1,monedas:300,coleccion:unlock,mazo:[],ajustes:{mute:false},dia:"",stats:{win:0,lose:0}};
+  s.mazo=autoMazo(s); return s;
+}
+function cargar(){ try{const t=localStorage.getItem(KEY);if(!t)return nuevo();const o=JSON.parse(t);if(!o||o.v!==1)return nuevo();
+  ["monedas","coleccion","mazo","ajustes","stats"].forEach(k=>{if(o[k]==null)o[k]=nuevo()[k];}); return o;}catch(e){return nuevo();} }
+function guardar(){ try{localStorage.setItem(KEY,JSON.stringify(S));}catch(e){} refreshCoins(); }
+let S=cargar();
+
+function autoMazo(s){
+  const pool=[...(s.coleccion||[])].map(id=>BYID[id]).filter(Boolean).sort((a,b)=>a.c-b.c);
+  const mazo=[], cont={};
+  for(const c of pool){ if(mazo.length>=20)break; const n=c.c<=3?2:1; for(let k=0;k<n && mazo.length<20;k++){ cont[c.id]=(cont[c.id]||0)+1; if(cont[c.id]<=2) mazo.push(c.id); } }
+  let i=0; while(mazo.length<20 && pool.length){ const c=pool[i%pool.length]; cont[c.id]=(cont[c.id]||0)+1; if(cont[c.id]<=2)mazo.push(c.id); i++; if(i>200)break; }
+  return mazo.slice(0,20);
+}
+
+/* ---------- SONIDO (WebAudio, opcional) ---------- */
+let AC=null;
+function tono(freq,dur,type,vol){
+  if(S.ajustes.mute)return;
+  try{ AC=AC||new (window.AudioContext||window.webkitAudioContext)();
+    const o=AC.createOscillator(),g=AC.createGain(); o.type=type||"sine"; o.frequency.value=freq;
+    g.gain.value=vol||0.05; o.connect(g); g.connect(AC.destination); o.start();
+    g.gain.exponentialRampToValueAtTime(0.0001,AC.currentTime+(dur||0.12)); o.stop(AC.currentTime+(dur||0.12));
+  }catch(e){}
+}
+const SFX={play(){tono(520,.12,"triangle",.05)},atk(){tono(180,.14,"sawtooth",.06)},hit(){tono(110,.18,"square",.05)},
+  win(){tono(660,.14,"sine",.06);setTimeout(()=>tono(990,.2,"sine",.05),120)},lose(){tono(200,.4,"sawtooth",.06)},
+  coin(){tono(880,.08,"triangle",.05);setTimeout(()=>tono(1200,.1,"triangle",.04),70)},click(){tono(600,.05,"sine",.04)}};
+
+/* ---------- navegación ---------- */
+function show(id){ $$(".screen").forEach(s=>s.classList.toggle("on",s.id===id));
+  if(id==="coleccion")renderColeccion(); if(id==="mazos")renderMazos(); if(id==="ajustes")renderAjustes();
+  refreshCoins(); window.scrollTo(0,0);
+}
+function refreshCoins(){ $$(".coinval").forEach(e=>e.textContent=S.monedas); }
+document.addEventListener("click",e=>{
+  const g=e.target.closest("[data-go]"); if(g){ const d=g.getAttribute("data-go");
+    if(d==="ia"||d==="local"){ if(S.mazo.length<20){ toast("Tu mazo necesita 20 cartas. Usá 'Mazo automático'."); show("mazos"); return;} iniciarDuelo(d); }
+    else show(d); SFX.click(); }
+});
+
+/* ---------- toast ---------- */
+let toastT;
+function toast(msg,ms){ const t=$("#toast"); t.textContent=msg; t.classList.add("on"); clearTimeout(toastT); toastT=setTimeout(()=>t.classList.remove("on"),ms||1800); }
+
+/* =======================================================================
+   MOTOR DE DUELO
+   ======================================================================= */
+let D=null;
+function nuevoJugador(nombre,mazoIds,esIA){
+  const deck=mazoIds.map(id=>BYID[id]).filter(Boolean).map(c=>({...c, uid:Math.random().toString(36).slice(2)}));
+  // barajar
+  for(let i=deck.length-1;i>0;i--){const j=Math.floor(Math.random()*(i+1));[deck[i],deck[j]]=[deck[j],deck[i]];}
+  return {nombre,esIA,hp:30,maxHp:30,energia:0,maxEnergia:0,deck,mano:[],campo:[],av:esIA?"💀":"🧑‍🚀",fatiga:0};
+}
+function iniciarDuelo(modo){
+  const p0=nuevoJugador("Vos",S.mazo,false);
+  const p1=modo==="local"?nuevoJugador("Jugador 2",S.mazo,false):nuevoJugador("IA",mazoIA(),true);
+  D={jug:[p0,p1],turno:0,modo,sel:null,target:null,fin:false,n:0};
+  // mano inicial
+  for(let k=0;k<4;k++){robar(0,true);} for(let k=0;k<4;k++){robar(1,true);}
+  show("duel");
+  D.turno=1; // para que empezarTurno pase a 0
+  empezarTurno();
+}
+function mazoIA(){ // mazo variado a partir de todas las cartas comunes/raras/épicas
+  const pool=CARTAS.filter(c=>c.r!=="legendaria"); const m=[],cont={};
+  while(m.length<20){ const c=pick(pool); cont[c.id]=(cont[c.id]||0)+1; if(cont[c.id]<=2)m.push(c.id); }
+  return m;
+}
+function J(i){return D.jug[i];}
+function rival(i){return 1-i;}
+
+function robar(i,silencio){
+  const p=J(i);
+  if(p.deck.length===0){ p.fatiga++; p.hp-=p.fatiga; log(p.nombre+" no tiene cartas: "+p.fatiga+" de fatiga."); if(!silencio)chequearFin(); return; }
+  const c=p.deck.shift();
+  if(p.mano.length>=10){ log(p.nombre+" descartó "+c.n+" (mano llena)."); }
+  else p.mano.push(c);
+}
+function empezarTurno(){
+  if(D.fin)return;
+  D.turno=rival(D.turno);
+  const p=J(D.turno);
+  p.maxEnergia=Math.min(10,p.maxEnergia+1); p.energia=p.maxEnergia;
+  p.campo.forEach(m=>{m.yaAtaco=false; m.recienEntra=false;});
+  robar(D.turno);
+  D.sel=null; D.target=null;
+  render();
+  if(p.esIA){ setEndWait(true); setTimeout(turnoIA,650); }
+  else setEndWait(false);
+  if(D.turno===0 || D.modo==="local") toast((D.modo==="local"?p.nombre:"Tu")+" turno");
+}
+function setEndWait(w){ const b=$("#endTurn"); if(b) b.classList.toggle("wait",w); }
+
+function puedeJugar(i,carta){ return J(i).energia>=carta.c; }
+
+function jugarCarta(i,idxMano){
+  const p=J(i); const carta=p.mano[idxMano]; if(!carta||p.energia<carta.c)return;
+  if(carta.t==="criatura"){
+    if(p.campo.length>=7){ toast("El campo está lleno (máx 7)."); return; }
+    p.energia-=carta.c; p.mano.splice(idxMano,1);
+    const m={...carta, uid:carta.uid, atkCur:carta.a, vidaCur:carta.v, vidaMax:carta.v,
+      key:carta.key?[...carta.key]:[], yaAtaco:true, recienEntra:true, escudoUsado:false};
+    if(m.key.includes("veloz")) m.yaAtaco=false;
+    p.campo.push(m);
+    SFX.play(); log(p.nombre+" invoca "+carta.n+".");
+    if(carta.grito){ resolverEfectos(i,carta.grito,m,()=>{ render(); chequearFin(); }); }
+    else { render(); chequearFin(); }
+  } else { // hechizo
+    const ef=carta.ef;
+    const necesitaObj=/^elige/.test(ef.obj);
+    if(necesitaObj && !p.esIA){
+      // modo targeting
+      D.hechizoPendiente={i,idxMano,carta}; entrarTargeting(i,ef.obj);
+      return;
+    }
+    // IA o efecto sin objetivo elegido
+    p.energia-=carta.c; p.mano.splice(idxMano,1); SFX.play(); log(p.nombre+" lanza "+carta.n+".");
+    let obj=null;
+    if(necesitaObj) obj=objetivoIA(i,ef.obj);
+    resolverEfectos(i,[ef],obj,()=>{ render(); chequearFin(); });
+  }
+}
+
+/* resolver lista de efectos; 'fuente' es la criatura que grita (para buffAll) u objetivo elegido */
+function resolverEfectos(i,efectos,ctx,done){
+  let k=0;
+  (function paso(){
+    if(k>=efectos.length){ done&&done(); return; }
+    const ef=efectos[k++]; aplicarEfecto(i,ef,ctx); setTimeout(paso,120);
+  })();
+}
+function aplicarEfecto(i,ef,ctx){
+  const p=J(i), opp=J(rival(i));
+  switch(ef.t){
+    case "dmg":{
+      let target=null;
+      if(ef.obj==="heroEnem")target={tipo:"hero",p:opp};
+      else if(ef.obj==="heroProp")target={tipo:"hero",p:p};
+      else if(ef.obj==="enemRandom"){ const arr=[{tipo:"hero",p:opp}].concat(opp.campo.map(m=>({tipo:"min",m}))); target=pick(arr); }
+      else if(ef.obj==="enemCritRandom"){ if(opp.campo.length)target={tipo:"min",m:pick(opp.campo)}; }
+      else if(/^elige/.test(ef.obj)) target=ctx; // elegido
+      if(target)danyo(target,ef.v);
+      break;}
+    case "dmgAll":{ const arr=[...opp.campo]; arr.forEach(m=>danyo({tipo:"min",m},ef.v)); break; }
+    case "cura":{ if(ef.obj==="heroProp"){ p.hp=Math.min(p.maxHp,p.hp+ef.v);} else if(ctx&&ctx.tipo==="hero"){ctx.p.hp=Math.min(ctx.p.maxHp,ctx.p.hp+ef.v);} break; }
+    case "roba":{ for(let z=0;z<ef.v;z++)robar(i); break; }
+    case "buff":{ if(ctx&&ctx.tipo==="min"){ ctx.m.atkCur+=ef.v; ctx.m.vidaCur+=ef.v; ctx.m.vidaMax+=ef.v; } break; }
+    case "buffAll":{ p.campo.forEach(m=>{ if(m!==ctx){ m.atkCur+=ef.v; m.vidaCur+=ef.v; m.vidaMax+=ef.v; } }); break; }
+    case "destruir":{ if(ctx&&ctx.tipo==="min"){ ctx.m.vidaCur=0; } break; }
+  }
+  limpiarMuertos();
+}
+function danyo(target,n){
+  if(target.tipo==="hero"){ target.p.hp-=n; flash(); }
+  else { const m=target.m; if(m.key&&m.key.includes("escudo")&&!m.escudoUsado&&n>0){ m.escudoUsado=true; m.key=m.key.filter(x=>x!=="escudo"); }
+    else { m.vidaCur-=n; } const el=document.querySelector('[data-uid="'+m.uid+'"]'); if(el){el.classList.add("dmg");setTimeout(()=>el.classList.remove("dmg"),300);} }
+  SFX.hit();
+}
+function limpiarMuertos(){ D.jug.forEach(p=>{ p.campo=p.campo.filter(m=>m.vidaCur>0); }); }
+
+/* ---------- ataque ---------- */
+function seleccionarAtacante(i,m){
+  if(D.turno!==i||D.fin)return; if(m.yaAtaco||m.atkCur<=0){ return; }
+  D.sel=(D.sel===m?null:m); render();
+}
+function atacar(i,atacante,target){
+  const opp=J(rival(i));
+  // guardián: si hay guardianes y el objetivo no es guardián -> no permitido
+  const guardias=opp.campo.filter(x=>x.key&&x.key.includes("guardian"));
+  if(guardias.length && !(target.tipo==="min"&&target.m.key&&target.m.key.includes("guardian"))){ toast("Hay un Guardián: atacalo primero."); return; }
+  SFX.atk();
+  if(target.tipo==="hero"){ danyo({tipo:"hero",p:opp},atacante.atkCur); }
+  else { const d=target.m; danyo({tipo:"min",m:d},atacante.atkCur); danyo({tipo:"min",m:atacante},d.atkCur); }
+  atacante.yaAtaco=true; D.sel=null; limpiarMuertos(); render(); chequearFin();
+}
+
+/* ---------- targeting de hechizos (jugador humano) ---------- */
+function entrarTargeting(i,obj){ D.targeting={i,obj}; render(); toast("Elegí un objetivo"); }
+function cancelarTargeting(){ D.targeting=null; D.hechizoPendiente=null; render(); }
+function objetivoValido(obj,target,i){
+  const opp=rival(i);
+  if(obj==="elige") return true; // cualquier héroe o criatura
+  if(obj==="eligeCrit") return target.tipo==="min"; // cualquier criatura (de cualquiera)
+  if(obj==="eligeAliada") return target.tipo==="min" && target.owner===i;
+  return false;
+}
+function clickTarget(target){
+  if(D.targeting){
+    const {i,obj}=D.targeting;
+    // para 'eligeCrit' de daño ofensivo preferimos criatura enemiga pero permitimos cualquiera
+    if(!objetivoValido(obj,target,i)){ return; }
+    const hp=D.hechizoPendiente; const p=J(i);
+    p.energia-=hp.carta.c; p.mano.splice(hp.idxMano,1); SFX.play(); log(p.nombre+" lanza "+hp.carta.n+".");
+    const ctx = target.tipo==="hero"?{tipo:"hero",p:J(target.ownerIdx)}:{tipo:"min",m:target.m};
+    D.targeting=null; D.hechizoPendiente=null;
+    resolverEfectos(i,[hp.carta.ef],ctx,()=>{ render(); chequearFin(); });
+    return true;
+  }
+  // ataque
+  if(D.sel){ atacar(D.turno,D.sel,target); return true; }
+  return false;
+}
+function objetivoIA(i,obj){
+  const opp=J(rival(i));
+  if(obj==="eligeCrit"){ if(opp.campo.length) return {tipo:"min",m:opp.campo.reduce((a,b)=>b.atkCur>a.atkCur?b:a)}; return null; }
+  if(obj==="eligeAliada"){ const c=J(i).campo; if(c.length) return {tipo:"min",m:c.reduce((a,b)=>b.atkCur>a.atkCur?b:a)}; return null; }
+  if(obj==="elige"){ // daño: si mata algo o letal al héroe
+    if(opp.hp<=2) return {tipo:"hero",p:opp};
+    if(opp.campo.length) return {tipo:"min",m:opp.campo.reduce((a,b)=>b.atkCur>a.atkCur?b:a)};
+    return {tipo:"hero",p:opp};
+  }
+  return null;
+}
+
+/* ---------- IA ---------- */
+function turnoIA(){
+  if(D.fin)return; const i=D.turno, p=J(i);
+  // jugar cartas mientras pueda
+  let seguir=true, guard=0;
+  (function loop(){
+    if(D.fin){return;}
+    guard++; if(guard>40){iaAtaques(i);return;}
+    const jug=p.mano.map((c,idx)=>({c,idx})).filter(o=>o.c.c<=p.energia);
+    if(!jug.length){ iaAtaques(i); return; }
+    // preferir criaturas grandes; hechizos si hay buen objetivo
+    jug.sort((a,b)=>b.c.c-a.c.c);
+    const elegido=jug[0];
+    jugarCarta(i,elegido.idx);
+    setTimeout(loop,480);
+  })();
+}
+function iaAtaques(i){
+  const p=J(i), opp=J(rival(i));
+  const listos=()=>p.campo.filter(m=>!m.yaAtaco&&m.atkCur>0);
+  (function loop(){
+    if(D.fin){finIA();return;}
+    const arr=listos(); if(!arr.length){ finIA(); return; }
+    const m=arr[0];
+    const guardias=opp.campo.filter(x=>x.key&&x.key.includes("guardian"));
+    let target;
+    if(guardias.length){ target={tipo:"min",m:guardias[0]}; }
+    else {
+      // trade favorable?
+      const mata=opp.campo.filter(e=>e.vidaCur<=m.atkCur && e.atkCur<m.vidaCur);
+      if(opp.hp<=m.atkCur){ target={tipo:"hero",p:opp}; }
+      else if(mata.length){ target={tipo:"min",m:mata.reduce((a,b)=>b.atkCur>a.atkCur?b:a)}; }
+      else { target={tipo:"hero",p:opp}; }
+    }
+    atacar(i,m,target);
+    setTimeout(loop,430);
+  })();
+}
+function finIA(){ if(D.fin)return; setTimeout(empezarTurno,350); }
+
+/* ---------- fin ---------- */
+function chequearFin(){
+  limpiarMuertos();
+  for(let i=0;i<2;i++){ if(J(i).hp<=0){ terminar(rival(i)); return true; } }
+  render(); return false;
+}
+function terminar(ganador){
+  if(D.fin)return; D.fin=true;
+  const vosGanaste = (D.modo!=="local" && ganador===0);
+  const vosPerdiste= (D.modo!=="local" && ganador===1);
+  if(vosGanaste){ S.stats.win++; S.monedas+=50; SFX.win(); }
+  else if(vosPerdiste){ S.stats.lose++; SFX.lose(); }
+  else { SFX.win(); }
+  guardar();
+  const nombre = D.modo==="local" ? J(ganador).nombre+" gana" : (vosGanaste?"¡Ganaste!":"Perdiste");
+  const cls = vosPerdiste?"lose":"win";
+  overlay(
+    '<div class="panelbox result" style="max-width:360px">'+
+    '<div class="big '+cls+'">'+nombre+'</div>'+
+    (D.modo!=="local"?'<p style="color:var(--mut);margin:10px 0">'+(vosGanaste?"+50 🪙":"Suerte la próxima")+'</p>':'')+
+    '<div class="row" style="justify-content:center;margin-top:14px">'+
+    '<button class="btn pri" id="revancha">Revancha</button>'+
+    '<button class="btn" id="alMenu">Menú</button></div></div>'
+  );
+  $("#revancha").onclick=()=>{ cerrarOverlay(); iniciarDuelo(D.modo); };
+  $("#alMenu").onclick=()=>{ cerrarOverlay(); D=null; show("menu"); };
+}
+
+/* ---------- log / flash ---------- */
+function log(m){ D._log=m; const el=$("#log"); if(el)el.textContent=m; }
+function flash(){ const f=$("#flash"); if(!f)return; f.style.opacity=".7"; setTimeout(()=>f.style.opacity="0",160); }
+
+/* =======================================================================
+   RENDER DEL DUELO
+   ======================================================================= */
+function cardArtVars(c){ return 'style="--rc:var(--'+c.r+');--fc:var(--'+c.f+')"'; }
+function minionHTML(m,i,owner){
+  const ready = D.turno===owner && !m.yaAtaco && m.atkCur>0 && !J(owner).esIA || (D.turno===owner && !m.yaAtaco && m.atkCur>0 && D.modo==="local");
+  const kw = (m.key&&m.key.length)? '<span class="kw">'+(m.key.includes("guardian")?"🛡":m.key.includes("veloz")?"⚡":m.key.includes("escudo")?"✦":"")+'</span>':'';
+  return '<div class="minion'+(ready?' ready':'')+(m.key&&m.key.includes("escudo")?' shield':'')+(D.sel===m?' sel':'')+'" '+cardArtVars(m)+
+    ' data-min="'+m.uid+'" data-owner="'+owner+'">'+kw+
+    '<div class="art">'+m.i+'</div><div class="nm">'+m.n+'</div>'+
+    '<div class="atk">'+m.atkCur+'</div><div class="vida">'+m.vidaCur+'</div></div>';
+}
+function heroHTML(p,idx){
+  const pips=[]; for(let k=0;k<Math.max(p.maxEnergia,p.energia);k++)pips.push('<span class="pip'+(k<p.energia?' on':'')+'"></span>');
+  return '<div class="hero" data-hero="'+idx+'"><div class="av">'+p.av+'</div>'+
+    '<div><div class="hname">'+p.nombre+'</div><div class="hmeta">'+(idx===D.turno?'● en turno':'esperando')+'</div></div>'+
+    '<span style="flex:1"></span>'+
+    '<div class="en">'+pips.join("")+'</div><div class="entxt">'+p.energia+'/'+p.maxEnergia+'</div>'+
+    '<div class="hp">❤ '+Math.max(0,p.hp)+'</div></div>';
+}
+function manoHTML(p,idx){
+  if(idx!==D.turno && D.modo!=="local"){} // sólo se ve la mano del jugador en turno (o ambas en IA mode = jugador 0)
+  const visible = (D.modo==="local") ? (idx===D.turno) : (idx===0);
+  if(!visible){ // mano oculta del rival (sólo dorsos)
+    let h=''; for(let k=0;k<p.mano.length;k++)h+='<div class="oppCard"></div>';
+    return '<div class="oppHand">'+h+'</div>';
+  }
+  const esTurno = idx===D.turno && !p.esIA;
+  return '<div class="hand">'+p.mano.map((c,k)=>{
+    const noMana=!esTurno||p.energia<c.c;
+    return '<div class="card'+(c.t==="hechizo"?' hech':'')+(noMana?' no-mana':'')+'" '+cardArtVars(c)+' data-mano="'+k+'" data-owner="'+idx+'">'+
+      '<div class="cost">'+c.c+'</div><div class="art">'+c.i+'</div><div class="nm">'+c.n+'</div>'+
+      '<div class="tx">'+c.tx+'</div>'+
+      (c.t==="criatura"?'<div class="stats"><div class="atk">'+c.a+'</div><div class="vida">'+c.v+'</div></div>':'')+
+      '<div class="rar">'+RAREZA_LBL[c.r]+'</div></div>';
+  }).join("")+'</div>';
+}
+function render(){
+  if(!D)return;
+  const yo=0, op=1;
+  // En modo IA el "abajo" siempre es jugador 0. En local, abajo es el jugador en turno.
+  const abajo = (D.modo==="local") ? D.turno : 0;
+  const arriba = rival(abajo);
+  const pa=J(arriba), pb=J(abajo);
+  const tg=D.targeting;
+  const marcarObjHero = (idx)=> tg ? (tg.obj==="elige"||( (tg.obj==="elige")) ) : false;
+  let html='';
+  html+=heroHTML(pa,arriba);
+  html+=manoHTML(pa,arriba);
+  html+='<div class="board" data-board="'+arriba+'">'+pa.campo.map(m=>minionHTML(m,0,arriba)).join("")+'</div>';
+  html+='<div class="board" data-board="'+abajo+'">'+pb.campo.map(m=>minionHTML(m,0,abajo)).join("")+'</div>';
+  html+=manoHTML(pb,abajo);
+  html+=heroHTML(pb,abajo);
+  const a=$("#arena"); a.innerHTML=html;
+  // marcar objetivos válidos
+  if(tg){
+    const i=tg.i;
+    $$(".minion",a).forEach(el=>{ const owner=+el.getAttribute("data-owner"); const m=findMin(owner,el.getAttribute("data-min"));
+      let ok=false; if(tg.obj==="elige")ok=true; else if(tg.obj==="eligeCrit")ok=true; else if(tg.obj==="eligeAliada")ok=(owner===i);
+      if(ok)el.classList.add("obj"); });
+    $$(".hero",a).forEach(el=>{ const idx=+el.getAttribute("data-hero"); if(tg.obj==="elige")el.classList.add("obj"); });
+  } else if(D.sel){
+    // marcar objetivos de ataque (campo rival + héroe rival), respetando guardián
+    const opp=rival(D.turno); const guardias=J(opp).campo.filter(x=>x.key&&x.key.includes("guardian"));
+    $$('.minion[data-owner="'+opp+'"]',a).forEach(el=>{ const m=findMin(opp,el.getAttribute("data-min")); if(!guardias.length|| (m.key&&m.key.includes("guardian"))) el.classList.add("obj"); });
+    if(!guardias.length){ const h=$('.hero[data-hero="'+opp+'"]',a); if(h)h.classList.add("obj"); }
+  }
+  $("#turnLabel").textContent = D.modo==="local" ? (J(D.turno).nombre+" juega") : (D.turno===0?"Tu turno":"Turno de la IA");
+  if(D._log)$("#log").textContent=D._log;
+}
+function findMin(owner,uid){ return J(owner).campo.find(m=>m.uid===uid); }
+
+/* clicks en el tablero */
+$("#arena").addEventListener("click",e=>{
+  if(!D||D.fin)return;
+  const turno=D.turno; const p=J(turno); if(p.esIA)return;
+  const cEl=e.target.closest(".card[data-mano]");
+  const mEl=e.target.closest(".minion");
+  const hEl=e.target.closest(".hero");
+  if(D.targeting){
+    if(mEl){ const owner=+mEl.getAttribute("data-owner"); const m=findMin(owner,mEl.getAttribute("data-min")); if(clickTarget({tipo:"min",m,owner}))return; }
+    if(hEl){ const idx=+hEl.getAttribute("data-hero"); if(clickTarget({tipo:"hero",ownerIdx:idx}))return; }
+    return;
+  }
+  if(cEl){ const owner=+cEl.getAttribute("data-owner"); if(owner!==turno)return; jugarCarta(turno,+cEl.getAttribute("data-mano")); return; }
+  if(mEl){ const owner=+mEl.getAttribute("data-owner"); const m=findMin(owner,mEl.getAttribute("data-min"));
+    if(owner===turno){ seleccionarAtacante(turno,m); }
+    else if(D.sel){ atacar(turno,D.sel,{tipo:"min",m}); }
+    return;
+  }
+  if(hEl){ const idx=+hEl.getAttribute("data-hero"); if(idx!==turno && D.sel){ atacar(turno,D.sel,{tipo:"hero"}); } return; }
+});
+$("#endTurn").addEventListener("click",()=>{ if(!D||D.fin)return; if(J(D.turno).esIA)return; D.sel=null; D.targeting=null; empezarTurno(); });
+$("#salirDuelo").addEventListener("click",()=>{ if(confirm("¿Salir del duelo? Se pierde la partida en curso.")){ D=null; show("menu"); } });
+
+/* =======================================================================
+   COLECCIÓN / MAZO / TIENDA / AJUSTES
+   ======================================================================= */
+let colFiltro="todas";
+function cardGridHTML(c,extra){
+  return '<div class="card mini'+(extra&&extra.locked?' locked':'')+'" '+cardArtVars(c)+' data-card="'+c.id+'">'+
+    '<div class="cost">'+c.c+'</div><div class="art">'+c.i+'</div><div class="nm">'+c.n+'</div>'+
+    '<div class="tx">'+c.tx+'</div>'+
+    (c.t==="criatura"?'<div class="stats"><div class="atk">'+c.a+'</div><div class="vida">'+c.v+'</div></div>':'')+
+    '<div class="rar">'+RAREZA_LBL[c.r]+'</div>'+(extra&&extra.badge?'<span class="badge">'+extra.badge+'</span>':'')+'</div>';
+}
+function filtrosHTML(id,sel){
+  const fs=[["todas","Todas"],["comun","Comunes"],["rara","Raras"],["epica","Épicas"],["legendaria","Legendarias"],["criatura","Criaturas"],["hechizo","Hechizos"]];
+  return fs.map(f=>'<button class="chip'+(sel===f[0]?' on':'')+'" data-filtro="'+f[0]+'" data-grid="'+id+'">'+f[1]+'</button>').join("");
+}
+function pasaFiltro(c,fil){ if(fil==="todas")return true; if(fil==="criatura"||fil==="hechizo")return c.t===fil; return c.r===fil; }
+function renderColeccion(){
+  $("#colFiltros").innerHTML=filtrosHTML("col",colFiltro);
+  const owned=new Set(S.coleccion);
+  $("#colGrid").innerHTML=CARTAS.filter(c=>pasaFiltro(c,colFiltro)).map(c=>cardGridHTML(c,{locked:!owned.has(c.id)})).join("");
+  $("#stCards")&&( $("#stCards").textContent=S.coleccion.length );
+}
+let mazoFiltro="todas";
+function conteoMazo(){ const m={}; S.mazo.forEach(id=>m[id]=(m[id]||0)+1); return m; }
+function renderMazos(){
+  $("#mazoFiltros").innerHTML=filtrosHTML("mazo",mazoFiltro);
+  const owned=new Set(S.coleccion); const cont=conteoMazo();
+  $("#mazoGrid").innerHTML=CARTAS.filter(c=>owned.has(c.id)&&pasaFiltro(c,mazoFiltro)).map(c=>cardGridHTML(c,{badge:cont[c.id]?('x'+cont[c.id]):null})).join("");
+  $("#deckN").textContent=S.mazo.length;
+}
+document.addEventListener("click",e=>{
+  const f=e.target.closest("[data-filtro]");
+  if(f){ const g=f.getAttribute("data-grid"); if(g==="col"){colFiltro=f.getAttribute("data-filtro");renderColeccion();} else {mazoFiltro=f.getAttribute("data-filtro");renderMazos();} return; }
+  // agregar/quitar del mazo (sólo en pantalla mazos)
+  if($("#mazos").classList.contains("on")){
+    const cc=e.target.closest("[data-card]");
+    if(cc){ const id=+cc.getAttribute("data-card"); toggleMazo(id); }
+  }
+});
+function toggleMazo(id){
+  const cont=conteoMazo(); const n=cont[id]||0;
+  if(n>0){ const idx=S.mazo.indexOf(id); S.mazo.splice(idx,1); }
+  else { if(S.mazo.length>=20){ toast("El mazo ya tiene 20 cartas."); return; } if((cont[id]||0)>=2){ toast("Máximo 2 copias."); return; } S.mazo.push(id); }
+  SFX.click(); guardar(); renderMazos();
+}
+$("#autoDeck").onclick=()=>{ S.mazo=autoMazo(S); guardar(); renderMazos(); toast("Mazo automático armado."); };
+$("#clearDeck").onclick=()=>{ S.mazo=[]; guardar(); renderMazos(); };
+
+/* tienda */
+$("#daily").onclick=()=>{ const hoy=new Date().toISOString().slice(0,10); if(S.dia===hoy){ toast("Ya reclamaste hoy. Volvé mañana."); return; } S.dia=hoy; S.monedas+=50; SFX.coin(); guardar(); toast("+50 🪙 recompensa diaria"); };
+$("#buyPack").onclick=()=>{
+  if(S.monedas<100){ toast("Te faltan monedas. Reclamá la diaria o ganá duelos."); return; }
+  S.monedas-=100; SFX.coin();
+  const cartas=[]; for(let k=0;k<3;k++)cartas.push(sortearCarta());
+  cartas.forEach(c=>{ if(!S.coleccion.includes(c.id))S.coleccion.push(c.id); });
+  guardar(); abrirSobre(cartas);
+};
+function sortearCarta(){
+  const total=Object.values(RAR_PESO).reduce((a,b)=>a+b,0); let x=Math.random()*total, rareza="comun";
+  for(const r in RAR_PESO){ if(x<RAR_PESO[r]){rareza=r;break;} x-=RAR_PESO[r]; }
+  const pool=CARTAS.filter(c=>c.r===rareza); return pick(pool.length?pool:CARTAS);
+}
+function abrirSobre(cartas){
+  overlay('<div class="panelbox result" style="max-width:480px"><h3 style="letter-spacing:.1em;margin-bottom:12px">SOBRE ABIERTO</h3>'+
+    '<div class="row" style="justify-content:center">'+cartas.map(c=>cardGridHTML(c)).join("")+'</div>'+
+    '<button class="btn pri" id="okSobre" style="margin-top:16px">Genial</button></div>');
+  $("#okSobre").onclick=cerrarOverlay;
+}
+
+/* ajustes */
+function renderAjustes(){ $("#muteState").textContent=S.ajustes.mute?"(silenciado)":"(activado)"; $("#stWin").textContent=S.stats.win; $("#stLose").textContent=S.stats.lose; $("#stCards").textContent=S.coleccion.length; }
+function toggleMute(){ S.ajustes.mute=!S.ajustes.mute; guardar(); renderAjustes(); $("#mute")&&( $("#mute").querySelector(".em").textContent=S.ajustes.mute?"🔇":"🔊"); toast(S.ajustes.mute?"Sonido silenciado":"Sonido activado"); }
+$("#mute").onclick=toggleMute; $("#mute2").onclick=toggleMute;
+$("#exportar").onclick=()=>{ const blob=new Blob([JSON.stringify(S)],{type:"application/json"}); const a=document.createElement("a"); a.href=URL.createObjectURL(blob); a.download="arcanos-partida.json"; a.click(); setTimeout(()=>URL.revokeObjectURL(a.href),2000); };
+$("#importar").onclick=()=>$("#fileIn").click();
+$("#fileIn").onchange=e=>{ const f=e.target.files[0]; if(!f)return; const r=new FileReader(); r.onload=()=>{ try{ const o=JSON.parse(r.result); if(o&&o.v===1){ S=o; guardar(); renderAjustes(); toast("Partida importada."); } else toast("Archivo no válido."); }catch(x){ toast("No se pudo leer el archivo."); } }; r.readAsText(f); };
+$("#reset").onclick=()=>{ if(confirm("¿Seguro que querés borrar TODO tu progreso? No se puede deshacer.")){ S=nuevo(); guardar(); renderAjustes(); toast("Progreso reiniciado."); } };
+
+/* ---------- overlay genérico ---------- */
+function overlay(html){ const o=$("#overlay"); o.innerHTML='<div class="scrim">'+html+'</div>'; }
+function cerrarOverlay(){ $("#overlay").innerHTML=""; }
+
+/* init */
+if(S.ajustes.mute)$("#mute").querySelector(".em").textContent="🔇";
+refreshCoins();
+</script>
+</body>
+</html>

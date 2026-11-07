@@ -37,6 +37,9 @@ window.TM_DIMS = [
   { id: "gonzaops", nombre: "GonzaOps", tipo: "Shooter táctico", cat: "arcade", color: "#f39a3d", ruta: "gonzaops/",
     desc: "5 contra 5 en el navegador: el Asalto planta la carga y la Guardia defiende. Rondas, economía y granadas, contra bots u online.",
     icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="6.5"/><path d="M12 2.5v5M12 16.5v5M2.5 12h5M16.5 12h5"/><circle cx="12" cy="12" r="1.2"/></svg>' },
+  { id: "arcanos", nombre: "Arcanos", tipo: "Juego de cartas", cat: "arcade", color: "#b06cff", ruta: "arcanos/", beta: true,
+    desc: "Duelo de cartas por turnos: jugá contra la IA o en local, armá tu mazo, abrí sobres y coleccioná. Cartas originales, sin cuenta.",
+    icon: '<svg viewBox="0 0 24 24"><rect x="8" y="4" width="11" height="15" rx="2"/><path d="M5 7.5 3.5 9v8a2 2 0 0 0 2 2H13"/><path d="M13 8l1 2 2.2.2-1.6 1.5.5 2.1-2.1-1.1-2.1 1.1.5-2.1L10 10.2l2.1-.2z"/></svg>' },
 
   // ── Constelación Sistema ──
   { id: "jarvis", nombre: "Jarvis", tipo: "Asistente de voz", cat: "sistema", color: "#38e1ff", ruta: "jarvis/",
