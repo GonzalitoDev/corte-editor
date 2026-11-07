@@ -168,9 +168,49 @@
     const panel = $('#tab-economia'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
   }
 
+  /* ───── Etapa 2: panel de Política ───── */
+  const COLOP = ['#5aa9ff', '#ffd23f', '#ff7ad1', '#b06cff'];
+  function vbar(w, color) { return `<span class="vbar"><i style="width:${Math.max(2, Math.min(100, w))}%;background:${color}"></i></span>`; }
+  function renderPolitica() {
+    const p = M.politica(s), pct = x => x.toFixed(1).replace('.', ',') + ' %';
+    const climaTxt = { crisis: '⚠ Clima de crisis', 'tensión': 'Tensión social', 'luna de miel': 'Luna de miel', normal: 'Clima político estable' }[p.clima];
+    const climaCol = { crisis: '#e04848', 'tensión': '#ffd23f', 'luna de miel': '#4fbf5a', normal: '#cfc8ee' }[p.clima];
+    // intención de voto ordenada (vos + oposición)
+    const filas = [{ n: p.partido, voto: p.propia, yo: true }].concat(p.oposicion.map(o => ({ n: o.n, ideo: o.ideo, voto: o.voto }))).sort((a, b) => b.voto - a.voto);
+    const maxv = Math.max.apply(null, filas.map(x => x.voto)) || 1;
+    let oi = 0;
+    const votoH = filas.map(r => {
+      const col = r.yo ? '#4fbf5a' : COLOP[(oi++) % COLOP.length];
+      return `<li class="${r.yo ? 'yo' : ''}"><span class="pn">${r.yo ? '★ ' : ''}${esc(r.n)}${r.ideo ? ` <small>${r.ideo}</small>` : ''}</span>${vbar(r.voto / maxv * 100, col)}<b style="color:${col}">${pct(r.voto)}</b></li>`;
+    }).join('');
+    // acciones (usan el manejador de .item existente)
+    const cActo = M.costoActo(s), cDeb = M.costoDebate(s);
+    const debDisp = p.faltan <= 6 && s.debateMes !== s.mes;
+    let acc = item('acto:1', 'Acto de campaña', `Movilizás a la militancia: +${p.faltan <= 12 ? 7 : 4} de aprobación al toque. Se financia imprimiendo, así que empuja un poco la inflación.`, '$ ' + M.fmt(cActo), null, s.caja >= cActo, s.caja < cActo ? 'caro' : '');
+    acc += item('debate:1', 'Debate presidencial', debDisp ? 'Te jugás en vivo: si te va bien, salto grande de aprobación; si te va mal, perdés unos puntos. Mejor si ya venís arriba.' : (s.debateMes === s.mes ? 'Ya debatiste este mes. Esperá al mes que viene.' : `Solo cerca de la elección (faltan ${p.faltan} meses, se habilita con 6 o menos).`), '$ ' + M.fmt(cDeb), null, debDisp && s.caja >= cDeb, !debDisp ? 'bloq' : (s.caja < cDeb ? 'caro' : ''));
+    const proy = p.gana
+      ? `<b style="color:#4fbf5a">Hoy ganarías</b> la próxima elección (sacás ${pct(p.propia)} y necesitás 40 %).`
+      : `<b style="color:#e04848">Hoy perderías</b>: sacás ${pct(p.propia)} y necesitás 40 %.`;
+    const h = `
+    <p class="sub">INTENCIÓN DE VOTO · ${p.faltan} ${p.faltan === 1 ? 'MES' : 'MESES'} PARA LA ELECCIÓN</p>
+    <div class="ecoDiag" style="border-left-color:${climaCol}">${climaTxt}. ${proy}</div>
+    <ul class="votos">${votoH}</ul>
+    <p class="sub">EL CONGRESO</p>
+    <div class="congreso">
+      <div class="cbar">${vbar(p.oficialismo, '#4fbf5a')}<span>Tu bloque ${p.oficialismo} %</span></div>
+      <div class="cbar">${vbar(p.oposicionBancas, '#e04848')}<span>Oposición ${p.oposicionBancas} %</span></div>
+      <p class="cgob">Gobernás <b>${p.gobernabilidad}</b>. Tu principal rival es <b>${esc(p.lider.n)}</b>.</p>
+    </div>
+    <p class="sub">CAMPAÑA</p>
+    ${acc}
+    <p class="sub" style="opacity:.7;font-size:9px;margin-top:8px">Etapa 2: la intención de voto y el Congreso se mueven con tu aprobación y la economía. Los actos y debates cambian la aprobación de verdad, que es la que define las elecciones. En próximas etapas: provincias, ministerios con presupuesto y más tipos de elección.</p>`;
+    const panel = $('#tab-politica'); if (!panel) return; const sc = panel.scrollTop; panel.innerHTML = h; panel.scrollTop = sc;
+  }
+
   let firmaTienda = '';
   function pintarTienda(forzar) {
     if (tab === 'economia') { renderEconomia(); return; }
+    if (tab === 'politica') { renderPolitica(); return; }
     // solo se redibuja si cambió algo que se ve
     const firma = [tab, s.cargo, Math.floor(s.caja / Math.max(1, M.porSeg(s) * .5 + 1)), s.noquis, s.subsidios, s.impuestos, s.congelado, Object.keys(s.min).length, JSON.stringify(s.imp), Math.floor(s.usd), s.mes, s.cripto ? 1 : 0, s.deuda, Object.keys(s.vip).length].join('|');
     if (!forzar && firma === firmaTienda) return; firmaTienda = firma;
@@ -239,6 +279,8 @@
     if (k === 'prog') ok = M.programa(s, v);
     if (k === 'noqui') ok = M.noqui(s, +v) > 0;
     if (k === 'min') ok = M.ministerio(s, v);
+    if (k === 'acto') ok = M.acto(s);
+    if (k === 'debate') ok = M.debate(s);
     if (k === 'vip') ok = M.vip(s, v);
     if (k === 'ceros') ok = M.quitarCeros(s);
     if (k === 'ascender') { ok = M.ascender(s); if (ok) { sBueno(); aviso(`¡Ahora sos ${M.CARGOS[s.cargo].n}!`); } }

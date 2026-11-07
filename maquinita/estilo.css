@@ -111,3 +111,18 @@ button.pri{font:12px var(--px);background:var(--oro);color:#2a1a00;border:3px so
 .ecoTile b{display:block;font-family:'VT323',monospace;font-size:23px;margin-top:2px;line-height:.95}
 .ecoTile span{display:block;color:#8a80b0;font-size:12px;font-family:'VT323',monospace;line-height:1.1;margin-top:1px}
 .ecoDiag{background:#1a1430;border:2px solid #4a3f7e;border-radius:6px;padding:9px 10px;margin-top:8px;font-family:'VT323',monospace;font-size:17px;color:#cfc8ee;line-height:1.2}
+
+/* ===== Etapa 2: panel de Política ===== */
+.votos{list-style:none;padding:0;margin:8px 0 0;display:grid;gap:6px}
+.votos li{display:grid;grid-template-columns:1fr 70px auto;align-items:center;gap:8px;background:#211a3c;border:2px solid #392f5e;border-radius:6px;padding:6px 8px}
+.votos li.yo{border-color:var(--verde)}
+.votos .pn{font-size:9px;line-height:1.3}
+.votos .pn small{display:block;color:#9a8fc4;font-size:11px;font-family:'VT323',monospace}
+.votos b{font-family:'VT323',monospace;font-size:18px;text-align:right}
+.vbar{display:block;height:9px;background:#120d22;border-radius:5px;overflow:hidden}
+.vbar i{display:block;height:100%}
+.congreso{margin-top:8px}
+.congreso .cbar{display:grid;grid-template-columns:1fr auto;align-items:center;gap:8px;margin-bottom:6px}
+.congreso .cbar span{font-family:'VT323',monospace;font-size:15px;color:#cfc8ee;white-space:nowrap}
+.congreso .cgob{font-family:'VT323',monospace;font-size:16px;color:#cfc8ee;margin:4px 0 0;line-height:1.25}
+.congreso .cgob b{color:var(--oro)}

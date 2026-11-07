@@ -66,6 +66,15 @@
     { n: 'Pocho Ferreyra', usd0: 3e3, crece: 1.048 }, { n: 'Toto Zamudio', usd0: 4e4, crece: 1.045 }, { n: 'La Nena Garbarino', usd0: 6e5, crece: 1.042 },
     { n: 'Don Anselmo Quiroga', usd0: 9e6, crece: 1.04 }, { n: 'Los Hermanos Peralta', usd0: 1.5e8, crece: 1.038 },
   ];
+  // Etapa 2: partidos de oposición (ficticios) y nombres posibles para tu propio espacio
+  M.PARTIDOS = [
+    { n: 'Frente Cambio Real', ideo: 'centro-derecha', peso: 0.34 },
+    { n: 'Unión Popular Federal', ideo: 'centro-izquierda', peso: 0.27 },
+    { n: 'Movimiento Libertad Total', ideo: 'liberal', peso: 0.23 },
+    { n: 'Vecinos Autoconvocados', ideo: 'vecinalista', peso: 0.16 },
+  ];
+  M.NOMBRES_PARTIDO = ['Partido de la Maquinita', 'Frente Billete Feliz', 'Unión Imprenta Nacional', 'Movimiento Patria y Emisión', 'Frente de la Gente Contenta', 'Espacio Siempre Presente'];
+  M.nombrePartido = () => M.NOMBRES_PARTIDO[Math.floor(Math.random() * M.NOMBRES_PARTIDO.length)];
 
   M.nuevo = function (contactos) {
     return {
@@ -74,6 +83,7 @@
       congelado: 0, prensa: 0, ultEvento: 0, evento: null, histInfl: [2], noticias: [], logros: {}, mandatos: 0,
       contactos: contactos || 0, fin: null, ceros: 0, prox: 25 + Math.random() * 20, mejorUsd: 0,
       deuda: 0, deudaCuota: 0, cripto: null, cadenas: 0, autoOn: false, vip: {},
+      partido: M.nombrePartido(), actos: 0, debates: 0, debateMes: -1,  // Etapa 2: política
     };
   };
 
@@ -354,6 +364,7 @@
     procer: 'Prócer en un billete', noquis100: 'Cien ñoquis', clicker: 'Mil clics en la maquinita',
     cadena: 'Cadena nacional', deuda: 'Fuiste al Fondo', cripto: 'GonzaCoin a la Luna', impuestazo: 'Diez impuestos nuevos', ejercito: 'Trescientos ñoquis', ricacho: 'Un palo verde (US$ 1 millón)',
     vip: 'Primer lujo VIP', vipTotal: 'Vida de lujo completa', jet: 'Jet privado', isla: 'Isla privada',
+    campania: 'Diez actos de campaña', debatidor: 'Cinco debates presidenciales',
   };
   M.logro = (s, id) => { if (s.logros[id]) return false; s.logros[id] = Date.now(); noticia(s, `🏆 Logro: ${M.LOGROS[id]}`, 'logro'); return true; };
   M.revisarLogros = s => {
@@ -417,6 +428,58 @@
     const impo = cl(6 + Math.log10(act) * 1.1 - (brecha - 1) * 2 + crecimiento * 0.4, 2, 32);
     const deudaUsd = s.deuda / dolar + Math.pow(10, Math.max(0, s.cargo - 2)) * 0.8;
     return { im, ia, dolar, pbi, crecimiento, recaudacion, gasto, fiscal, riesgo, reservas, desempleo, salarioReal, pobreza, salario, jubilacion, expo, impo, balanza: expo - impo, deudaUsd };
+  };
+
+  /* ───── Etapa 2: política, oposición y elecciones ─────
+     M.politica es de SOLO LECTURA: calcula la intención de voto propia y de la oposición,
+     la composición del Congreso, la gobernabilidad y el clima político a partir del estado real
+     (aprobación, economía, mandatos). Las acciones M.acto y M.debate sí cambian la partida, pero
+     son funciones nuevas que no tocan ninguna mecánica existente: operan sobre la aprobación, que
+     es la que decide las elecciones del juego. */
+  M.politica = function (s) {
+    const cl = (v, a, b) => Math.max(a, Math.min(b, v));
+    const mac = M.macro(s);
+    if (!s.partido) s.partido = M.nombrePartido();
+    // intención de voto propia: parte de la aprobación y la castiga la economía (inflación/pobreza), la ayuda el crecimiento
+    let propia = cl(s.aprob * 0.74 + 6 - Math.max(0, mac.ia - 40) * 0.035 - Math.max(0, mac.pobreza - 25) * 0.22 + mac.crecimiento * 0.5, 3, 72);
+    const resto = Math.max(0, 100 - propia);
+    // la oposición se reparte el resto según su peso, con una oscilación suave por mes (determinística)
+    let opo = M.PARTIDOS.map((p, i) => ({ n: p.n, ideo: p.ideo, bruto: p.peso * (1 + 0.14 * Math.sin((s.mes + i * 2) * 0.45)) }));
+    const suma = opo.reduce((a, o) => a + o.bruto, 0) || 1;
+    opo = opo.map(o => ({ n: o.n, ideo: o.ideo, voto: +(resto * o.bruto / suma).toFixed(1) }));
+    propia = +propia.toFixed(1);
+    const lider = opo.slice().sort((a, b) => b.voto - a.voto)[0];
+    // Congreso: tu bloque crece con los mandatos ganados y la aprobación
+    const oficialismo = Math.round(cl(22 + s.mandatos * 7 + (s.aprob - 50) * 0.26, 6, 70));
+    const gobernabilidad = oficialismo >= 50 ? 'mayoría propia' : oficialismo >= 38 ? 'gobierna con aliados' : 'en minoría';
+    const faltan = M.mesesEleccion(s);
+    const gana = propia >= 40;
+    const clima = mac.ia > 180 ? 'crisis' : s.aprob < 35 ? 'tensión' : s.aprob > 66 ? 'luna de miel' : 'normal';
+    return { partido: s.partido, propia, oposicion: opo, lider, oficialismo, oposicionBancas: 100 - oficialismo, gobernabilidad, faltan, gana, clima };
+  };
+  M.costoActo = s => Math.ceil((300 + M.porSeg(s) * 130));
+  M.acto = function (s) {
+    if (s.fin) return false;
+    const c = M.costoActo(s); if (s.caja < c) return false;
+    s.caja -= c; s.actos = (s.actos || 0) + 1;
+    const faltan = M.mesesEleccion(s);
+    const bump = faltan <= 12 ? 7 : 4;                 // la campaña rinde más cerca de la elección
+    s.aprob = Math.min(100, s.aprob + bump);
+    s.impresoMes += c * 2;                              // financiar la campaña imprimiendo empuja la inflación
+    noticia(s, ['Acto de campaña a estadio lleno: bombos, choripán y un escenario gigante.', 'Caravana por el centro: la militancia copó cinco cuadras.', 'Lanzaste la campaña con un spot tan pegadizo que ya nadie se lo saca de la cabeza.'][s.actos % 3], 'bueno');
+    if (s.actos >= 10) M.logro(s, 'campania');
+    return true;
+  };
+  M.costoDebate = s => Math.ceil((200 + M.porSeg(s) * 70));
+  M.debate = function (s) {
+    if (s.fin || M.mesesEleccion(s) > 6 || s.debateMes === s.mes) return false;  // solo cerca de la elección y uno por mes
+    const c = M.costoDebate(s); if (s.caja < c) return false;
+    s.caja -= c; s.debateMes = s.mes; s.debates = (s.debates || 0) + 1;
+    const prob = Math.max(0.2, Math.min(0.86, 0.36 + (s.aprob - 45) * 0.008));   // te va mejor si venís bien
+    if (Math.random() < prob) { s.aprob = Math.min(100, s.aprob + 9); s.prensa = Math.min(80, s.prensa + 12); noticia(s, 'Ganaste el debate: una frase tuya quedó de meme (del bueno) y la repiten en todos lados.', 'bueno'); }
+    else { s.aprob = Math.max(0, s.aprob - 6); noticia(s, 'Te fue flojo en el debate: te quedaste sin respuestas y se notó en vivo.', 'malo'); }
+    if (s.debates >= 5) M.logro(s, 'debatidor');
+    return true;
   };
 
   // ponerse al día tras suspender/cerrar la PC: simula de golpe el tiempo que pasó.
