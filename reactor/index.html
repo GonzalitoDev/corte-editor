@@ -5083,6 +5083,30 @@ if (document.readyState === "loading") {
     o.putImageData(img,0,0); texCache[key]=oc; return oc;
   }
 
+  /* ---- muebles sólidos como cajas 3D (altura y color por tipo) ---- */
+  let BOXES = null;
+  function boxCfg(kind){
+    const k = (kind||"").toLowerCase();
+    if(/reactor|core|nucleo|núcleo/.test(k)) return { h:0.92, col:[235,140,45], emit:0.55 };
+    if(/turbine|turbina|generator|generador/.test(k)) return { h:0.72, col:[150,120,70], emit:0 };
+    if(/tank|tanque|tower|torre|boiler/.test(k)) return { h:0.78, col:[50,130,150], emit:0.08 };
+    if(/server|cabinet|armario|locker|taquilla|shelf|estante|monitorwall|cuadro|panel/.test(k)) return { h:0.64, col:[48,60,74], emit:0.05 };
+    if(/desk|bench|mesa|console|consola|table|counter|mostrador/.test(k)) return { h:0.34, col:[74,92,110], emit:0 };
+    if(/chair|silla|bed|cama|box|caja|container|contenedor/.test(k)) return { h:0.3, col:[60,74,90], emit:0 };
+    return { h:0.46, col:[66,84,102], emit:0 };
+  }
+  function buildBoxes(){
+    BOXES = [];
+    for(let i=0;i<PROPS.length;i++){
+      const pr = PROPS[i]; if(!pr.solid) continue;
+      const cfg = boxCfg(pr.kind);
+      BOXES.push({
+        x0: pr.x/TILE, y0: pr.y/TILE, x1:(pr.x+pr.w)/TILE, y1:(pr.y+pr.h)/TILE,
+        cx: (pr.x+pr.w/2)/TILE, cy:(pr.y+pr.h/2)/TILE, h:cfg.h, col:cfg.col, emit:cfg.emit
+      });
+    }
+  }
+
   function renderFP(){
     if(!gctx || !view || !view.w) { return; }
     const W=view.w, H=view.h, p=G.player;
@@ -5143,11 +5167,44 @@ if (document.readyState === "loading") {
       gctx.fillRect(x,y0,COLW,y1-y0);
     }
 
-    /* sprites: NPCs, interactuables y props sólidos */
+    /* muebles sólidos en 3D (cajas con altura y color por tipo) */
+    if(!BOXES) buildBoxes();
+    const nearBoxes=[];
+    for(let i=0;i<BOXES.length;i++){
+      const b=BOXES[i], ddx=b.cx-px, ddy=b.cy-py, d2=ddx*ddx+ddy*ddy;
+      if(d2>300) continue;
+      if(ddx*dxv+ddy*dyv < -1.2) continue;
+      nearBoxes.push({b,d2});
+    }
+    nearBoxes.sort((a,b)=>b.d2-a.d2);
+    for(let bi=0; bi<nearBoxes.length; bi++){
+      const b=nearBoxes[bi].b;
+      for(let x=0;x<W;x+=COLW){
+        const camX=2*x/W-1, rdx=dxv+plx*camX, rdy=dyv+ply*camX;
+        const ix=1/rdx, iy=1/rdy;
+        let tnx=(b.x0-px)*ix, tfx=(b.x1-px)*ix; if(tnx>tfx){const t=tnx;tnx=tfx;tfx=t;}
+        let tny=(b.y0-py)*iy, tfy=(b.y1-py)*iy; if(tny>tfy){const t=tny;tny=tfy;tfy=t;}
+        const tEnter=Math.max(tnx,tny), tExit=Math.min(tfx,tfy);
+        if(tEnter>=tExit || tExit<=0.05) continue;
+        const depth=Math.max(tEnter,0.05);
+        if(depth>=zb[x]) continue;
+        const side=(tnx>tny)?0:1;
+        const wallH=H/depth, floorY=horizon+wallH/2, topY=floorY-b.h*wallH;
+        let yy0=topY|0, yy1=floorY|0; if(yy0<0)yy0=0; if(yy1>H)yy1=H; if(yy1<=yy0) continue;
+        const l=light(depth,x,W,flash)*(side?0.7:1);
+        const c=b.col; let r=Math.min(255,c[0]*l)|0, gg=Math.min(255,c[1]*l)|0, bb=Math.min(255,c[2]*l)|0;
+        if(b.emit){ r=Math.min(255,r+c[0]*b.emit*0.7)|0; gg=Math.min(255,gg+c[1]*b.emit*0.7)|0; bb=Math.min(255,bb+c[2]*b.emit*0.7)|0; }
+        gctx.fillStyle="rgb("+r+","+gg+","+bb+")";
+        gctx.fillRect(x,yy0,COLW,yy1-yy0);
+        gctx.fillStyle="rgba(200,225,240,0.10)"; gctx.fillRect(x,yy0,COLW,2);
+        for(let xx=x; xx<x+COLW && xx<W; xx++) zb[xx]=depth;
+      }
+    }
+
+    /* sprites: NPCs e interactuables (los muebles ya son cajas 3D) */
     const list=[];
     for(let i=0;i<NPCS.length;i++){const n=NPCS[i]; list.push({x:n.x/TILE,y:n.y/TILE,k:"npc",c:n.color||"#2ee6c8"});}
     for(let i=0;i<INTERACTABLES.length;i++){const it=INTERACTABLES[i]; list.push({x:it.x/TILE,y:it.y/TILE,k:"it"});}
-    for(let i=0;i<PROPS.length;i++){const pr=PROPS[i]; if(!pr.solid)continue; list.push({x:(pr.x+pr.w/2)/TILE,y:(pr.y+pr.h/2)/TILE,k:"prop"});}
     const inv=1/(plx*dyv - dxv*ply);
     let arr=list.map(s=>({s,d:(px-s.x)**2+(py-s.y)**2})).filter(o=>o.d<150).sort((a,b)=>b.d-a.d);
     if(arr.length>46) arr=arr.slice(arr.length-46);   // solo los ~46 más cercanos
@@ -5209,7 +5266,10 @@ if (document.readyState === "loading") {
   document.addEventListener("click", reqLook);
   document.addEventListener("pointerdown", reqLook);
   window.addEventListener("mousemove", (e)=>{
-    if(G.fp && document.pointerLockElement===gcvs){ G.player.dir += e.movementX*0.0026; }
+    if(G.fp && document.pointerLockElement===gcvs){
+      const sens = (G.settings && G.settings.sens ? G.settings.sens/60 : 1) * 0.0024;
+      G.player.dir += e.movementX * sens;
+    }
   });
 
   /* V alterna la vista */
