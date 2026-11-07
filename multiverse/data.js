@@ -63,7 +63,7 @@ window.TM_DIMS = [
     desc: "Sos inspector de frontera de la ficticia Tramitania: revisá papeles, cazá contradicciones, sellá y mantené a tu familia.",
     icon: '<svg viewBox="0 0 24 24"><path d="M6 3h9l4 4v14a1 1 0 0 1-1 1H6a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v4h4"/><circle cx="12" cy="14.5" r="3"/><path d="M10.6 14.5l1 1 1.8-2.1"/></svg>' },
   { id: "reactor", nombre: "Reactor", tipo: "Simulador nuclear", cat: "lab", color: "#ffb020", ruta: "reactor/", beta: true,
-    desc: "Manejá una central nuclear: controlá las barras, la refrigeración y las turbinas para generar energía sin que el núcleo se te vaya de las manos.",
+    desc: "Sos el operador de turno de una central nuclear ficticia: recorrés los sectores, vigilás el reactor, resolvés alarmas y vas completando misiones. Cada decisión tiene consecuencias.",
     icon: '<svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="2"/><ellipse cx="12" cy="12" rx="10" ry="4"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(60 12 12)"/><ellipse cx="12" cy="12" rx="10" ry="4" transform="rotate(120 12 12)"/></svg>' },
 ];
 
