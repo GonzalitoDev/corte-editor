@@ -3,14 +3,14 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-<meta name="description" content="Taller Multiverse: un multiverso de apps y juegos gratis en el navegador. Explorá dimensiones, subí de nivel, desbloqueá logros y misiones. Sin cuenta, sin marca de agua.">
-<meta name="theme-color" content="#05060e">
-<title>Taller Multiverse — apps y juegos, todo gratis</title>
+<meta name="description" content="Editores de video, fotos y PDF, y un montón de juegos, todo gratis en el navegador. No pide cuenta y no pone marca de agua.">
+<meta name="theme-color" content="#f3efe6">
+<title>Taller Multiverse: apps y juegos gratis en el navegador</title>
 <link rel="canonical" href="https://taller-multiverse-nine.vercel.app/">
 <!-- Vista previa al compartir (WhatsApp, Instagram, Reddit, Twitter, etc.) -->
 <meta property="og:type" content="website">
 <meta property="og:site_name" content="Taller Multiverse">
-<meta property="og:title" content="Taller Multiverse — apps y juegos, todo gratis">
+<meta property="og:title" content="Taller Multiverse: apps y juegos gratis en el navegador">
 <meta property="og:description" content="Editores de video, foto, audio y PDF, juegos online y un mundo abierto 3D. En el navegador, sin cuenta y sin marca de agua.">
 <meta property="og:url" content="https://taller-multiverse-nine.vercel.app/">
 <meta property="og:image" content="https://taller-multiverse-nine.vercel.app/og.jpg">
@@ -19,29 +19,29 @@
 <meta property="og:image:alt" content="Taller Multiverse: apps y juegos gratis en el navegador.">
 <meta property="og:locale" content="es_AR">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="Taller Multiverse — apps y juegos, todo gratis">
+<meta name="twitter:title" content="Taller Multiverse: apps y juegos gratis en el navegador">
 <meta name="twitter:description" content="Editores, juegos online y un mundo abierto 3D. En el navegador, sin cuenta.">
 <meta name="twitter:image" content="https://taller-multiverse-nine.vercel.app/og.jpg">
-<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop offset='0' stop-color='%2322d3ee'/%3E%3Cstop offset='.5' stop-color='%238b5cf6'/%3E%3Cstop offset='1' stop-color='%232f6bff'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='32' height='32' rx='9' fill='%23070a1a'/%3E%3Ccircle cx='16' cy='16' r='7' fill='url(%23g)'/%3E%3Cellipse cx='16' cy='16' rx='13' ry='5' fill='none' stroke='url(%23g)' stroke-width='1.6' transform='rotate(-25 16 16)'/%3E%3C/svg%3E">
+<link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 32 32'%3E%3Crect width='32' height='32' rx='4' fill='%23f3efe6'/%3E%3Crect x='8' y='8' width='16' height='16' fill='%23c2410c' transform='rotate(8 16 16)'/%3E%3C/svg%3E">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Orbitron:wght@500;700;800&family=Exo+2:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;700&display=swap">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;500;600;700;800&family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <link rel="stylesheet" href="multiverse/multiverse.css">
 <link rel="preload" as="image" href="og.jpg" fetchpriority="high">
 <style>
-#loader{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#04050c;color:#eaf0ff;overflow:hidden;transition:opacity .45s ease,visibility .45s}
+#loader{position:fixed;inset:0;z-index:9999;display:grid;place-items:center;background:#f3efe6;color:#1d1b17;overflow:hidden;transition:opacity .45s ease,visibility .45s}
 #loader.saliendo{opacity:0;visibility:hidden;pointer-events:none}
-#loader .fondo{position:absolute;inset:-50px;background:url("og.jpg") center/cover no-repeat;filter:blur(32px) saturate(1.05);opacity:.28;transform:scale(1.06)}
-#loader .velo{position:absolute;inset:0;background:radial-gradient(85% 75% at 50% 42%,rgba(5,6,14,.08) 0%,rgba(4,5,12,.78) 62%,#04050c 100%)}
+#loader .fondo{display:none}
+#loader .velo{display:none}
 #loader .caja{position:relative;width:min(900px,92vw);text-align:center;padding:16px}
-#loader .caja>img{display:block;width:100%;height:auto;border-radius:18px;border:1px solid rgba(130,160,255,.28);box-shadow:0 30px 90px rgba(0,0,0,.6),0 0 50px rgba(47,107,255,.15);opacity:0;transform:translateY(10px) scale(.99);transition:opacity .55s ease,transform .55s ease}
+#loader .caja>img{display:none;width:100%;height:auto;border-radius:4px;border:2px solid #1d1b17;box-shadow:6px 6px 0 #1d1b17;opacity:0;transform:translateY(10px) scale(.99);transition:opacity .55s ease,transform .55s ease}
 #loader .caja>img.lista{opacity:1;transform:none}
 #loader .linea{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;margin-top:16px}
-#loader .linea b{font-family:Orbitron,system-ui,sans-serif;font-size:11px;letter-spacing:.22em;color:#a9bbff}
-#loader .linea span{font-family:"JetBrains Mono",monospace;font-size:11px;color:#8c9ac2}
-#loader .barra{position:relative;height:3px;margin:12px auto 0;max-width:420px;background:rgba(130,160,255,.14);border-radius:99px;overflow:hidden}
-#loader .barra i{display:block;height:100%;width:0;background:linear-gradient(90deg,#22d3ee,#8b5cf6,#2f6bff);border-radius:99px;transition:width .35s ease}
-#loader .pista{margin-top:10px;font-family:"JetBrains Mono",monospace;font-size:10px;letter-spacing:.08em;color:#64719a}
+#loader .linea b{font-family:Archivo,system-ui,sans-serif;font-size:14px;font-weight:800;color:#1d1b17}
+#loader .linea span{font-family:"IBM Plex Mono",monospace;font-size:12px;color:#5d574c}
+#loader .barra{position:relative;height:6px;margin:12px auto 0;max-width:420px;background:#e2dccf;border:1px solid #1d1b17;overflow:hidden}
+#loader .barra i{display:block;height:100%;width:0;background:#c2410c;transition:width .35s ease}
+#loader .pista{margin-top:10px;font-family:"IBM Plex Mono",monospace;font-size:12px;color:#5d574c}
 html.cargando, html.cargando body{overflow:hidden}
 @media(max-width:620px){#loader .caja{width:94vw;padding:8px}#loader .caja>img{border-radius:12px}#loader .linea{margin-top:12px}}
 @media(prefers-reduced-motion:reduce){#loader,#loader .caja>img,#loader .barra i{transition:none!important}}
@@ -54,22 +54,19 @@ html.cargando, html.cargando body{overflow:hidden}
   <div class="velo" aria-hidden="true"></div>
   <div class="caja">
     <img id="loaderImg" src="og.jpg" alt="" aria-hidden="true" decoding="async" fetchpriority="high">
-    <div class="linea"><b>TALLER MULTIVERSE</b><span>Preparando el taller...</span></div>
+    <div class="linea"><b>Taller Multiverse</b><span>Abriendo el taller...</span></div>
     <div class="barra" id="loaderProg" role="progressbar" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0"><i id="loaderBarra"></i></div>
     <div class="pista" id="loaderPista">Un segundo, estamos acomodando todo.</div>
   </div>
 </div>
 <noscript><style>#loader{display:none!important}html.cargando{overflow:auto!important}</style></noscript>
-<canvas id="cielo"></canvas>
-<div class="nebulas"><span class="neb a"></span><span class="neb b"></span><span class="neb c"></span></div>
-<div class="grid-floor"></div>
 
 <header class="nav">
   <div class="wrap">
-    <a class="logo" href="#top"><span class="orb"></span><b>TALLER</b><small>MULTIVERSE</small></a>
+    <a class="logo" href="#top"><span class="orb"></span><b>Taller</b><small>multiverse</small></a>
     <div class="buscar">
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
-      <input id="buscar" type="search" placeholder="Buscar una dimensión…" aria-label="Buscar">
+      <input id="buscar" type="search" placeholder="Buscar: video, pdf, juego…" aria-label="Buscar">
     </div>
     <nav class="navbtns">
       <button class="nbtn" id="navMisiones" title="Misiones" aria-label="Misiones"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="4"/><circle cx="12" cy="12" r="1" fill="currentColor"/></svg></button>
@@ -83,14 +80,14 @@ html.cargando, html.cargando body{overflow:hidden}
 
 <main class="wrap" id="top">
   <section class="hero">
-    <h1>TALLER MULTIVERSE</h1>
-    <p class="sub">Entrá y usá lo que quieras: editores, juegos online y un mundo abierto 3D. Todo gratis, en el navegador y sin crear ninguna cuenta.</p>
+    <h1>Un taller lleno de <em>cosas gratis</em>.</h1>
+    <p class="sub">Arrancó porque me cansé de que los editores gratis te pusieran marca de agua. Hice uno, después otro, después me puse a hacer juegos. Está todo acá y anda en el navegador.</p>
     <div class="trust">
-      <span>✓ Sin registro</span><span>✓ Sin descargas</span><span>✓ Sin anuncios</span><span>✓ Sin marca de agua</span>
+      <span>No pide cuenta, no tiene publicidad y lo que exportás sale limpio.</span>
     </div>
     <div class="cta">
-      <button class="btn pri" id="heroExplorar">Explorar dimensiones ▾</button>
-      <button class="btn" id="heroVideo">Ver video</button>
+      <button class="btn pri" id="heroExplorar">Ver todo ↓</button>
+      <button class="btn" id="heroVideo">Video de 21 segundos</button>
       <button class="btn" id="heroPerfil">Mi perfil</button>
     </div>
     <div class="stats" id="stats"></div>
@@ -102,7 +99,7 @@ html.cargando, html.cargando body{overflow:hidden}
   <div id="galaxias"></div>
 
   <footer class="footer">
-    <span>Taller Multiverse · hecho por GonzalitoDev · todo gratis, sin cuenta.</span>
+    <span>Lo hace GonzalitoDev, desde Argentina.</span>
     <span><a href="#" id="footApoyar">Apoyá el proyecto</a> · <a href="clasico/">Ver versión clásica</a> · <a href="promo/">Kit para compartir</a> · <a href="acerca/">Acerca</a> · <a href="terminos/">Términos</a> · <a href="privacidad/">Privacidad</a></span>
   </footer>
 </main>
@@ -165,7 +162,7 @@ html.cargando, html.cargando body{overflow:hidden}
     var espera = Math.max(0, 900 - (Date.now() - inicio));
     setTimeout(function () {
       pct(100);
-      if (pista) pista.textContent = "Listo, pas?.";
+      if (pista) pista.textContent = "Listo, pasá.";
       setTimeout(function () {
         loader.classList.add("saliendo");
         raiz.classList.remove("cargando");
@@ -182,7 +179,7 @@ html.cargando, html.cargando body{overflow:hidden}
   });
   window.addEventListener("load", function () {
     pct(88);
-    if (pista) pista.textContent = "Ya casi est?.";
+    if (pista) pista.textContent = "Ya casi está.";
     terminar();
   });
   if (document.readyState === "complete") { pct(88); terminar(); }

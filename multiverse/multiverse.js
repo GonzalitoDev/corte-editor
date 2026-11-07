@@ -76,7 +76,7 @@
     { id: "explora3", n: "Primer reconocimiento", d: "Visitá 3 dimensiones", rew: 40, prog: function () { return { cur: visitSet().length, meta: 3 }; } },
     { id: "fav2", n: "Armá tu base", d: "Marcá 2 dimensiones como favoritas", rew: 25, prog: function () { return { cur: S.favoritos.length, meta: 2 }; } },
     { id: "mix", n: "De todo un poco", d: "Entrá a un editor y a un juego", rew: 35, prog: function () { return { cur: (visitEnCat("creacion") > 0 ? 1 : 0) + (visitEnCat("arcade") > 0 ? 1 : 0), meta: 2 }; } },
-    { id: "lab", n: "Zona inestable", d: "Animate a una dimensión del Laboratorio", rew: 30, prog: function () { return { cur: Math.min(1, visitEnCat("lab")), meta: 1 }; } },
+    { id: "lab", n: "Zona inestable", d: "Probá algo de la sección En el horno", rew: 30, prog: function () { return { cur: Math.min(1, visitEnCat("lab")), meta: 1 }; } },
     { id: "nivel3", n: "Ascenso", d: "Alcanzá el nivel 3", rew: 50, prog: function () { return { cur: Math.min(3, nivelDe(S.xp)), meta: 3 }; } },
   ];
 
@@ -129,7 +129,7 @@
     var p = progreso();
     var pc = $("#playerCard");
     if (pc) pc.innerHTML =
-      '<div class="top"><div class="av">' + S.avatar + '</div><div class="who"><b>' + esc(S.nombre) + '</b><span>' + visitSet().length + '/' + DIMS.length + ' dimensiones · ' + S.favoritos.length + ' favoritas</span></div><div class="nivel">' + p.nivel + '<small>NIVEL</small></div></div>' +
+      '<div class="top"><div class="av">' + S.avatar + '</div><div class="who"><b>' + esc(S.nombre) + '</b><span>' + visitSet().length + '/' + DIMS.length + ' probadas · ' + S.favoritos.length + ' favoritas</span></div><div class="nivel">' + p.nivel + '<small>NIVEL</small></div></div>' +
       '<div class="xpbar"><i style="width:' + p.pct + '%"></i></div>' +
       '<div class="xprow"><span>' + S.xp + ' XP</span><span>' + p.cur + ' / ' + p.need + ' al nivel ' + (p.nivel + 1) + '</span></div>';
     var nb = $("#navPerfil");
@@ -176,12 +176,12 @@
           '<span class="ring">' + d.icon + '</span>' +
           '<h3>' + esc(d.nombre) + '</h3><div class="tipo">' + esc(d.tipo) + '</div>' +
           '<p>' + esc(d.desc) + '</p>' +
-          '<div class="foot"><span class="entrar">ENTRAR ' + flechaSVG() + '</span></div></a>';
+          '<div class="foot"><span class="entrar">Entrar ' + flechaSVG() + '</span></div></a>';
       }).join("");
       sec.innerHTML = '<div class="ghead" style="--gc:' + g.color + '"><h2>' + esc(g.nombre) + '</h2><span class="gsub">' + esc(g.sub) + '</span></div><div class="portals">' + cards + '</div>';
       cont.appendChild(sec);
     });
-    if (!total) cont.innerHTML = '<p class="sinres">No hay dimensiones que coincidan con "' + esc(q) + '".</p>';
+    if (!total) cont.innerHTML = '<p class="sinres">No encontré nada con "' + esc(q) + '".</p>';
 
     // enganchar eventos (delegación simple por tarjeta)
     Array.prototype.forEach.call(cont.querySelectorAll(".portal"), function (a) {
@@ -245,7 +245,7 @@
   function vistaNotis() {
     var body = S.notis.length ? S.notis.map(function (n) {
       return '<div class="noti"><span class="ni">' + n.ic + '</span><div class="nb"><b>' + esc(n.titulo) + '</b><span>' + esc(n.texto) + '</span><br><time>' + hace(n.t) + '</time></div></div>';
-    }).join("") : '<p class="vacio">Todavía no hay notificaciones. Explorá el multiverso para empezar a sumar.</p>';
+    }).join("") : '<p class="vacio">Todavía no hay nada acá. Probá alguna app y van a ir apareciendo.</p>';
     abrirDrawer("Notificaciones", body);
     S.notisLeidas = S.notis.length; save(); actualizarPip();
   }
@@ -353,7 +353,7 @@
         '<div class="ft"><b>' + esc(d.nombre) + '</b><span>' + esc(d.tipo) + '</span></div>' +
         '<span class="fgo">Abrir ' + flechaSVG() + '</span></a>';
     }).join("");
-    cont.innerHTML = '<div class="dhd"><h2>Empezá por acá</h2><span>Si es tu primera vez, arrancá por estas.</span></div><div class="frow">' + cards + '</div>';
+    cont.innerHTML = '<div class="dhd"><h2>Si es tu primera vez</h2><span>Yo arrancaría por estas.</span></div><div class="frow">' + cards + '</div>';
     Array.prototype.forEach.call(cont.querySelectorAll(".feat"), function (a) {
       a.addEventListener("click", function () { registrarVisita(a.getAttribute("data-portal")); });
     });

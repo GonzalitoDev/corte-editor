@@ -65,9 +65,9 @@ window.TM_DIMS = [
 ];
 
 window.TM_GALAXIES = [
-  { cat: "nexus", nombre: "Mundo Abierto", sub: "NEXUS WORLD: un único universo 3D continuo para explorar.", color: "#22d3ee" },
-  { cat: "creacion", nombre: "Creación", sub: "Las forjas: donde se crea video, imagen, sonido y forma.", color: "#8b5cf6" },
-  { cat: "arcade", nombre: "Arcade", sub: "Los mundos jugables: construí, volá, competí.", color: "#22d3ee" },
-  { cat: "sistema", nombre: "Sistema", sub: "El núcleo: asistentes y sistemas que te dan una mano.", color: "#3b82f6" },
-  { cat: "lab", nombre: "Laboratorio", sub: "Dimensiones inestables en desarrollo: entrás bajo tu propio riesgo.", color: "#f0abfc" },
+  { cat: "nexus", nombre: "Para recorrer", sub: "Un mapa 3D enorme para recorrer. Todavía lo estoy llenando.", color: "#22d3ee" },
+  { cat: "creacion", nombre: "Para crear", sub: "Editores de video, fotos, vectores, PDF y audio. Sin marca de agua.", color: "#8b5cf6" },
+  { cat: "arcade", nombre: "Para jugar", sub: "Juegos que corren en el navegador, varios con online.", color: "#22d3ee" },
+  { cat: "sistema", nombre: "Otras cosas", sub: "Cosas más raras: un asistente de voz y hasta un sistema operativo.", color: "#3b82f6" },
+  { cat: "lab", nombre: "En el horno", sub: "Lo que estoy armando ahora. Puede fallar, avisame si pasa.", color: "#f0abfc" },
 ];
