@@ -1,0 +1,292 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<title>Reactor · Demo primera persona</title>
+<style>
+:root{--cyan:#2ee6c8;--amber:#ffb020;--red:#ff4141;--txt:#d3e6f2;--dim:#7d95a7;--bg:#04070a}
+*{margin:0;box-sizing:border-box}
+html,body{width:100%;height:100%;overflow:hidden;background:var(--bg);color:var(--txt);
+  font-family:'Consolas','Cascadia Mono',monospace;-webkit-tap-highlight-color:transparent}
+#c{display:block;width:100vw;height:100vh;cursor:crosshair}
+.hud{position:fixed;inset:0;pointer-events:none;z-index:5}
+.top{position:absolute;top:14px;left:16px;font-size:12px;letter-spacing:.14em;color:var(--cyan);text-transform:uppercase}
+.top b{color:var(--txt)}
+.badge{position:absolute;top:14px;right:16px;font-size:11px;letter-spacing:.18em;color:var(--amber);
+  border:1px solid rgba(255,176,32,.4);padding:5px 11px;border-radius:4px;text-transform:uppercase}
+.help{position:absolute;left:0;right:0;bottom:16px;text-align:center;font-size:12px;letter-spacing:.08em;color:var(--dim)}
+.help b{color:var(--txt)}
+.cross{position:absolute;left:50%;top:50%;width:18px;height:18px;transform:translate(-50%,-50%);
+  border:1px solid rgba(46,230,200,.45);border-radius:50%}
+.cross::before,.cross::after{content:"";position:absolute;background:rgba(46,230,200,.5)}
+.cross::before{left:50%;top:3px;bottom:3px;width:1px;transform:translateX(-50%)}
+.cross::after{top:50%;left:3px;right:3px;height:1px;transform:translateY(-50%)}
+.prompt{position:absolute;left:50%;top:58%;transform:translateX(-50%);font-size:13px;letter-spacing:.1em;
+  color:var(--amber);border:1px solid rgba(255,176,32,.5);background:rgba(10,8,2,.6);padding:7px 14px;border-radius:5px;
+  opacity:0;transition:opacity .15s;text-transform:uppercase}
+.prompt.on{opacity:1}
+.start{position:fixed;inset:0;z-index:10;display:flex;flex-direction:column;align-items:center;justify-content:center;
+  background:radial-gradient(120% 90% at 50% 20%,#0a1620,#04070a 70%);text-align:center;padding:24px;cursor:pointer}
+.start h1{font-size:30px;letter-spacing:.14em;color:var(--cyan);margin-bottom:6px}
+.start h1 span{color:var(--amber)}
+.start p{color:var(--dim);font-size:13px;letter-spacing:.06em;max-width:440px;line-height:1.7;margin-bottom:22px}
+.start .go{border:1px solid var(--cyan);color:var(--cyan);padding:12px 26px;border-radius:6px;font-size:14px;letter-spacing:.2em;text-transform:uppercase}
+.start.hide{display:none}
+.tag{position:absolute;bottom:16px;font-size:10px;letter-spacing:.2em;color:#33505f}
+</style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<div class="hud">
+  <div class="top">Central Atalaya · <b>Sala de reactor</b> — demo</div>
+  <div class="badge">Primera persona</div>
+  <div class="cross"></div>
+  <div class="prompt" id="prompt">E · Interactuar</div>
+  <div class="help">Demo. <b>WASD</b> moverse · <b>mouse</b> mirar · <b>F</b> linterna · <b>Esc</b> soltar mouse</div>
+</div>
+<div class="start" id="start">
+  <h1>REACTOR · <span>PRIMERA PERSONA</span></h1>
+  <p>Prueba de concepto: una sala del simulador recreada en primera persona con un motor de raycasting propio. Caminá, mirá el núcleo y acercate a la terminal. No es el juego final, es para ver cómo se sentiría.</p>
+  <div class="go">▶ Entrar a la sala</div>
+  <div class="tag">no toca el juego original · solo esta demo</div>
+</div>
+
+<script>
+"use strict";
+/* ====== Motor de raycasting mínimo (estilo del Reactor) ====== */
+const cvs = document.getElementById("c");
+const ctx = cvs.getContext("2d", { alpha: false });
+let RW = 0, RH = 0, DPR = 1;
+
+/* Mapa de la sala (16x12). 0=piso, 1=pared, 2=consola, 3=núcleo del reactor, 4=tubería */
+const MAP = [
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,2,2,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,4,0,0,0,0,0,0,4,0,0,0,1],
+  [1,0,0,0,0,0,0,3,3,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,3,3,0,0,0,0,0,0,1],
+  [1,0,0,0,4,0,0,0,0,0,0,4,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,2,2,2,0,0,0,0,0,0,0,0,0,0,1],
+  [1,0,0,0,0,0,0,0,0,0,0,0,0,0,0,1],
+  [1,1,1,1,1,1,1,1,1,1,1,1,1,1,1,1],
+];
+const MW = MAP[0].length, MH = MAP.length;
+
+/* Sprites (billboards): terminal y dos operarios */
+const SPRITES = [
+  { x: 12.5, y: 9.5, type: "terminal" },
+  { x: 5.5,  y: 3.5, type: "npc", hue: "#2ee6c8" },
+  { x: 11.5, y: 8.5, type: "npc", hue: "#ffb020" },
+];
+
+/* Jugador */
+const P = { x: 3.5, y: 3.5, dir: 0.4, fov: 0.66, flash: true };
+let dirX = Math.cos(P.dir), dirY = Math.sin(P.dir);
+let planeX = -Math.sin(P.dir) * P.fov, planeY = Math.cos(P.dir) * P.fov;
+function setDir(a){ P.dir=a; dirX=Math.cos(a); dirY=Math.sin(a); planeX=-Math.sin(a)*P.fov; planeY=Math.cos(a)*P.fov; }
+
+const keys = {};
+addEventListener("keydown", e => { keys[e.code]=true; if(e.code==="KeyF"){P.flash=!P.flash;} });
+addEventListener("keyup", e => { keys[e.code]=false; });
+
+/* Mouse look con pointer lock */
+let locked=false;
+cvs.addEventListener("click", ()=>{ if(!locked) cvs.requestPointerLock && cvs.requestPointerLock(); });
+document.addEventListener("pointerlockchange", ()=>{ locked = document.pointerLockElement===cvs; });
+addEventListener("mousemove", e=>{ if(locked) setDir(P.dir + e.movementX*0.0026); });
+
+/* Arranque */
+const startEl = document.getElementById("start");
+startEl.addEventListener("click", ()=>{ startEl.classList.add("hide"); if(cvs.requestPointerLock) cvs.requestPointerLock(); });
+
+function resize(){
+  DPR = Math.min(2, window.devicePixelRatio||1);
+  const cw = window.innerWidth, ch = window.innerHeight;
+  RW = Math.min(1100, Math.floor(cw * 0.9));      // resolución de render acotada
+  RH = Math.floor(RW * ch / cw);
+  cvs.width = RW; cvs.height = RH;
+  cvs.style.width = cw+"px"; cvs.style.height = ch+"px";
+}
+addEventListener("resize", resize); resize();
+
+const zbuf = new Float32Array(4096);
+
+function cell(x,y){ if(x<0||y<0||x>=MW||y>=MH) return 1; return MAP[y|0][x|0]; }
+function solid(v){ return v===1||v===2||v===3||v===4; }
+
+function tryMove(nx, ny){
+  const r = 0.22;
+  if(!solid(cell(nx+r, P.y)) && !solid(cell(nx-r, P.y))) P.x = nx;
+  if(!solid(cell(P.x, ny+r)) && !solid(cell(P.x, ny-r))) P.y = ny;
+}
+
+let near=false;
+function update(dt){
+  const spd = (keys.ShiftLeft||keys.ShiftRight?3.2:1.9)*dt;
+  let mx=0,my=0;
+  if(keys.KeyW){mx+=dirX*spd;my+=dirY*spd;}
+  if(keys.KeyS){mx-=dirX*spd;my-=dirY*spd;}
+  if(keys.KeyA){mx+=dirY*spd;my-=dirX*spd;}
+  if(keys.KeyD){mx-=dirY*spd;my+=dirX*spd;}
+  if(keys.ArrowLeft) setDir(P.dir-2.2*dt);
+  if(keys.ArrowRight) setDir(P.dir+2.2*dt);
+  if(mx||my) tryMove(P.x+mx, P.y+my);
+  // cerca de la terminal?
+  const t=SPRITES[0];
+  near = Math.hypot(t.x-P.x, t.y-P.y) < 1.5;
+  document.getElementById("prompt").classList.toggle("on", near);
+}
+
+/* color de pared por tipo + sombreado por lado y distancia + linterna */
+function shade(base, side, dist, col){
+  // base: [r,g,b]; emisivo del núcleo no se oscurece tanto
+  let amb = 0.14;
+  let flash = 0;
+  if(P.flash){
+    const cone = Math.max(0, 1 - Math.abs(col - RW/2)/(RW*0.42));
+    flash = Math.pow(cone, 1.6) * Math.exp(-dist*0.16) * 1.35;
+  } else {
+    flash = Math.exp(-dist*0.22)*0.25;
+  }
+  let l = amb + flash;
+  if(side===1) l*=0.72;
+  l = Math.min(1.25, l);
+  return [base[0]*l, base[1]*l, base[2]*l];
+}
+const COL = { 1:[150,176,196], 2:[70,120,150], 3:[255,176,32], 4:[120,150,170] };
+
+function render(){
+  // techo y piso (degradados)
+  let g = ctx.createLinearGradient(0,0,0,RH/2);
+  g.addColorStop(0,"#070d13"); g.addColorStop(1,"#04070a");
+  ctx.fillStyle=g; ctx.fillRect(0,0,RW,RH/2);
+  g = ctx.createLinearGradient(0,RH/2,0,RH);
+  g.addColorStop(0,"#05090d"); g.addColorStop(1,"#0a1218");
+  ctx.fillStyle=g; ctx.fillRect(0,RH/2,RW,RH/2);
+
+  for(let x=0;x<RW;x++){
+    const camX = 2*x/RW - 1;
+    const rdx = dirX + planeX*camX, rdy = dirY + planeY*camX;
+    let mapX=P.x|0, mapY=P.y|0;
+    const ddx = Math.abs(1/rdx), ddy = Math.abs(1/rdy);
+    let sx,sy,sdx,sdy;
+    if(rdx<0){sx=-1;sdx=(P.x-mapX)*ddx;}else{sx=1;sdx=(mapX+1-P.x)*ddx;}
+    if(rdy<0){sy=-1;sdy=(P.y-mapY)*ddy;}else{sy=1;sdy=(mapY+1-P.y)*ddy;}
+    let side=0, hit=0, val=1;
+    for(let gsteps=0; gsteps<64 && !hit; gsteps++){
+      if(sdx<sdy){sdx+=ddx;mapX+=sx;side=0;}else{sdy+=ddy;mapY+=sy;side=1;}
+      val=cell(mapX,mapY); if(solid(val)) hit=1;
+    }
+    let dist = side===0 ? (sdx-ddx) : (sdy-ddy);
+    if(dist<0.0001) dist=0.0001;
+    zbuf[x]=dist;
+    const h = Math.min(RH*4, (RH/dist));
+    let y0 = ((RH-h)/2)|0, y1=(y0+h)|0;
+    // coordenada de pared para el paneleado
+    let wallX = side===0 ? P.y+dist*rdy : P.x+dist*rdx; wallX-=wallX|0;
+    const seam = (wallX%0.5<0.03||wallX%0.5>0.47)?0.68:1;
+    let base = COL[val]||COL[1];
+    let c = shade(base, side, dist, x);
+    // núcleo: emisivo pulsante
+    if(val===3){ const pulse=0.75+0.25*Math.sin(perf*0.004); c=[255*pulse,176*pulse,32*pulse]; }
+    ctx.fillStyle = "rgb("+(c[0]*seam|0)+","+(c[1]*seam|0)+","+(c[2]*seam|0)+")";
+    if(y0<0)y0=0; if(y1>RH)y1=RH;
+    ctx.fillRect(x, y0, 1, y1-y0);
+  }
+
+  // sprites (billboards) con z-buffer, usando texturas pre-render
+  SPRITES.map(s=>({s,d:(P.x-s.x)**2+(P.y-s.y)**2})).sort((a,b)=>b.d-a.d).forEach(({s})=>{
+    const spx=s.x-P.x, spy=s.y-P.y;
+    const inv=1/(planeX*dirY - dirX*planeY);
+    const tx=inv*(dirY*spx - dirX*spy);
+    const ty=inv*(-planeY*spx + planeX*spy);
+    if(ty<=0.2) return;
+    const scr=(RW/2)*(1+tx/ty);
+    const sh=Math.min(RH*2,Math.abs(RH/ty)*0.92)|0;
+    const sw=(sh*0.5)|0;
+    const dy0=((RH-sh)/2 + RH*0.05)|0, dx0=(scr-sw/2)|0;
+    const d=Math.sqrt(s.d);
+    const cone=Math.max(0,1-Math.abs(scr-RW/2)/(RW*0.5));
+    let l = P.flash ? 0.3+Math.pow(cone,1.3)*Math.exp(-d*0.16)*1.5 : 0.28+Math.exp(-d*0.22)*0.4;
+    l=Math.max(0.12,Math.min(1.7,l));
+    const tc=texCanvas(s.type, s.hue);
+    ctx.filter="brightness("+l.toFixed(2)+")";
+    for(let x=0;x<sw;x++){
+      const col=dx0+x;
+      if(col<0||col>=RW) continue;
+      if(ty>=zbuf[col]) continue;
+      const srcX=(x/sw*tc.width)|0;
+      ctx.drawImage(tc, srcX,0,1,tc.height, col,dy0,1,sh);
+    }
+    ctx.filter="none";
+  });
+
+  // viñeta / oscuridad de linterna en los bordes
+  const vg=ctx.createRadialGradient(RW/2,RH/2,RH*0.2, RW/2,RH/2,RH*0.75);
+  vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,"+(P.flash?0.55:0.78)+")");
+  ctx.fillStyle=vg; ctx.fillRect(0,0,RW,RH);
+}
+
+/* texturas procedurales de sprites: devuelve {r,g,b,emit?} o null (transparente) */
+function tex(type,u,v,hue){
+  if(type==="terminal"){
+    if(v<0.12||v>0.98) return null;
+    if(u<0.08||u>0.92) return null;
+    // marco oscuro + pantalla ámbar
+    if(v<0.2||v>0.9||u<0.16||u>0.84) return {r:30,g:38,b:46};
+    // pantalla con scanlines
+    const sc = (Math.sin(v*60)>0)?1:0.78;
+    return {r:255*sc, g:176*sc, b:32*sc, emit:0.6};
+  }
+  if(type==="npc"){
+    const c = hex(hue);
+    // casco
+    if(v<0.16){ if(Math.abs(u-0.5)<0.18) return {r:c.r,g:c.g,b:c.b,emit:0.25}; return null; }
+    // cuerpo (overol oscuro)
+    if(v<0.62){ if(Math.abs(u-0.5)<0.26) return {r:38,g:52,b:62}; return null; }
+    // franja reflectante
+    if(v<0.68){ if(Math.abs(u-0.5)<0.26) return {r:c.r,g:c.g,b:c.b,emit:0.4}; return null; }
+    // piernas
+    if(v<0.98){ if(Math.abs(u-0.5)<0.2 && (u<0.42||u>0.58)) return {r:26,g:34,b:42}; if(Math.abs(u-0.5)<0.2) return null; return null; }
+    return null;
+  }
+  return null;
+}
+function hex(h){ return { r:parseInt(h.slice(1,3),16), g:parseInt(h.slice(3,5),16), b:parseInt(h.slice(5,7),16) }; }
+
+/* pre-render de texturas de sprites a canvas offscreen (una sola vez) */
+const _texCache={};
+function texCanvas(type,hue){
+  const key=type+(hue||"");
+  if(_texCache[key]) return _texCache[key];
+  const TW=48,TH=84;
+  const oc=document.createElement("canvas"); oc.width=TW; oc.height=TH;
+  const octx=oc.getContext("2d");
+  const img=octx.createImageData(TW,TH);
+  for(let y=0;y<TH;y++) for(let x=0;x<TW;x++){
+    const px=tex(type, x/TW, y/TH, hue);
+    const i=(y*TW+x)*4;
+    if(!px){ img.data[i+3]=0; continue; }
+    const m=px.emit?1+px.emit:1;
+    img.data[i]=Math.min(255,px.r*m); img.data[i+1]=Math.min(255,px.g*m); img.data[i+2]=Math.min(255,px.b*m); img.data[i+3]=255;
+  }
+  octx.putImageData(img,0,0);
+  _texCache[key]=oc; return oc;
+}
+
+let perf=0, last=0;
+function loop(t){
+  perf=t;
+  const dt=Math.min(0.05,(t-last)/1000)||0; last=t;
+  if(startEl.classList.contains("hide")) update(dt);
+  render();
+  requestAnimationFrame(loop);
+}
+requestAnimationFrame(loop);
+</script>
+</body>
+</html>
