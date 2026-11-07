@@ -5093,11 +5093,25 @@ if (document.readyState === "loading") {
     const dxv=Math.cos(dir), dyv=Math.sin(dir), plx=-Math.sin(dir)*FOV, ply=Math.cos(dir)*FOV;
     const flash = p.flashlight !== false;
 
-    /* techo y piso */
-    let g=gctx.createLinearGradient(0,0,0,H/2); g.addColorStop(0,"#070e15"); g.addColorStop(1,"#04070a");
-    gctx.fillStyle=g; gctx.fillRect(0,0,W,H/2);
-    g=gctx.createLinearGradient(0,H/2,0,H); g.addColorStop(0,"#05090d"); g.addColorStop(1,"#0b1319");
-    gctx.fillStyle=g; gctx.fillRect(0,H/2,W,H/2);
+    /* cabeceo al caminar + horizonte */
+    const bob = p.moving ? Math.sin((p.walk||0)*2.2)*(p.running?7:4.2) : 0;
+    const horizon = H/2 + bob;
+
+    /* tinte según la sala actual */
+    const prIdx = ROOM_AT[idx(px|0, py|0)];
+    const tint = prIdx>=0 ? hx(ROOMS[prIdx].accent || ROOMS[prIdx].color) : [70,100,120];
+    const tcss = (f)=>"rgb("+(Math.min(255,tint[0]*f)|0)+","+(Math.min(255,tint[1]*f)|0)+","+(Math.min(255,tint[2]*f)|0)+")";
+
+    /* techo y piso con tinte de la sala */
+    let g=gctx.createLinearGradient(0,0,0,horizon); g.addColorStop(0,"#05080c"); g.addColorStop(1,tcss(0.11));
+    gctx.fillStyle=g; gctx.fillRect(0,0,W,horizon);
+    g=gctx.createLinearGradient(0,horizon,0,H); g.addColorStop(0,tcss(0.08)); g.addColorStop(1,"#070d12");
+    gctx.fillStyle=g; gctx.fillRect(0,horizon,W,H-horizon);
+
+    /* grilla de piso en perspectiva (da profundidad a las salas grandes) */
+    gctx.strokeStyle="rgba(130,180,205,0.055)"; gctx.lineWidth=1;
+    for(let d=1; d<=18; d++){ const sy=horizon + (H*0.52)/(d*0.8+0.25); if(sy>=H) break; gctx.beginPath(); gctx.moveTo(0,sy); gctx.lineTo(W,sy); gctx.stroke(); }
+    for(let i=-7;i<=7;i++){ const bx=W/2+i*(W/7); gctx.beginPath(); gctx.moveTo(bx,H); gctx.lineTo(W/2+i*6,horizon); gctx.stroke(); }
 
     /* muros (DDA sobre la grilla SOLID) */
     for(let x=0;x<W;x+=COLW){
@@ -5117,7 +5131,7 @@ if (document.readyState === "loading") {
       for(let xx=x; xx<x+COLW && xx<W; xx++) zb[xx]=dist;
       if(hit===2) continue;
       const h=Math.min(H*5, H/dist);
-      let y0=((H-h)/2)|0, y1=(y0+h)|0;
+      let y0=((H-h)/2+bob)|0, y1=(y0+h)|0;
       let base=[88,116,140];
       const ri=ROOM_AT[idx(mx,my)];
       if(ri>=0){ base=hx(ROOMS[ri].accent||ROOMS[ri].color); }
@@ -5170,7 +5184,12 @@ if (document.readyState === "loading") {
     gctx.beginPath(); gctx.moveTo(W/2,H/2-11); gctx.lineTo(W/2,H/2-4); gctx.moveTo(W/2,H/2+4); gctx.lineTo(W/2,H/2+11);
     gctx.moveTo(W/2-11,H/2); gctx.lineTo(W/2-4,H/2); gctx.moveTo(W/2+4,H/2); gctx.lineTo(W/2+11,H/2); gctx.stroke();
 
-    if(!hintShown){ hintShown=true; if(typeof toast==="function") toast("VISTA","Primera persona · mirá con el mouse · V cambia de vista","ok"); }
+    if(G.mode==="playing" && gctx.canvas && document.pointerLockElement!==gctx.canvas){
+      gctx.fillStyle="rgba(46,230,200,.85)"; gctx.font="13px 'Consolas',monospace"; gctx.textAlign="center";
+      gctx.fillText("CLIC PARA MIRAR CON EL MOUSE", W/2, H*0.66); gctx.textAlign="left";
+    }
+
+    if(!hintShown){ hintShown=true; if(typeof toast==="function") toast("VISTA","Primera persona · clic y mirá con el mouse · V cambia de vista","ok"); }
   }
 
   /* envolver render sin romper el original */
@@ -5182,10 +5201,16 @@ if (document.readyState === "loading") {
 
   /* mirar con el mouse (pointer lock) */
   const gcvs = gctx && gctx.canvas;
-  if (gcvs){
-    gcvs.addEventListener("click", ()=>{ if(G.fp && G.mode==="playing" && document.pointerLockElement!==gcvs && gcvs.requestPointerLock) gcvs.requestPointerLock(); });
-    window.addEventListener("mousemove", (e)=>{ if(G.fp && G.mode==="playing" && document.pointerLockElement===gcvs){ G.player.dir += e.movementX*0.0026; } });
+  function reqLook(){
+    if(G.fp && G.mode==="playing" && gcvs && document.pointerLockElement!==gcvs && gcvs.requestPointerLock){
+      try{ gcvs.requestPointerLock(); }catch(e){}
+    }
   }
+  document.addEventListener("click", reqLook);
+  document.addEventListener("pointerdown", reqLook);
+  window.addEventListener("mousemove", (e)=>{
+    if(G.fp && document.pointerLockElement===gcvs){ G.player.dir += e.movementX*0.0026; }
+  });
 
   /* V alterna la vista */
   window.addEventListener("keydown", (e)=>{
