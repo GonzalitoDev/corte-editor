@@ -2110,9 +2110,18 @@ function update(dt) {
 
   if (len > 0) {
     dx /= len; dy /= len;
-    p.dir = Math.atan2(dy, dx);
-    p.vx = dx * speedMul;
-    p.vy = dy * speedMul;
+    if (G.fp) {
+      /* primera persona: WASD relativo a hacia dónde se mira; el giro lo da el mouse */
+      const fwd = -dy, stf = dx, c = Math.cos(p.dir), s = Math.sin(p.dir);
+      let mvx = c * fwd - s * stf, mvy = s * fwd + c * stf;
+      const ml = Math.hypot(mvx, mvy) || 1;
+      p.vx = (mvx / ml) * speedMul;
+      p.vy = (mvy / ml) * speedMul;
+    } else {
+      p.dir = Math.atan2(dy, dx);
+      p.vx = dx * speedMul;
+      p.vy = dy * speedMul;
+    }
 
     const nx = p.x + p.vx * dt;
     if (circleFree(nx, p.y, p.radius)) p.x = nx;
@@ -5015,6 +5024,178 @@ if (document.readyState === "loading") {
   boot();
 }
 
+</script>
+
+<!-- ============================================================
+     CAPA DE PRIMERA PERSONA (raycasting) — añadida, no reemplaza nada.
+     Lee el mismo mundo (SOLID, ROOMS, NPCS, INTERACTABLES, player).
+     Tecla V alterna entre vista de arriba y primera persona.
+     ============================================================ -->
+<script>
+(function () {
+  "use strict";
+  if (typeof G === "undefined" || typeof render !== "function") return;
+
+  G.fp = true;                      // primera persona por defecto (V cambia)
+  const FOV = 0.72, COLW = 3;
+  let zb = new Float32Array(2048);
+  let hintShown = false;
+
+  function hx(h){ const n=parseInt(h.slice(1),16); return [(n>>16)&255,(n>>8)&255,n&255]; }
+
+  /* ---- luz de linterna ---- */
+  function light(dist, x, W, flash){
+    const amb = 0.26;
+    if (flash){
+      const cone = Math.max(0, 1 - Math.abs(x - W/2)/(W*0.62));
+      return Math.min(1.4, amb + Math.pow(cone,1.35)*Math.exp(-dist*0.075)*1.65);
+    }
+    return Math.min(1, amb + Math.exp(-dist*0.12)*0.42);
+  }
+
+  /* ---- texturas de sprites (una vez) ---- */
+  const texCache = {};
+  function texFor(kind, color){
+    const key = kind + (color||"");
+    if (texCache[key]) return texCache[key];
+    const TW=48, TH=84, oc=document.createElement("canvas");
+    oc.width=TW; oc.height=TH;
+    const o=oc.getContext("2d"), img=o.createImageData(TW,TH), c=color?hx(color):[46,230,200];
+    for(let y=0;y<TH;y++) for(let x=0;x<TW;x++){
+      const u=x/TW, v=y/TH, i=(y*TW+x)*4; let px=null, emit=0;
+      if(kind==="npc"){
+        if(v<0.17){ if(Math.abs(u-0.5)<0.17){px=c;emit=0.3;} }
+        else if(v<0.6){ if(Math.abs(u-0.5)<0.26)px=[40,54,64]; }
+        else if(v<0.66){ if(Math.abs(u-0.5)<0.26){px=c;emit=0.5;} }
+        else if(v<0.99){ if(Math.abs(u-0.5)<0.2 && (u<0.43||u>0.57))px=[26,34,42]; }
+      } else if(kind==="it"){
+        if(v>0.1&&v<0.99&&u>0.1&&u<0.9){
+          if(v<0.2||v>0.9||u<0.17||u>0.83)px=[30,40,48];
+          else { const sc=(Math.sin(v*55)>0)?1:0.8; px=[255*sc,176*sc,32*sc]; emit=0.7; }
+        }
+      } else { /* prop: caja */
+        if(v>0.08&&u>0.08&&u<0.92){ if(v<0.16)px=[70,86,98]; else px=[34,44,54]; if(u<0.12||u>0.88)px=[22,30,38]; }
+      }
+      if(!px){ img.data[i+3]=0; continue; }
+      const m=1+emit;
+      img.data[i]=Math.min(255,px[0]*m); img.data[i+1]=Math.min(255,px[1]*m); img.data[i+2]=Math.min(255,px[2]*m); img.data[i+3]=255;
+    }
+    o.putImageData(img,0,0); texCache[key]=oc; return oc;
+  }
+
+  function renderFP(){
+    if(!gctx || !view || !view.w) { return; }
+    const W=view.w, H=view.h, p=G.player;
+    gctx.setTransform(view.dpr,0,0,view.dpr,0,0);
+    if(zb.length<W) zb=new Float32Array(W+64);
+
+    const px=p.x/TILE, py=p.y/TILE, dir=p.dir;
+    const dxv=Math.cos(dir), dyv=Math.sin(dir), plx=-Math.sin(dir)*FOV, ply=Math.cos(dir)*FOV;
+    const flash = p.flashlight !== false;
+
+    /* techo y piso */
+    let g=gctx.createLinearGradient(0,0,0,H/2); g.addColorStop(0,"#070e15"); g.addColorStop(1,"#04070a");
+    gctx.fillStyle=g; gctx.fillRect(0,0,W,H/2);
+    g=gctx.createLinearGradient(0,H/2,0,H); g.addColorStop(0,"#05090d"); g.addColorStop(1,"#0b1319");
+    gctx.fillStyle=g; gctx.fillRect(0,H/2,W,H/2);
+
+    /* muros (DDA sobre la grilla SOLID) */
+    for(let x=0;x<W;x+=COLW){
+      const camX=2*x/W-1, rdx=dxv+plx*camX, rdy=dyv+ply*camX;
+      let mx=px|0, my=py|0;
+      const ddx=Math.abs(1/rdx), ddy=Math.abs(1/rdy);
+      let sx,sy,sdx,sdy;
+      if(rdx<0){sx=-1;sdx=(px-mx)*ddx;}else{sx=1;sdx=(mx+1-px)*ddx;}
+      if(rdy<0){sy=-1;sdy=(py-my)*ddy;}else{sy=1;sdy=(my+1-py)*ddy;}
+      let side=0, hit=0;
+      for(let st=0; st<120 && !hit; st++){
+        if(sdx<sdy){sdx+=ddx;mx+=sx;side=0;}else{sdy+=ddy;my+=sy;side=1;}
+        if(mx<0||my<0||mx>=MAP_W||my>=MAP_H){hit=2;break;}
+        if(SOLID[idx(mx,my)]) hit=1;
+      }
+      let dist = side===0 ? (sdx-ddx) : (sdy-ddy); if(dist<0.0001) dist=0.0001;
+      for(let xx=x; xx<x+COLW && xx<W; xx++) zb[xx]=dist;
+      if(hit===2) continue;
+      const h=Math.min(H*5, H/dist);
+      let y0=((H-h)/2)|0, y1=(y0+h)|0;
+      let base=[88,116,140];
+      const ri=ROOM_AT[idx(mx,my)];
+      if(ri>=0){ base=hx(ROOMS[ri].accent||ROOMS[ri].color); }
+      let wallX = side===0 ? py+dist*rdy : px+dist*rdx; wallX-=Math.floor(wallX);
+      const seam=(wallX<0.045||wallX>0.955)?0.58:1;
+      const l=light(dist,x,W,flash)*(side===1?0.7:1)*seam;
+      gctx.fillStyle="rgb("+(Math.min(255,base[0]*l)|0)+","+(Math.min(255,base[1]*l)|0)+","+(Math.min(255,base[2]*l)|0)+")";
+      if(y0<0)y0=0; if(y1>H)y1=H;
+      gctx.fillRect(x,y0,COLW,y1-y0);
+    }
+
+    /* sprites: NPCs, interactuables y props sólidos */
+    const list=[];
+    for(let i=0;i<NPCS.length;i++){const n=NPCS[i]; list.push({x:n.x/TILE,y:n.y/TILE,k:"npc",c:n.color||"#2ee6c8"});}
+    for(let i=0;i<INTERACTABLES.length;i++){const it=INTERACTABLES[i]; list.push({x:it.x/TILE,y:it.y/TILE,k:"it"});}
+    for(let i=0;i<PROPS.length;i++){const pr=PROPS[i]; if(!pr.solid)continue; list.push({x:(pr.x+pr.w/2)/TILE,y:(pr.y+pr.h/2)/TILE,k:"prop"});}
+    const inv=1/(plx*dyv - dxv*ply);
+    let arr=list.map(s=>({s,d:(px-s.x)**2+(py-s.y)**2})).filter(o=>o.d<150).sort((a,b)=>b.d-a.d);
+    if(arr.length>46) arr=arr.slice(arr.length-46);   // solo los ~46 más cercanos
+    for(let ai=0; ai<arr.length; ai++){
+      const s=arr[ai].s, d=arr[ai].d;
+      const rx=s.x-px, ry=s.y-py;
+      const tx=inv*(dyv*rx - dxv*ry), ty=inv*(-ply*rx + plx*ry);
+      if(ty<=0.3) continue;
+      const scr=(W/2)*(1+tx/ty);
+      const cfg = s.k==="npc"?{sc:0.95,yo:0.0,ar:0.5}: s.k==="it"?{sc:0.72,yo:0.05,ar:0.5}:{sc:0.5,yo:0.24,ar:0.9};
+      const sh=Math.min(H*3, Math.abs(H/ty)*cfg.sc)|0, sw=(sh*cfg.ar)|0;
+      const dy0=((H-sh)/2 + H*cfg.yo)|0, dx0=(scr-sw/2)|0;
+      const dd=Math.sqrt(d), cone=Math.max(0,1-Math.abs(scr-W/2)/(W*0.52));
+      let l = flash ? 0.34+Math.pow(cone,1.3)*Math.exp(-dd*0.11)*1.4 : 0.32+Math.exp(-dd*0.16)*0.4;
+      l=Math.max(0.2,Math.min(1,l));
+      const tc=texFor(s.k, s.c);
+      gctx.globalAlpha=l;                               // shading barato (sin filter)
+      for(let x=0;x<sw;x+=1){
+        const col=dx0+x; if(col<0||col>=W) continue;
+        if(ty>=zb[col]) continue;
+        gctx.drawImage(tc,(x/sw*tc.width)|0,0,1,tc.height, col,dy0,1,sh);
+      }
+      gctx.globalAlpha=1;
+    }
+
+    /* viñeta / oscuridad */
+    const vg=gctx.createRadialGradient(W/2,H/2,H*0.25,W/2,H/2,H*0.9);
+    vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,"+(flash?0.4:0.62)+")");
+    gctx.fillStyle=vg; gctx.fillRect(0,0,W,H);
+
+    /* mira */
+    gctx.strokeStyle="rgba(46,230,200,.5)"; gctx.lineWidth=1;
+    gctx.beginPath(); gctx.arc(W/2,H/2,7,0,6.28); gctx.stroke();
+    gctx.beginPath(); gctx.moveTo(W/2,H/2-11); gctx.lineTo(W/2,H/2-4); gctx.moveTo(W/2,H/2+4); gctx.lineTo(W/2,H/2+11);
+    gctx.moveTo(W/2-11,H/2); gctx.lineTo(W/2-4,H/2); gctx.moveTo(W/2+4,H/2); gctx.lineTo(W/2+11,H/2); gctx.stroke();
+
+    if(!hintShown){ hintShown=true; if(typeof toast==="function") toast("VISTA","Primera persona · mirá con el mouse · V cambia de vista","ok"); }
+  }
+
+  /* envolver render sin romper el original */
+  const _origRender = render;
+  render = function(){
+    if (G.fp && G.mode !== "menu" && G.mode !== "map") { try { renderFP(); } catch(e){ G.fp=false; return _origRender.apply(this,arguments);} return; }
+    return _origRender.apply(this, arguments);
+  };
+
+  /* mirar con el mouse (pointer lock) */
+  const gcvs = gctx && gctx.canvas;
+  if (gcvs){
+    gcvs.addEventListener("click", ()=>{ if(G.fp && G.mode==="playing" && document.pointerLockElement!==gcvs && gcvs.requestPointerLock) gcvs.requestPointerLock(); });
+    window.addEventListener("mousemove", (e)=>{ if(G.fp && G.mode==="playing" && document.pointerLockElement===gcvs){ G.player.dir += e.movementX*0.0026; } });
+  }
+
+  /* V alterna la vista */
+  window.addEventListener("keydown", (e)=>{
+    if(e.key==="v" || e.key==="V"){
+      G.fp=!G.fp;
+      if(G.fp){ if(gcvs && G.mode==="playing" && gcvs.requestPointerLock) gcvs.requestPointerLock(); if(typeof toast==="function") toast("VISTA","Primera persona","ok"); }
+      else { if(document.exitPointerLock) document.exitPointerLock(); if(typeof toast==="function") toast("VISTA","Vista de arriba","notify"); }
+    }
+  });
+})();
 </script>
 </body>
 </html>
