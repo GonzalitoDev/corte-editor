@@ -17,4 +17,7 @@
   <url><loc>https://taller-multiverse-nine.vercel.app/ctf/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://taller-multiverse-nine.vercel.app/garca/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
   <url><loc>https://taller-multiverse-nine.vercel.app/garita/</loc><changefreq>monthly</changefreq><priority>0.6</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/acerca/</loc><changefreq>monthly</changefreq><priority>0.4</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/terminos/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
+  <url><loc>https://taller-multiverse-nine.vercel.app/privacidad/</loc><changefreq>yearly</changefreq><priority>0.3</priority></url>
 </urlset>
