@@ -5235,15 +5235,28 @@ if (document.readyState === "loading") {
     vg.addColorStop(0,"rgba(0,0,0,0)"); vg.addColorStop(1,"rgba(0,0,0,"+(flash?0.4:0.62)+")");
     gctx.fillStyle=vg; gctx.fillRect(0,0,W,H);
 
-    /* mira */
-    gctx.strokeStyle="rgba(46,230,200,.5)"; gctx.lineWidth=1;
-    gctx.beginPath(); gctx.arc(W/2,H/2,7,0,6.28); gctx.stroke();
+    /* mira (ámbar si hay algo cerca para usar) */
+    const hasNear = !!G.near;
+    gctx.strokeStyle = hasNear ? "rgba(255,176,32,.95)" : "rgba(46,230,200,.5)";
+    gctx.lineWidth = hasNear ? 1.6 : 1;
+    gctx.beginPath(); gctx.arc(W/2,H/2,hasNear?9:7,0,6.28); gctx.stroke();
     gctx.beginPath(); gctx.moveTo(W/2,H/2-11); gctx.lineTo(W/2,H/2-4); gctx.moveTo(W/2,H/2+4); gctx.lineTo(W/2,H/2+11);
     gctx.moveTo(W/2-11,H/2); gctx.lineTo(W/2-4,H/2); gctx.moveTo(W/2+4,H/2); gctx.lineTo(W/2+11,H/2); gctx.stroke();
 
-    if(G.mode==="playing" && gctx.canvas && document.pointerLockElement!==gctx.canvas){
-      gctx.fillStyle="rgba(46,230,200,.85)"; gctx.font="13px 'Consolas',monospace"; gctx.textAlign="center";
-      gctx.fillText("CLIC PARA MIRAR CON EL MOUSE", W/2, H*0.66); gctx.textAlign="left";
+    /* cartel de interacción en 3D */
+    if(G.near && G.mode==="playing"){
+      const o=G.near.o||{};
+      const label = G.near.kind==="npc" ? ("HABLAR CON "+String(o.name||"operario").toUpperCase())
+                  : G.near.kind==="repair" ? "REPARAR"
+                  : String(o.label||"Usar").toUpperCase();
+      gctx.font="bold 15px 'Consolas',monospace"; gctx.textAlign="center";
+      const txt="[ E ]  "+label, tw=gctx.measureText(txt).width+24, bx=W/2-tw/2, by=H*0.70-15;
+      gctx.fillStyle="rgba(8,12,16,.72)"; gctx.fillRect(bx,by,tw,27);
+      gctx.strokeStyle="rgba(255,176,32,.6)"; gctx.lineWidth=1; gctx.strokeRect(bx,by,tw,27);
+      gctx.fillStyle="rgba(255,200,90,1)"; gctx.fillText(txt,W/2,by+19); gctx.textAlign="left";
+    } else if(G.mode==="playing" && gctx.canvas && document.pointerLockElement!==gctx.canvas){
+      gctx.fillStyle="rgba(46,230,200,.8)"; gctx.font="13px 'Consolas',monospace"; gctx.textAlign="center";
+      gctx.fillText("MANTENÉ CLIC Y MOVÉ EL MOUSE PARA MIRAR", W/2, H*0.68); gctx.textAlign="left";
     }
 
     if(!hintShown){ hintShown=true; if(typeof toast==="function") toast("VISTA","Primera persona · clic y mirá con el mouse · V cambia de vista","ok"); }
@@ -5258,18 +5271,19 @@ if (document.readyState === "loading") {
 
   /* mirar con el mouse (pointer lock) */
   const gcvs = gctx && gctx.canvas;
-  function reqLook(){
-    if(G.fp && G.mode==="playing" && gcvs && document.pointerLockElement!==gcvs && gcvs.requestPointerLock){
-      try{ gcvs.requestPointerLock(); }catch(e){}
-    }
-  }
-  document.addEventListener("click", reqLook);
-  document.addEventListener("pointerdown", reqLook);
+  let dragging=false, lastMX=0;
+  function sens(){ return (G.settings && G.settings.sens ? G.settings.sens/60 : 1) * 0.0024; }
+  document.addEventListener("pointerdown", (e)=>{
+    if(!(G.fp && G.mode==="playing")) return;
+    dragging=true; lastMX=e.clientX;
+    if(gcvs && document.pointerLockElement!==gcvs && gcvs.requestPointerLock){ try{ gcvs.requestPointerLock(); }catch(x){} }
+  });
+  window.addEventListener("pointerup", ()=>{ dragging=false; });
+  window.addEventListener("pointercancel", ()=>{ dragging=false; });
   window.addEventListener("mousemove", (e)=>{
-    if(G.fp && document.pointerLockElement===gcvs){
-      const sens = (G.settings && G.settings.sens ? G.settings.sens/60 : 1) * 0.0024;
-      G.player.dir += e.movementX * sens;
-    }
+    if(!G.fp) return;
+    if(document.pointerLockElement===gcvs){ G.player.dir += (e.movementX||0)*sens(); }
+    else if(dragging && G.mode==="playing"){ G.player.dir += (e.clientX-lastMX)*sens(); lastMX=e.clientX; }
   });
 
   /* V alterna la vista */
